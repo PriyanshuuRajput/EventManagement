@@ -3,6 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domains.Entities
 {
+    public enum EventStatus
+    {
+        Pending = 0,
+        Approved = 1,
+        Rejected = 2
+    }
     public class Event
     {
         [Key]
@@ -36,5 +42,17 @@ namespace Domains.Entities
 
         // 🔗 Optional: Seats or bookings related to this event
         public ICollection<Seat>? Seats { get; set; }
+
+        public string ManagerId { get; set; } = string.Empty;
+        public string ManagerName { get; set; } = string.Empty;
+
+        public EventStatus Status { get; set; } = EventStatus.Pending;
+
+        public string? AdminNote { get; set; }
+
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? ApprovedAt { get; set; }
     }
 }

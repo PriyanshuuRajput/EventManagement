@@ -5,10 +5,20 @@ namespace Applications.Interfaces.IService
     public interface IEventService
     {
         Task<IEnumerable<EventDto>> GetAllEventsAsync();
-        Task<EventDto?> GetEventByIdAsync(int id);         // ✅ Guid
+        Task<EventDto?> GetEventByIdAsync(int id);
         Task AddEventAsync(EventDto dto);
-        Task UpdateEventAsync(int id, EventDto dto);       // ✅ Guid + same params as service
-        Task DeleteEventAsync(int id);                     // ✅ Guid
-        Task<IEnumerable<SeatDto>> GetSeatsByEventIdAsync(int eventId); // ✅ Guid
+        Task UpdateEventAsync(int id, EventDto dto);
+        Task DeleteEventAsync(int id);
+        Task<IEnumerable<SeatDto>> GetSeatsByEventIdAsync(int eventId);
+        Task<EventDto> CreateEventAsync(EventDto dto, string managerId, string managerName);
+        //Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId);
+
+        // 👨‍💼 Admin
+        Task<IEnumerable<EventDto>> GetPendingEventsAsync();
+        Task ApproveEventAsync(int eventId);
+        Task RejectEventAsync(int eventId, EventRejectDto dto);
+
+        // 👤 User
+        Task<IEnumerable<EventDto>> GetApprovedEventsAsync();
     }
 }

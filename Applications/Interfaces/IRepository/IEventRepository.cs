@@ -12,5 +12,13 @@ namespace Applications.Interfaces.IRepository
         Task DeleteAsync(int id);
 
         Task<bool> EventExistsAsync(int eventId);
+
+        //Event Workflow Methods
+
+        Task<IEnumerable<Event>> GetPendingEventsAsync();
+        Task<IEnumerable<Event>> GetApprovedEventsAsync();
+        Task<IEnumerable<Event>> GetRejectedEventsAsync();
+        Task<IEnumerable<Event>> GetEventsByManagerByIdAsync(string managerId);
+
     }
 }

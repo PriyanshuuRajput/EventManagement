@@ -86,5 +86,49 @@ namespace Infrastructures.Repository
         {
             return await _context.Events.AnyAsync(e => e.Id == eventId);
         }
+
+        // ✅ Get events created by a specific Organizer
+        public async Task<IEnumerable<Event>> GetEventsByManagerByIdAsync(string organizerId)
+        {
+            return await _context.Events
+                .Where(e => e.ManagerId == organizerId)
+                .Include(e => e.Venue)
+                    .ThenInclude(v => v.City)
+                .OrderByDescending(e => e.CreatedAt)
+                .ToListAsync();
+        }
+
+        // Get events pending approval (for Admin)
+        public async Task<IEnumerable<Event>> GetPendingEventsAsync()
+        {
+            return await _context.Events
+                .Where(e => e.Status == EventStatus.Pending)
+                .Include(e => e.Venue)
+                    .ThenInclude(v => v.City)
+                .OrderBy(e => e.CreatedAt)
+                .ToListAsync();
+        }
+
+        // Get approved events (for Users)
+        public async Task<IEnumerable<Event>> GetApprovedEventsAsync()
+        {
+            return await _context.Events
+                .Where(e => e.Status == EventStatus.Approved)
+                .Include(e => e.Venue)
+                    .ThenInclude(v => v.City)
+                .OrderByDescending(e => e.ShowDate)
+                .ToListAsync();
+        }
+
+        // Get rejected events (for Admin/Organizer)
+        public async Task<IEnumerable<Event>> GetRejectedEventsAsync()
+        {
+            return await _context.Events
+                .Where(e => e.Status == EventStatus.Rejected)
+                .Include(e => e.Venue)
+                    .ThenInclude(v => v.City)
+                .OrderByDescending(e => e.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

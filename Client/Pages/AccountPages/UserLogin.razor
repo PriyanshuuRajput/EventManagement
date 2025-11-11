@@ -1,0 +1,74 @@
+﻿
+@using Applications.Dto.AccountDto
+@inherits LoginBase
+
+<EditForm Model="@loginModel" OnValidSubmit="@HandleLoginForm">
+    <DataAnnotationsValidator />
+
+    <button type="button" class="btn-close position-absolute top-0 end-0 m-3"
+            aria-label="Close" @onclick="OnCancelClicked"></button>
+
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Username / Email</label>
+        <div class="input-group">
+            <span class="input-group-text bg-white">
+                <i class="bi bi-envelope-fill"></i>
+            </span>
+            <InputText class="form-control" placeholder="Enter username or Email"
+                       @bind-Value="loginModel.Identifier" />
+        </div>
+        <ValidationMessage For="@(() => loginModel.Identifier)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Password</label>
+        <div class="input-group">
+            <span class="input-group-text bg-white">
+                <i class="bi bi-lock-fill"></i>
+            </span>
+            <InputText type="password" class="form-control" placeholder="Enter password"
+                       @bind-Value="loginModel.Password" />
+        </div>
+        <ValidationMessage For="@(() => loginModel.Password)" />
+    </div>
+
+    <button type="submit" class="btn btn-danger w-100 mb-2">
+        <i class="bi bi-box-arrow-in-right me-2"></i> Login
+    </button>
+
+    <div class="text-center">
+        <span class="text-muted small">Don't have an account?</span>
+        <a href="javascript:void(0)"
+           class="fw-semibold text-decoration-none text-primary ms-1"
+           @onclick="async () => await OnSwitchToSignup.InvokeAsync()">
+            Sign Up
+        </a>
+    </div>
+
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger mt-3 small text-center">@errorMessage</div>
+    }
+</EditForm>
+
+@code {
+    [Parameter] public EventCallback OnSuccess { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnSwitchToSignup { get; set; }
+
+
+    private async Task HandleLoginForm()
+    {
+        var success = await LoginAsync("https://localhost:7239/api/Account/login", "/");
+        if (success)
+        {
+            if (OnSuccess.HasDelegate)
+                await OnSuccess.InvokeAsync();
+        }
+    }
+
+    private async Task OnCancelClicked() => await OnCancel.InvokeAsync();
+}
+

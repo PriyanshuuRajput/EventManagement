@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Domains.Entities;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace Applications.Dto
@@ -25,12 +26,12 @@ namespace Applications.Dto
         [StringLength(50)]
         public string Language { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Event duration is required.")]
+        //[Required(ErrorMessage = "Event duration is required.")]
         public TimeSpan Duration { get; set; } = TimeSpan.FromHours(1);
 
 
-        [Required(ErrorMessage = "Show date is required.")]
-        [DataType(DataType.DateTime)]
+        //[Required(ErrorMessage = "Show date is required.")]
+        //[DataType(DataType.DateTime)]
         public DateTime ShowDate { get; set; }
         public int VenueId { get; set; }
 
@@ -45,8 +46,8 @@ namespace Applications.Dto
         [Range(0, 10000, ErrorMessage = "Ticket price must be between 0 and 10,000.")]
         public decimal TicketPrice { get; set; }
 
-        [StringLength(500, ErrorMessage = "Image URL cannot exceed 500 characters.")]
-        [DataType(DataType.ImageUrl)]
+        //[StringLength(500, ErrorMessage = "Image URL cannot exceed 500 characters.")]
+        //[DataType(DataType.ImageUrl)]
         public string ImageUrl { get; set; } = string.Empty;
 
         public IFormFile? ImageFile { get; set; }
@@ -54,5 +55,14 @@ namespace Applications.Dto
         public int TotalTickets { get; set; } = 0;
         public int SoldTickets { get; set; } = 0;
 
+
+        public string ManagerId { get; set; } = string.Empty;
+        public string ManagerName { get; set; } = string.Empty;
+
+        public EventStatus Status { get; set; } = EventStatus.Pending;
+        public string? AdminNote { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ApprovedAt { get; set; }
     }
 }

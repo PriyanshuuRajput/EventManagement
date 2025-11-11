@@ -140,5 +140,12 @@ namespace EventBooking_TicketManagement_API.Controllers
             await _eventService.DeleteEventAsync(id);
             return NoContent();
         }
+
+        [HttpGet("approved")]
+        public async Task<IActionResult> GetApprovedEvents()
+        {
+            var events = await _eventService.GetApprovedEventsAsync();
+            return Ok(events);
+        }
     }
 }
