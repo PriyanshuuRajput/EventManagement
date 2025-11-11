@@ -10,8 +10,9 @@ namespace Applications.Interfaces.IService
         Task UpdateEventAsync(int id, EventDto dto);
         Task DeleteEventAsync(int id);
         Task<IEnumerable<SeatDto>> GetSeatsByEventIdAsync(int eventId);
-        Task<EventDto> CreateEventAsync(EventDto dto, string managerId, string managerName);
-        //Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId);
+        Task<EventDto> CreateEventAsync(ManagerEventDto mdto, string managerId, string managerName);
+
+        Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId);
 
         // 👨‍💼 Admin
         Task<IEnumerable<EventDto>> GetPendingEventsAsync();
@@ -20,5 +21,6 @@ namespace Applications.Interfaces.IService
 
         // 👤 User
         Task<IEnumerable<EventDto>> GetApprovedEventsAsync();
+        //Task <IEnumerable<EventDto>>GetManagerEventsAsync(string managerId);
     }
 }

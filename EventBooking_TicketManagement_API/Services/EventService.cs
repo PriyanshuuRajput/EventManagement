@@ -105,7 +105,8 @@ namespace EventBooking_TicketManagement_API.Services
                 TicketPrice = dto.TicketPrice,
                 ImageUrl = dto.ImageUrl,
 
-                Status = EventStatus.Pending
+                Status = EventStatus.Pending,
+                CreatedAt = DateTime.UtcNow
             };
 
             await _eventRepository.AddAsync(ev);
@@ -204,20 +205,20 @@ namespace EventBooking_TicketManagement_API.Services
             ApprovedAt = e.ApprovedAt
         };
 
-        public async Task<EventDto> CreateEventAsync(EventDto dto, string managerId, string managerName)
+        public async Task<EventDto> CreateEventAsync(ManagerEventDto mdto, string managerId, string managerName)
         {
             var ev = new Event
             {
-                Title = dto.Title,
-                EventType = dto.EventType,
-                Description = dto.Description,
-                Genre = dto.Genre,
-                Language = dto.Language,
-                Duration = dto.Duration,
-                ShowDate = dto.ShowDate,
-                TicketPrice = dto.TicketPrice,
-                //ImageUrl = dto.ImageUrl,
-                VenueId = dto.VenueId,
+                Title = mdto.Title,
+                EventType = mdto.EventType,
+                Description = mdto.Description,
+                Genre = mdto.Genre,
+                Language = mdto.Language,
+                Duration = mdto.Duration,
+                ShowDate = mdto.ShowDate,
+                TicketPrice = mdto.TicketPrice,
+                ImageUrl = "",
+                VenueId = mdto.VenueId,
                 ManagerId = managerId,
                 ManagerName = managerName,
                 Status = EventStatus.Pending,
@@ -225,22 +226,39 @@ namespace EventBooking_TicketManagement_API.Services
             };
 
             await _eventRepository.AddAsync(ev);
-            return dto;
+            return new EventDto
+            {
+                Id = ev.Id,
+                Title = ev.Title,
+                EventType = ev.EventType,
+                Description = ev.Description,
+                Genre = ev.Genre,
+                Language = ev.Language,
+                Duration = ev.Duration,
+                ShowDate = ev.ShowDate,
+                TicketPrice = ev.TicketPrice,
+                ManagerId = ev.ManagerId,
+                ManagerName = ev.ManagerName,
+                Status = ev.Status,
+                CreatedAt = ev.CreatedAt,
+
+            };
         }
-        //public Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId)
-        //{
-        //    var events = await _eventRepository.GetEventsByManagerAsync(managerId);
-        //    return events.Select(e => new EventDto
-        //    {
-        //        Id = e.Id,
-        //        Title = e.Title,
-        //        Description = e.Description,
-        //        VenueName = e.Venue?.VenueName ?? string.Empty,
-        //        Status = e.Status,
-        //        CreatedAt = e.CreatedAt,
-        //        ShowDate = e.ShowDate
-        //    });
-        //}
+
+        public async Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId)
+        {
+            var events = await _eventRepository.GetEventsByManagerByIdAsync(managerId);
+            return events.Select(e => new EventDto
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Description = e.Description,
+                VenueName = e.Venue?.VenueName ?? string.Empty,
+                Status = e.Status,
+                CreatedAt = e.CreatedAt,
+                ShowDate = e.ShowDate
+            });
+        }
     }
 }
 
