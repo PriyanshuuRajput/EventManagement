@@ -497,6 +497,7 @@
                             <!-- Body -->
                             <div class="modal-body bg-light">
                                 <EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">
+                                    <ValidationSummary/>
                                     <DataAnnotationsValidator />
 
                                     <!-- General Info -->
