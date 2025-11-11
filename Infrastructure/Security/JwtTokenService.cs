@@ -21,8 +21,10 @@ namespace Infrastructure.Security
         {
             var claims = new[]
             {
+                //new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
                 new Claim(ClaimTypes.Name, admin.Username),
-                new Claim(ClaimTypes.Role, admin.Role)
+                new Claim(ClaimTypes.Role, admin.Role),
+                new Claim(ClaimTypes.Email, admin.Email ?? string.Empty)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));

@@ -1,152 +1,139 @@
-﻿@page "/create"
+﻿@page "/manager-create"
+@inject HttpClient Http
+@inject NavigationManager Nav
 
-<h3>Organizer</h3>
+<h3 class="text-danger fw-bold mb-4">
+    <i class="bi bi-calendar-plus me-2"></i> Create New Event
+</h3>
 
-
-<EditForm Model="_eventDto" OnValidSubmit="SubmitEvent">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div class="form-group">
-        <label>Title</label>
-        <InputText @bind-Value="_eventDto.Title" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label>Event Type</label>
-        <InputText @bind-Value="_eventDto.EventType" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Description</label>
-        <InputTextArea @bind-Value="_eventDto.Description" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Genre</label>
-        <InputText @bind-Value="_eventDto.Genre" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Language</label>
-        <InputText @bind-Value="_eventDto.Language" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Duration (hh:mm:ss)</label>
-        <InputText @bind-Value="_durationString" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Show Date</label>
-        <InputDate @bind-Value="_eventDto.ShowDate" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label>Venue Name</label>
-        <InputText @bind-Value="_eventDto.VenueName" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>City Name</label>
-        <InputText @bind-Value="_eventDto.CityName" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Ticket Price</label>
-        <InputNumber @bind-Value="_eventDto.TicketPrice" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Event Image</label>
-        <InputFile OnChange="OnFileSelected" />
-    </div>
-
-    @if (!string.IsNullOrEmpty(_imagePreview))
-    {
-    <p>Image Preview:</p>
-    <img src="@_imagePreview" style="max-width:300px;" />
-    }
-
-    <button type="submit" class="btn btn-primary mt-2">Submit Event</button>
-</EditForm>
-
-@if(!string.IsNullOrEmpty(_statusMessage))
+@if (isSubmitting)
 {
-    <div class="alert alert-info mt-2">@_statusMessage</div>
+    <div class="text-center">
+        <div class="spinner-border text-danger" role="status">
+            <span class="visually-hidden">Submitting...</span>
+        </div>
+        <p class="mt-2 text-muted">Submitting event, please wait...</p>
+    </div>
+}
+else
+{
+    <EditForm Model="@eventModel" OnValidSubmit="@HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <!-- Title -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Event Title</label>
+            <InputText class="form-control" @bind-Value="eventModel.Title" />
+        </div>
+
+        <!-- Event Type -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Event Type</label>
+            <InputText class="form-control" @bind-Value="eventModel.EventType" />
+        </div>
+
+        <!-- Description -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Description</label>
+            <InputTextArea class="form-control" @bind-Value="eventModel.Description" rows="3" />
+        </div>
+
+        <!-- Genre -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Genre</label>
+            <InputText class="form-control" @bind-Value="eventModel.Genre" />
+        </div>
+
+        <!-- Language -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Language</label>
+            <InputText class="form-control" @bind-Value="eventModel.Language" />
+        </div>
+
+        <!-- Duration -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Duration (hours)</label>
+            <InputNumber class="form-control" @bind-Value="durationHours" />
+        </div>
+
+        <!-- Show Date -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Event Date & Time</label>
+            <InputDate class="form-control" @bind-Value="eventModel.ShowDate" />
+        </div>
+
+        <!-- Venue -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Venue</label>
+            <InputNumber class="form-control" @bind-Value="eventModel.VenueId" />
+            <div class="form-text text-muted">Enter Venue ID for now (will replace with dropdown)</div>
+        </div>
+
+        <!-- Ticket Price -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Ticket Price</label>
+            <InputNumber class="form-control" @bind-Value="eventModel.TicketPrice" />
+        </div>
+
+        <!-- Image -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Image URL</label>
+            <InputText class="form-control" @bind-Value="eventModel.ImageUrl" />
+        </div>
+
+        <button type="submit" class="btn btn-danger w-100 mt-3 fw-semibold">
+            <i class="bi bi-cloud-upload me-2"></i> Submit Event for Approval
+        </button>
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success mt-3">@successMessage</div>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger mt-3">@errorMessage</div>
+        }
+    </EditForm>
 }
 
 @code {
+    private EventDto eventModel = new();
+    private bool isSubmitting = false;
+    private string? successMessage;
+    private string? errorMessage;
+    private int durationHours = 1;
 
-    private EventDto _eventDto = new EventDto();
-    private IBrowserFile? _selectedFile;
-    private string? _imagePreview;
-    private string? _statusMessage;
-    private string _durationString = "30:00";
-
-    private void OnFileSelected(InputFileChangeEventArgs e)
+    private async Task HandleSubmit()
     {
-        _selectedFile = e.File;
-        var format = "image/png"; // you can handle multiple types
-
-        using var stream = _selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-        var buffer = new byte[_selectedFile.Size];
-        stream.Read(buffer, 0, buffer.Length);
-        _imagePreview = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
-    }
-
-    private async Task SubmitEvent()
-    {
-        // Parse duration string to TimeSpan
-        if (TimeSpan.TryParse(_durationString, out var duration))
-        {
-            _eventDto.Duration = duration;
-        }
-        else
-        {
-            _statusMessage = "Invalid duration format.";
-            return;
-        }
-
-        var content = new MultipartFormDataContent();
-
-        content.Add(new StringContent(_eventDto.Title), "Title");
-        content.Add(new StringContent(_eventDto.EventType), "EventType");
-        content.Add(new StringContent(_eventDto.Description ?? ""), "Description");
-        content.Add(new StringContent(_eventDto.Genre ?? ""), "Genre");
-        content.Add(new StringContent(_eventDto.Language ?? ""), "Language");
-        content.Add(new StringContent(_eventDto.Duration.ToString()), "Duration");
-        content.Add(new StringContent(_eventDto.VenueName ?? ""), "VenueName");
-        content.Add(new StringContent(_eventDto.CityName ?? ""), "CityName");
-        content.Add(new StringContent(_eventDto.TicketPrice.ToString()), "TicketPrice");
-
-        if (_selectedFile != null)
-        {
-            var stream = _selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            content.Add(new StreamContent(stream), "ImageFile", _selectedFile.Name);
-        }
-
         try
         {
-            var response = await Http.PostAsync("https://localhost:7239/api/Events/create", content);
+            isSubmitting = true;
+            successMessage = errorMessage = null;
+            eventModel.Duration = TimeSpan.FromHours(durationHours);
+
+            var response = await Http.PostAsJsonAsync("https://localhost:7239/api/ManagerEvent/create", eventModel);
+
             if (response.IsSuccessStatusCode)
             {
-                _statusMessage = "Event submitted successfully!";
-                var createdEvent = await response.Content.ReadFromJsonAsync<EventDto>();
-                if (createdEvent != null)
-                {
-                    _imagePreview = createdEvent.ImageUrl;
-                }
+                successMessage = "Event submitted successfully! Awaiting admin approval.";
+                await Task.Delay(1500);
+                Nav.NavigateTo("/events");
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                _statusMessage = $"Error: {error}";
+                errorMessage = $"Failed to submit event: {error}";
             }
         }
         catch (Exception ex)
         {
-            _statusMessage = $"Exception: {ex.Message}";
+            errorMessage = "Error: " + ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
         }
     }
-
-
 }

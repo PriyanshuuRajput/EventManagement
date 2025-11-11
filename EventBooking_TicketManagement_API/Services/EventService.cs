@@ -20,6 +20,19 @@ namespace EventBooking_TicketManagement_API.Services
 
             return events.Select(ev => new EventDto
             {
+                //Id = ev.Id,
+                //Title = ev.Title,
+                //EventType = ev.EventType,
+                //Description = ev.Description,
+                //Genre = ev.Genre,
+                //Language = ev.Language,
+                //Duration = ev.Duration,
+                //ShowDate = ev.ShowDate,
+                ////VenueId = ev.VenueId,
+                //VenueName = ev.Venue?.VenueName ?? string.Empty,
+                //CityName = ev.Venue?.City?.CityName ?? string.Empty,
+                //TicketPrice = ev.TicketPrice,
+                //ImageUrl = ev.ImageUrl
                 Id = ev.Id,
                 Title = ev.Title,
                 EventType = ev.EventType,
@@ -28,11 +41,12 @@ namespace EventBooking_TicketManagement_API.Services
                 Language = ev.Language,
                 Duration = ev.Duration,
                 ShowDate = ev.ShowDate,
-                //VenueId = ev.VenueId,
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 CityName = ev.Venue?.City?.CityName ?? string.Empty,
                 TicketPrice = ev.TicketPrice,
-                ImageUrl = ev.ImageUrl
+                ImageUrl = ev.ImageUrl,
+                Status = ev.Status,
+                ManagerName = ev.ManagerName
             });
         }
 
@@ -43,6 +57,20 @@ namespace EventBooking_TicketManagement_API.Services
 
             return new EventDto
             {
+                //Id = ev.Id,
+                //Title = ev.Title,
+                //EventType = ev.EventType,
+                //Description = ev.Description,
+                //Genre = ev.Genre,
+                //Language = ev.Language,
+                //Duration = ev.Duration,
+                //ShowDate = ev.ShowDate,
+                //VenueId = ev.VenueId,
+                //VenueName = ev.Venue?.VenueName ?? string.Empty,
+                //CityName = ev.Venue?.City?.CityName ?? string.Empty,
+                //TicketPrice = ev.TicketPrice,
+                //ImageUrl = ev.ImageUrl
+
                 Id = ev.Id,
                 Title = ev.Title,
                 EventType = ev.EventType,
@@ -55,7 +83,10 @@ namespace EventBooking_TicketManagement_API.Services
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 CityName = ev.Venue?.City?.CityName ?? string.Empty,
                 TicketPrice = ev.TicketPrice,
-                ImageUrl = ev.ImageUrl
+                ImageUrl = ev.ImageUrl,
+                Status = ev.Status,
+                ManagerName = ev.ManagerName,
+                AdminNote = ev.AdminNote
             };
         }
 
@@ -72,7 +103,9 @@ namespace EventBooking_TicketManagement_API.Services
                 ShowDate = dto.ShowDate,
                 VenueId = dto.VenueId,
                 TicketPrice = dto.TicketPrice,
-                ImageUrl = dto.ImageUrl
+                ImageUrl = dto.ImageUrl,
+
+                Status = EventStatus.Pending
             };
 
             await _eventRepository.AddAsync(ev);
@@ -116,5 +149,98 @@ namespace EventBooking_TicketManagement_API.Services
                 EventId = s.EventId
             });
         }
+
+        public async Task<IEnumerable<EventDto>> GetPendingEventsAsync()
+        {
+            var events = await _eventRepository.GetPendingEventsAsync();
+            return events.Select(MapToDto);
+        }
+
+        public async Task ApproveEventAsync(int eventId)
+        {
+            var ev = await _eventRepository.GetByIdAsync(eventId)
+                ?? throw new Exception("Event not found");
+
+            ev.Status = EventStatus.Approved;
+            ev.ApprovedAt = DateTime.UtcNow;
+            await _eventRepository.UpdateAsync(ev);
+        }
+
+        public async Task RejectEventAsync(int eventId, EventRejectDto dto)
+        {
+            var ev = await _eventRepository.GetByIdAsync(eventId)
+                ?? throw new Exception("Event not found");
+
+            ev.Status = EventStatus.Rejected;
+            ev.AdminNote = dto.Reason;
+            await _eventRepository.UpdateAsync(ev);
+        }
+
+        // Approved events
+        public async Task<IEnumerable<EventDto>> GetApprovedEventsAsync()
+        {
+            var events = await _eventRepository.GetApprovedEventsAsync();
+            return events.Select(MapToDto);
+        }
+
+        //  Helper Mapper
+        private static EventDto MapToDto(Event e) => new()
+        {
+            Id = e.Id,
+            Title = e.Title,
+            EventType = e.EventType,
+            Description = e.Description,
+            Genre = e.Genre,
+            Language = e.Language,
+            Duration = e.Duration,
+            ShowDate = e.ShowDate,
+            TicketPrice = e.TicketPrice,
+            ImageUrl = e.ImageUrl,
+            VenueName = e.Venue?.VenueName ?? string.Empty,
+            ManagerName = e.ManagerName,
+            Status = e.Status,
+            AdminNote = e.AdminNote,
+            CreatedAt = e.CreatedAt,
+            ApprovedAt = e.ApprovedAt
+        };
+
+        public async Task<EventDto> CreateEventAsync(EventDto dto, string managerId, string managerName)
+        {
+            var ev = new Event
+            {
+                Title = dto.Title,
+                EventType = dto.EventType,
+                Description = dto.Description,
+                Genre = dto.Genre,
+                Language = dto.Language,
+                Duration = dto.Duration,
+                ShowDate = dto.ShowDate,
+                TicketPrice = dto.TicketPrice,
+                //ImageUrl = dto.ImageUrl,
+                VenueId = dto.VenueId,
+                ManagerId = managerId,
+                ManagerName = managerName,
+                Status = EventStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _eventRepository.AddAsync(ev);
+            return dto;
+        }
+        //public Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId)
+        //{
+        //    var events = await _eventRepository.GetEventsByManagerAsync(managerId);
+        //    return events.Select(e => new EventDto
+        //    {
+        //        Id = e.Id,
+        //        Title = e.Title,
+        //        Description = e.Description,
+        //        VenueName = e.Venue?.VenueName ?? string.Empty,
+        //        Status = e.Status,
+        //        CreatedAt = e.CreatedAt,
+        //        ShowDate = e.ShowDate
+        //    });
+        //}
     }
 }
+
