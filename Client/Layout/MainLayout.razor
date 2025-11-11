@@ -1,0 +1,21 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<div class="d-flex flex-column min-vh-100">
+
+    <!-- Top Navbar -->
+    <NavMenu />
+
+        <!-- Page content -->
+        <main class="flex-grow-1 container my-2">
+            @Body
+        </main>
+    
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light text-center py-3 mt-auto">
+        <small>© 2025 EventiGO - All rights reserved.</small>
+    </footer>
+ </div>

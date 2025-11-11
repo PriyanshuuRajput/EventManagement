@@ -1,0 +1,266 @@
+﻿@page "/admin-dashboard"
+@inject AdminService adminService
+@inject IJSRuntime JS
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-secondary mb-0">Dashboard</h3>
+        <button class="btn btn-outline-primary shadow-sm" @onclick="GoToManageEvents">
+            <i class="bi bi-calendar-plus me-1"></i> Manage Events
+        </button>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Left Side: Summary Cards -->
+        <div class="col-lg-8">
+            <div class="d-flex flex-wrap gap-3 mb-4">
+                @foreach (var card in SummaryCards)
+                {
+                    <div class="card-body text-dark p-4 rounded-4 shadow-lg" style="min-width:180px; font-size:1.25rem;">
+                        <i class="@card.Icon me-2" style="font-size:1.6rem;"></i>
+                        @card.Title: @card.Value
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Right Side: Notifications -->
+        <div class="col-lg-4 col-md-12">
+            <div class="card shadow-lg rounded-4 border-0">
+                <div class="card-header bg-danger text-white fw-bold rounded-top-4">
+                    Notifications
+                </div>
+                <div class="card-body p-3" style="max-height: 300px; overflow-y: auto;">
+                    @if (!Notifications.Any())
+                    {
+                        <p class="text-muted text-center my-4">No notifications</p>
+                    }
+                    else
+                    {
+                        @foreach (var note in Notifications)
+                        {
+                            <div class="alert alert-light py-2 mb-2 rounded-3 d-flex justify-content-between align-items-center shadow-sm">
+                                <div>
+                                    @note.Message
+                                    <div class="small text-muted">@note.Date.ToString("dd MMM yyyy")</div>
+                                </div>
+                                <i class="bi bi-bell-fill text-danger"></i>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Events Table -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center text-white bg-danger">
+            <h6 class="fw-bold mb-0">Recent Events</h6>
+            <div class="d-flex align-items-center gap-2">
+                <input class="form-control form-control-sm" placeholder="Search..."
+                       @bind="SearchTerm" @bind:event="oninput" style="max-width:200px;" />
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-hover">
+                    <thead class="table-secondary">
+                        <tr class="text-secondary">
+                            <th>Sr-No</th>
+                            <th>Event</th>
+                            <th>Location</th>
+                            <th>Date</th>
+                            <th>Created By</th>
+                            <th>Created On</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!filteredEvents.Any())
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">No events found</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var evt in filteredEvents.Take(10))
+                            {
+                                <tr>
+                                    <td>@evt.Id</td>
+                                    <td>@evt.Title</td>
+                                    <td>@evt.VenueName</td>
+                                    <td>@evt.ShowDate.ToString("dd MMM yyyy")</td>
+                                    <td>Admin</td>
+                                    <td>@evt.ShowDate.AddDays(-5).ToString("dd MMM yyyy")</td>
+                                    <td>@evt.ShowDate.AddDays(-1).ToString("dd MMM yyyy")</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ongoing Events Accordion -->
+    <div class="mb-3">
+        <div class="card shadow-sm bg-secondary text-white rounded-4" style="cursor:pointer;" @onclick="ToggleOngoing">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Ongoing Events</span>
+                <i class="bi bi-chevron-down" style="transition: transform 0.3s; transform: rotate(@(showOngoing ? 180 : 0)deg)"></i>
+            </div>
+        </div>
+
+        <div class="collapse @(showOngoing ? "show" : "") mt-2">
+            @if (OngoingEvents.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var evt in OngoingEvents)
+                    {
+                        <div class="col-md-4 col-sm-6">
+                            <div class="card border-0 shadow-sm rounded-4 h-100">
+                                <img src="@evt.ImageUrl" class="card-img-top rounded-top-4" style="height:180px; object-fit:cover;" alt="@evt.Title" />
+                                <div class="card-body">
+                                    <h5 class="fw-bold text-primary">@evt.Title</h5>
+                                    <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
+                                    <p class="mb-1"><strong>Date:</strong> @evt.ShowDate.ToString("dd MMM yyyy")</p>
+                                    <p class="mb-0"><strong>Price:</strong> @evt.TicketPrice.ToString("C")</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center my-2">No ongoing events</p>
+            }
+        </div>
+    </div>
+
+    <!-- Upcoming Events Accordion -->
+    <div class="mb-3">
+        <div class="card shadow-sm bg-secondary text-white rounded-4" style="cursor:pointer;" @onclick="ToggleUpcoming">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Upcoming Events (Next 10 Days)</span>
+                <i class="bi bi-chevron-down" style="transition: transform 0.3s; transform: rotate(@(showUpcoming ? 180 : 0)deg)"></i>
+            </div>
+        </div>
+
+        <div class="collapse @(showUpcoming ? "show" : "") mt-2">
+            @if (UpcomingEvents.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var evt in UpcomingEvents)
+                    {
+                        <div class="col-md-4 col-sm-6">
+                            <div class="card border-0 shadow-sm rounded-4 h-100">
+                                <img src="@evt.ImageUrl" class="card-img-top rounded-top-4" style="height:180px; object-fit:cover;" alt="@evt.Title" />
+                                <div class="card-body">
+                                    <h5 class="fw-bold text-secondary">@evt.Title</h5>
+                                    <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
+                                    <p class="mb-1"><strong>Date:</strong> @evt.ShowDate.ToString("dd MMM yyyy")</p>
+                                    <p class="mb-0"><strong>Price:</strong> @evt.TicketPrice.ToString("C")</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center my-2">No upcoming events</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<EventDto> Events = new();
+    private List<EventDto> filteredEvents = new();
+    private DateTime? filterDate = null;
+    private string searchTerm = "";
+
+    private bool showOngoing = false;
+    private bool showUpcoming = false;
+
+    private int BookingsCount = 0;
+    private int TicketsSold = 0;
+    private int CurrentEvents = 0;
+
+    private List<EventDto> OngoingEvents => Events.Where(e => e.ShowDate <= DateTime.Today && e.ShowDate.AddDays(1) >= DateTime.Today).ToList();
+    private List<EventDto> UpcomingEvents => Events.Where(e => e.ShowDate > DateTime.Today && e.ShowDate <= DateTime.Today.AddDays(10)).ToList();
+
+    private List<(string Title, string Icon, int Value)> SummaryCards = new();
+
+    private List<(string Message, DateTime Date)> Notifications = new()
+{
+        ("New event added: Music Festival", DateTime.Now.AddHours(-3)),
+        ("Ticket sales reached 50%", DateTime.Now.AddDays(-1)),
+        ("Venue updated: Grand Hall", DateTime.Now.AddDays(-2))
+    };
+
+    //private DotNetObjectReference<Dashboard>? dotNetRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Events = await adminService.GetAllEventsAsync();
+        BookingsCount = 42;
+        TicketsSold = 380;
+        CurrentEvents = Events.Count(e => e.ShowDate >= DateTime.Today);
+
+        SummaryCards = new()
+    {
+        ("Total Events", "bi bi-calendar-event", Events.Count),
+        ("Total Bookings", "bi bi-ticket-detailed", BookingsCount ),
+        ("Current Events", "bi bi-calendar2-event", CurrentEvents),
+        ("Tickets Sold", "bi bi-cash-coin", TicketsSold)
+    };
+
+        filteredEvents = new(Events);
+        ApplyFilters();
+    }
+
+    [JSInvokable]
+    public void OnDateChanged(string selectedDate)
+    {
+        if (DateTime.TryParse(selectedDate, out var dt))
+            filterDate = dt;
+        else
+            filterDate = null;
+
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        filteredEvents = Events
+            .Where(e =>
+                (string.IsNullOrWhiteSpace(searchTerm) || e.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+                (!filterDate.HasValue || e.ShowDate.Date == filterDate.Value.Date)
+            )
+            .OrderByDescending(e => e.ShowDate)
+            .Take(10)
+            .ToList();
+
+        StateHasChanged();
+    }
+
+    private void ToggleOngoing() => showOngoing = !showOngoing;
+    private void ToggleUpcoming() => showUpcoming = !showUpcoming;
+
+    private string SearchTerm
+    {
+        get => searchTerm;
+        set { searchTerm = value; ApplyFilters(); }
+    }
+
+    private void GoToManageEvents()
+    {
+        Navigation.NavigateTo("/manage-events");
+    }
+}

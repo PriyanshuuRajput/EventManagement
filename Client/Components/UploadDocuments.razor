@@ -1,0 +1,70 @@
+﻿@namespace EventBooking.Client.Components
+@using Applications.Dto
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="card shadow-sm border-0 p-4 mb-4">
+    <h4 class="card-title text-primary mb-3">Upload Required Documents</h4>
+
+    <EditForm Model="AccountDto ?? new AccountSetupDto()" OnValidSubmit="HandleNext">
+        <div class="row g-3">
+            <!-- PAN Card -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">PAN Card</label>
+                <InputFile OnChange="OnPanSelected" class="form-control" />
+                @if (AccountDto?.PAnDocument != null)
+                {
+                    <small class="text-success">Selected: @AccountDto.PAnDocument.Name</small>
+                }
+            </div>
+
+            <!-- GST Certificate -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">GST Certificate</label>
+                <InputFile OnChange="OnGSTINSelected" class="form-control" />
+                @if (AccountDto?.GSTINDocument != null)
+                {
+                    <small class="text-success">Selected: @AccountDto.GSTINDocument.Name</small>
+                }
+            </div>
+
+            <!-- Address Proof -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Address Proof</label>
+                <InputFile OnChange="OnAddressProofSelected" class="form-control" />
+                @if (AccountDto?.AddressProof != null)
+                {
+                    <small class="text-success">Selected: @AccountDto.AddressProof.Name</small>
+                }
+            </div>
+
+            <!-- Bank Proof -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Bank Proof</label>
+                <InputFile OnChange="OnBankProofSelected" class="form-control" />
+                @if (AccountDto?.BankProof != null)
+                {
+                    <small class="text-success">Selected: @AccountDto.BankProof.Name</small>
+                }
+            </div>
+        </div>
+
+        <div class="mt-4 text-end">
+            <button type="button" class="btn btn-secondary me-2" @onclick="HandleBack">Back</button>
+            <button type="submit" class="btn btn-outline-primary">Next</button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public AccountSetupDto? AccountDto { get; set; }
+    [Parameter] public EventCallback OnNext { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+
+    private async Task HandleNext() => await OnNext.InvokeAsync();
+    private async Task HandleBack() => await OnBack.InvokeAsync();
+
+    private void OnPanSelected(InputFileChangeEventArgs e) => AccountDto!.PAnDocument = e.File;
+    private void OnGSTINSelected(InputFileChangeEventArgs e) => AccountDto!.GSTINDocument = e.File;
+    private void OnAddressProofSelected(InputFileChangeEventArgs e) => AccountDto!.AddressProof = e.File;
+    private void OnBankProofSelected(InputFileChangeEventArgs e) => AccountDto!.BankProof = e.File;
+}

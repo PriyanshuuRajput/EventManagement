@@ -1,0 +1,41 @@
+﻿@page "/accountsetup"
+@using EventBooking.Client.Components
+@using Applications.Dto
+
+<h3>Account Setup</h3>
+
+<div class="steps mb-3">
+    <span class="@StepClass(1)">1. General Information</span> |
+    <span class="@StepClass(2)">2. Upload Documents</span> |
+    <span class="@StepClass(3)">3. Sign Agreement</span>
+</div>
+
+@switch (_currentStep)
+{
+    case 1:
+        <General AccountDto="_accountDto" OnNext="NextStep" />
+        break;
+    case 2:
+        <UploadDocuments AccountDto="_accountDto" OnNext="NextStep" OnBack="PrevStep" />
+        break;
+    case 3:
+        <SignAgreement AccountDto="_accountDto" OnBack="PrevStep" OnFinish="FinishSetup" />
+        break;
+}
+
+@code {
+    private int _currentStep = 1;
+    private AccountSetupDto _accountDto = new AccountSetupDto();
+
+    private void NextStep() => _currentStep++;
+    private void PrevStep() => _currentStep--;
+
+    private async Task FinishSetup()
+    {
+        // TODO: Call API to save account setup info
+        Console.WriteLine("✅ Account setup completed!");
+        // Example: await Http.PostAsJsonAsync("api/AccountSetup", _accountDto);
+    }
+
+    private string StepClass(int step) => _currentStep == step ? "text-primary fw-bold" : "text-muted";
+}

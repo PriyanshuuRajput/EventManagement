@@ -1,0 +1,1153 @@
+﻿@page "/manage-events"
+@using Applications.Dto
+@inject AdminService AdminService
+@inject Blazored.Toast.Services.IToastService toastService
+
+@using Blazored.Typeahead
+
+<style>
+    /* ====== GLOBAL STYLING ====== */
+    body {
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .nav-pills .nav-link {
+        border-radius: 8px;
+        margin-right: 6px;
+        font-weight: 500;
+    }
+
+        .nav-pills .nav-link.active {
+            background-color: #dc3545 !important;
+            color: #fff !important;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
+
+    /* ====== SIDEBAR ====== */
+    .filter-sidebar {
+        position: sticky;
+        top: 80px;
+        height: auto;
+        overflow-y: auto;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        scrollbar-width: thin;
+    }
+
+        .filter-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .filter-sidebar::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 3px;
+        }
+
+    .filter-section h6 {
+        font-weight: 600;
+        color: #343a40;
+    }
+
+    /* ====== BUTTON STYLES ====== */
+    .btn-outline-danger.active,
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: #fff !important;
+        border-color: #dc3545;
+    }
+
+    .btn-outline-secondary:hover {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+    /* ====== TABLE STYLING ====== */
+    .table thead {
+        background-color: #f1f3f5;
+        color: #495057;
+        font-weight: 600;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f9f9f9;
+        transition: 0.2s ease;
+    }
+
+    .btn-group-sm .btn {
+        border-radius: 6px;
+        padding: 4px 8px;
+        transition: all 0.2s ease;
+    }
+
+    .blazored-typeahead {
+        width: 100%;
+    }
+
+    .blazored-typeahead__input {
+        border-radius: 12px !important;
+        padding: 10px 14px !important;
+        font-size: 0.95rem;
+    }
+
+
+    .card {
+        border-radius: 12px;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .filter-sidebar button.btn-sm {
+        border-radius: 8px;
+    }
+
+    /* ====== FOOTER BANNER ====== */
+    .promo-banner {
+        background: linear-gradient(to right, #fff, #f8f9fa);
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    }
+
+        .promo-banner span {
+            color: #dc3545;
+        }
+
+    /* ====== MODAL ====== */
+    .modal-header {
+        border-bottom: 2px solid #dc3545 !important;
+    }
+</style>
+
+
+<div class="container-fluid px-4">
+
+    <!-- ====== NAV TABS ====== -->
+    <ul class="nav nav-pills mb-4" id="adminTabs">
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "events" ? "active" : "")"
+                    @onclick='() => activeTab = "events"'>
+                Events
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "venues" ? "active" : "")"
+                    @onclick='() => activeTab = "venues"'>
+                Venues
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "cities" ? "active" : "")"
+                    @onclick='() => activeTab = "cities"'>
+                Cities
+            </button>
+        </li>
+    </ul>
+
+
+    <!-- Sidebar -->
+    <div class="row">
+        <div class="col-lg-3 mb-3">
+            <div class="filter-sidebar p-3 shadow-sm bg-white sticky-top" style="top: 80px; border-radius: 12px;">
+                <h5 class="text-danger fw-semibold">Filters</h5>
+                <hr />
+
+                <!-- Date Filter -->
+                <div class="filter-section mb-3">
+                    <h6>Date</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="@GetDateButtonClass("today")" @onclick='() => SetDateFilter("today")'>Today</button>
+                        <button class="@GetDateButtonClass("tomorrow")" @onclick='() => SetDateFilter("tomorrow")'>Tomorrow</button>
+                        <button class="@GetDateButtonClass("weekend")" @onclick='() => SetDateFilter("weekend")'>Weekend</button>
+                    </div>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="filter-section mb-3">
+                    <h6>EventType</h6>
+                    @foreach (var category in categories)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="@category" @onchange="e => ToggleCategory(category)">
+                            <label class="form-check-label small" for="@category">@category</label>
+                        </div>
+                    }
+                </div>
+
+                <!-- City Filter -->
+                <div class="filter-section mb-3">
+                    <h6>City</h6>
+                    <select class="form-select form-select-sm" @onchange="FilterCity">
+                        <option value="">All Cities</option>
+                        @foreach (var city in cities)
+                        {
+                            <option value="@city">@city</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="filter-section mb-3">
+                    <h6>Ticket Price</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="@GetPriceButtonClass(0, 0)" @onclick="() => SetPriceRange(0, 0)">Free</button>
+                        <button class="@GetPriceButtonClass(1, 500)" @onclick="() => SetPriceRange(1, 500)">₹0–500</button>
+                        <button class="@GetPriceButtonClass(501, 2000)" @onclick="() => SetPriceRange(501, 2000)">₹501–2000</button>
+                        <button class="@GetPriceButtonClass(2001, 5000)" @onclick="() => SetPriceRange(2001, 5000)">₹2001–5000</button>
+                        <button class="@GetPriceButtonClass(5001, 100000)" @onclick="() => SetPriceRange(5001, 100000)">Above ₹5000</button>
+                    </div>
+                </div>
+
+                <hr />
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-outline-secondary" @onclick="ClearAllFilters">Clear</button>
+                    <button class="btn btn-outline-danger" @onclick="ApplyFilters">Apply</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-lg-9">
+            @if (activeTab == "events")
+            {
+                <div class="fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-semibold text-dark"><i class="bi bi-calendar-event me-2"></i>Manage Events</h4>
+                        <button class="btn btn-outline-danger" @onclick="ShowAddEventModal">
+                            <i class="bi bi-plus-circle me-1"></i>Add Event
+                        </button>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-0">
+                            <table class="table align-middle mb-0">
+                                <thead class="bg-light text-secondary">
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date</th>
+                                        <th>Venue</th>
+                                        <th>Duration</th>
+                                        <th>Vocal</th>
+                                        <th>Price</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @if (FilteredEvents == null || !FilteredEvents.Any())
+                                    {
+                                        <tr>
+                                            <td colspan="7" class="text-center py-5 text-muted">
+                                                <i class="bi bi-info-circle me-2"></i>No events found
+                                            </td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var evt in FilteredEvents)
+                                        {
+                                            var soldPercentage = evt.TotalTickets > 0
+                                                ? (int)((double)evt.SoldTickets / evt.TotalTickets * 100)
+                                                : 0;
+
+                                            <tr>
+                                                <!-- EVENT TITLE & CATEGORY -->
+                                                <td>
+                                                    <div class="d-flex flex-column">
+                                                        <strong>@evt.Title</strong>
+                                                        <small class="text-muted">@evt.EventType</small>
+                                                    </div>
+                                                </td>
+
+                                                <!-- DATE -->
+                                                <td>
+                                                    <div class="d-flex flex-column">
+                                                        <strong>@evt.ShowDate.ToString("dd-MMM-yyyy")</strong>
+                                                        <small class="text-muted">@evt.ShowDate.ToString("hh:mm tt")</small>
+                                                    </div>
+                                                </td>
+
+
+                                                <!-- VENUE -->
+                                                <td>@evt.VenueName</td>
+
+                                                <!--Duration -->
+                                                <td>@($"{evt.Duration.Hours}h {evt.Duration.Minutes}m")</td>
+
+                                                <!--Vocal  -->
+                                                <td>@evt.Language</td>
+
+
+                                                <!-- TICKETS -->
+                                                @*<td>
+                                                <div class="d-flex align-items-center" style="width: 150px;">
+                                                    <small class="me-2">@evt.SoldTickets/@evt.TotalTickets</small>
+                                                    <div class="progress flex-grow-1" style="height: 6px;">
+                                                        <div class="progress-bar bg-purple" role="progressbar"
+                                                             style="width: @(soldPercentage)%"
+                                                             aria-valuenow="@soldPercentage" aria-valuemin="0" aria-valuemax="100">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>*@
+
+                                                <!-- PRICE -->
+                                                <td><strong>₹@evt.TicketPrice</strong></td>
+
+                                                <!-- ACTIONS -->
+                                                <td class="text-center">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-warning" @onclick="() => ShowEditEventModal(evt)">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-danger" @onclick="() => DeleteEvent(evt.Id)">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 text-muted small">
+                        Showing @FilteredEvents.Count of @FilteredEvents.Count events
+                    </div>
+                </div>
+            }
+
+
+            else if (activeTab == "venues")
+            {
+                <div class=" fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="fw-semibold text-bg-danger-dark mb-0">
+                            <i class="bi bi-building me-2"></i>Manage Venues
+                        </h3>
+                        <button class="btn btn-outline-danger" @onclick="ShowAddVenueModal">
+                            <i class="bi bi-plus-circle me-1"></i> Add Venue
+                        </button>
+                    </div>
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-0">
+                            <table class="table align-middle mb-0">
+                                <thead class="bg-light text-secondary">
+                                    <tr>
+                                        <th>Venue</th>
+                                        <th>Address</th>
+                                        <th>Capacity</th>
+                                        <th>Events</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (venues == null || !venues.Any())
+                                    {
+                                        <tr>
+                                            <td colspan="7" class="text-center py-5 text-muted">
+                                                <i class="bi bi-info-circle me-2"></i>NO Venues found.
+                                            </td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var v in venues)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="bg-light rounded p-2 me-2">
+                                                            <i class="bi bi-building text-danger fs-5"></i>
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-semibold text-dark">@v.VenueName</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="fw-semibold">@v.CityName</div>
+                                                    <small class="text-muted">@v.Address</small>
+                                                </td>
+                                                <td class="fw-semibold">@v.Capacity.ToString("N0")</td>
+                                                <td>@v.EventCount</td>
+                                                <td class="text-center">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-warning" @onclick="() => EditVenue(v)">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-danger" @onclick="() => DeleteVenue(v.Id)">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            }
+            else if (activeTab == "cities")
+            {
+                @* CITIES MANAGEMENT *@
+                <div class="fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="fw-semibold text-dark mb-0"><i class="bi bi-geo-alt-fill me-2"></i>Manage City</h3>
+
+                        <button class="btn btn-outline-danger" @onclick="ShowAddCityModal">
+                            <i class="bi bi-plus-circle me-1"></i> Add City
+                        </button>
+                    </div>
+                    @if (citiesList == null || !citiesList.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-info-circle me-2">No Cities found.</i>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class=" row g-3">
+                            @foreach (var c in citiesList)
+                            {
+                                <div class="col-md-4 col-lg-">
+                                    <div class="card border-0 shadow-sm h-100 fade-in">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <h5 class="fw-semibold text-dark mb-1">
+                                                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>@c.CityName
+                                                    </h5>
+                                                    <p class="text-muted small mb-1">@c.StateName, @c.CountryName</p>
+                                                </div>
+                                                <span class="badge bg-success-subtle text-success fw-medium">Active</span>
+                                            </div>
+
+
+                                            <div class="d-flex justify-content-between text-center mb-3">
+                                                <div class="flex-fill p-2 border rounded bg-light">
+                                                    <p class="mb-0 small text-muted">Venues</p>
+                                                    <h6 class="fw-bold mb-0">@c.VenueCount</h6>
+                                                </div>
+                                                <div class="flex-fill p-2 border rounded bg-light ms-2">
+                                                    <p class="mb-0 small text-muted">Events</p>
+                                                    <h6 class="fw-bold mb-0">@c.EventCount</h6>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between">
+                                                <button class="btn btn-light w-50 me-1" @onclick="() => EditCity(c)">
+                                                    <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
+                                                </button>
+                                                <button class="btn btn-outline-danger w-50" @onclick="() => DeleteCity(c.Id)">
+                                                    <i class="bi bi-trash me-1"></i>Delete
+                                                </button>
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+
+            <!-- ================= EVENT MODAL ================= -->
+            <!-- ================= EVENT MODAL ================= -->
+            @if (showEventModal)
+            {
+                <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-md modal-dialog-scrollable" style="max-width:800px;">
+                        <div class="modal-content border-0 shadow-lg rounded-3">
+                            <!-- Header -->
+                            <div class="modal-header border border-danger-subtle text-dark py-2">
+                                <h5 class="modal-title">
+                                    @((editingEvent?.Id > 0 ? "Update Event" : "Add New Event"))
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" @onclick="() => showEventModal = false"></button>
+                            </div>
+
+                            <!-- Body -->
+                            <div class="modal-body bg-light">
+                                <EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">
+                                    <DataAnnotationsValidator />
+
+                                    <!-- General Info -->
+                                    <div class="card shadow-sm mb-2">
+                                        <div class="card-header  text-dark fw-bold">
+                                            🎫 General Information
+                                        </div>
+                                        <div class="card-body row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Event Name<span class="text-danger">*</span></label>
+                                                <InputText @bind-Value="editingEvent.Title" class="form-control" />
+                                                <ValidationMessage For="@(() => editingEvent.Title)" class="text-danger small" />
+
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Event Type<span class="text-danger">*</span></label>
+                                                <InputText @bind-Value="editingEvent.EventType" class="form-control" />
+                                                <ValidationMessage For="@(() => editingEvent.EventType)" class="text-danger small" />
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Language</label>
+                                                <InputText @bind-Value="editingEvent.Language" class="form-control" />
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Genre</label>
+                                                <InputText @bind-Value="editingEvent.Genre" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Date and Time Info -->
+                                    <div class="card shadow-sm mb-2">
+                                        <div class="card-header text-dark fw-bold">
+                                            ⏰ Event Schedule
+                                        </div>
+                                        <div class="card-body row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Event Date & Time<span class="text-danger">*</span></label>
+                                                <input type="datetime-local"
+                                                       @bind="editingEvent.ShowDate"
+                                                       class="form-control"
+                                                       min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                                                <ValidationMessage For="@(() => editingEvent.ShowDate)" class="text-danger small" />
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Duration (HH:MM)<span class="text-danger">*</span></label>
+                                                <InputText @bind-Value="durationInput" class="form-control" placeholder="e.g., 02:30" />
+                                                <ValidationMessage For="@(() => editingEvent.Duration)" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Location Info -->
+                                    <div class="card shadow-sm mb-2">
+                                        <div class="card-header  text-dark fw-bold">
+                                            📍 Location Details
+                                        </div>
+                                        <div class="card-body row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Venue</label>
+                                                <InputSelect @bind-Value="editingEvent.VenueId" class="form-control">
+                                                    <option value="">-- Select Venue --</option>
+                                                    @foreach (var venue in venues)
+                                                    {
+                                                        <option value="@venue.Id">@venue.VenueName</option>
+                                                    }
+                                                </InputSelect>
+                                                <ValidationMessage For="@(() => editingEvent.VenueId)" />
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">City</label>
+                                                <InputSelect @bind-Value="editingEvent.CityId" class="form-control">
+                                                    <option value="">-- Select City --</option>
+                                                    @foreach (var city in citiesList)
+                                                    {
+                                                        <option value="@city.Id">@city.CityName</option>
+                                                    }
+                                                </InputSelect>
+                                                <ValidationMessage For="@(() => editingEvent.CityId)" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Ticket and Image Info -->
+                                    <div class="card shadow-sm mb-2">
+                                        <div class="card-header  text-dark fw-bold">
+                                            💰 Tickets & Image
+                                        </div>
+                                        <div class="card-body row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Ticket Price (₹)<span class="text-danger">*</span></label>
+                                                <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
+                                                <ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Event Image</label>
+                                                <InputFile OnChange="HandleImageSelected" class="form-control" />
+                                                @if (!string.IsNullOrEmpty(editingEvent.ImageUrl))
+                                                {
+                                                    <img src="@editingEvent.ImageUrl" alt="Preview" class="mt-2 rounded shadow-sm border" width="120" />
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="card shadow-sm mb-2">
+                                        <div class="card-header  text-dark fw-bold">
+                                            📝 Description
+                                        </div>
+                                        <div class="card-body">
+                                            <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="3" placeholder="Write a short description..." />
+                                        </div>
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <div class="modal-footer shadow-lg bg-white border-0 d-flex justify-content-end">
+                                        <button class="btn btn-outline-secondary" @onclick="() => showEventModal = false">Cancel</button>
+                                        <button class="btn btn-danger">Save</button>
+                                    </div>
+
+                                </EditForm>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            }
+
+
+            @if (showVenueModal)
+            {
+                <div class="modal fade show d-block" style="background:rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-md modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-danger">
+                                <h5 class="modal-title">@((editingVenue?.Id != 0 ? "Edit Venue" : "Add Venue"))</h5>
+                                <button type="button" class="btn-close" @onclick="() => showVenueModal = false"></button>
+                            </div>
+                            <div class="modal-body">
+                                <EditForm Model="editingVenue" OnValidSubmit="async () => await SaveVenue(editingVenue)">
+                                    <DataAnnotationsValidator />
+                                    <div class="mb-2">
+                                        <label>Name</label>
+                                        <InputText @bind-Value="editingVenue.VenueName" class="form-control" />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>City</label>
+                                        <select class="form-select" @bind="editingVenue.CityId">
+                                            <option value="">Select City</option>
+                                            @foreach (var city in citiesList)
+                                            {
+                                                <option value="@city.Id">@city.CityName</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Address</label>
+                                        <InputText @bind-Value="editingVenue.Address" class="form-control" />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label>Capacity</label>
+                                        <InputNumber @bind-Value="editingVenue.Capacity" class="form-control" />
+                                    </div>
+                                </EditForm>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" @onclick="() => showVenueModal = false">Cancel</button>
+                                <button class="btn btn-danger" @onclick="async () => await SaveVenue(editingVenue)">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }  <div class="promo-banner mt-4">
+                <div class="fs-4 fw-bold text-dark">
+                    <span>bookmyshow</span> STREAM
+                </div>
+                <div class="fw-semibold text-muted">Endless Entertainment. Anytime. Anywhere!</div>
+            </div>
+
+            @if (showCityModal)
+            {
+                <div class="modal fade show d-block" style="background:rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-md modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-danger">
+                                <h5 class="modal-title">@((editingCity?.Id != 0 ? "Edit City" : "Add City"))</h5>
+                                <button type="button" class="btn-close" @onclick="() => showCityModal = false"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <EditForm Model="editingCity" OnValidSubmit="async () => await SaveCity(editingCity)">
+                                    <DataAnnotationsValidator />
+
+                                    <div class="mb-2">
+                                        <label class="form-label fw-semibold text-secondary">City Name</label>
+                                        <InputText @bind-Value="editingCity.CityName" class="form-control rounded-3 shadow-sm p-2" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary">State</label>
+                                        <select @bind="editingCity.StateId" class="form-control rounded-3 shadow-sm p-2" disabled="@(!filteredStates.Any())">
+                                            <option value="">🏷️ Select a state...</option>
+                                            @foreach (var state in filteredStates)
+                                            {
+                                                <option value="@state.Id">@state.Name</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary">Country</label>
+                                        <select value="@editingCity.CountryId" @onchange="OnCountryChanged" class="form-control rounded-3 shadow-sm p-2">
+                                            <option value="">🌍 Select a country...</option>
+                                            @foreach (var country in _allCountries)
+                                            {
+                                                <option value="@country.Id">@country.Name</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                </EditForm>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" @onclick="() => showCityModal = false">Cancel</button>
+                                <button class="btn btn-danger"
+                                        @onclick="async () => await SaveCity(editingCity)"
+                                        disabled="@(string.IsNullOrWhiteSpace(editingCity.CityName) ||
+                    editingCity.CountryId == Guid.Empty ||
+                    editingCity.StateId == Guid.Empty)">
+                                    💾 Save
+                                </button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private List<EventDto> Events = new();
+    private List<EventDto> FilteredEvents = new();
+    private List<CountryDto> countries = new();
+    private List<CountryDto> _allCountries = new();
+    private List<StateDto> states = new();
+    private List<StateDto> filteredStates = new();
+    private List<string> cities = new();
+    private Guid? selectedCountryId;
+    private Guid? selectedStateId;
+    private List<string> categories = new();
+
+    private bool showEventModal = false;
+    private EventDto editingEvent = new();
+
+    private string selectedDateFilter = "all";
+    private bool isCustomRangeEnabled = false;
+    private DateTime? customStartDate;
+    private DateTime? customEndDate;
+    private string selectedCity = string.Empty;
+    private List<string> selectedCategories = new();
+    private (decimal min, decimal max)? selectedPriceRange;
+
+    private string activeTab = "events";
+
+    private List<VenueDto> venues = new();
+    private VenueDto editingVenue = new();
+    private bool showVenueModal = false;
+
+    private List<CityDto> citiesList = new();
+    private CityDto editingCity = new();
+    private bool showCityModal = false;
+
+    private string durationInput = string.Empty;
+    private IBrowserFile? selectedImageFile;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEvents();
+        //await LoadEvents();
+        await LoadCities();
+        await LoadVenues();
+        await LoadCountriesAsync();
+        cities = Events.Select(e => e.CityName).Distinct().OrderBy(c => c).ToList();
+        categories = Events.Select(e => e.EventType).Distinct().OrderBy(c => c).ToList();
+
+
+        CalculateVenueEventCounts();
+        CalculateCityCounts();
+    }
+    private void HandleInvalidSubmit()
+    {
+        Console.WriteLine("Form validation failed. Please fill all required fields.");
+    }
+
+
+
+    private async Task LoadEvents()
+    {
+        Events = await AdminService.GetAllEventsAsync();
+        FilteredEvents = Events;
+        CalculateCityCounts();
+    }
+    private void ShowAddEventModal()
+    {
+        editingEvent = new EventDto();
+
+        var now = DateTime.Now;
+        var rounded = new DateTime(now.Year, now.Month, now.Day, now.Hour, (now.Minute < 30 ? 30 : 0), 0);
+        if (rounded < now)
+            rounded = rounded.AddHours(1);
+
+        editingEvent.ShowDate = rounded;
+        showEventModal = true;
+    }
+
+    private void ShowEditEventModal(EventDto evt)
+    {
+        editingEvent = evt;
+        showEventModal = true;
+    }
+
+    private async Task SaveEvent(EventDto evt)
+    {
+        if (evt.Id > 0)
+            await AdminService.UpdateEventAsync(evt.Id, evt, null);
+        else
+            await AdminService.AddEventAsync(evt, null);
+
+        await LoadEvents();
+        CalculateCityCounts();
+        showEventModal = false;
+    }
+
+    private async Task DeleteEvent(int eventId)
+    {
+        await AdminService.DeleteEventAsync(eventId);
+        await LoadEvents();
+        CalculateCityCounts();
+    }
+
+
+
+    private async Task LoadCountriesAsync()
+    {
+        try
+        {
+            _allCountries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading Countries :{ex.Message}");
+        }
+    }
+
+    private async Task<IEnumerable<CountryDto>> SearchCountries(string searchText)
+    {
+        // If you’re fetching from an API:
+        _allCountries = await AdminService.GetAllCountriesAsync();
+        return _allCountries
+            .Where(c => c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+    private async Task OnCountryChanged(ChangeEventArgs e)
+    {
+        if (Guid.TryParse(e.Value?.ToString(), out var countryId))
+        {
+            editingCity.CountryId = countryId;
+            filteredStates = await AdminService.GetStatesByCountryAsync(countryId);
+            editingCity.StateId = Guid.Empty;
+        }
+        else
+        {
+            filteredStates.Clear();
+            editingCity.StateId = Guid.Empty;
+
+        }
+    }
+
+
+    private async Task LoadVenues()
+    {
+        venues = await AdminService.GetAllVenuesAsync();
+        CalculateCityCounts();
+    }
+
+
+    private void ShowAddVenueModal()
+    {
+        editingVenue = new VenueDto();
+        showVenueModal = true;
+    }
+
+
+    private void EditVenue(VenueDto v)
+    {
+        editingVenue = v;
+
+        showVenueModal = true;
+    }
+
+    private async Task SaveVenue(VenueDto v)
+    {
+        if (v.Id != 0)
+            await AdminService.UpdateVenueAsync(v.Id, v);
+        else
+            await AdminService.AddVenueAsync(v);
+
+        await LoadVenues();
+        CalculateCityCounts();
+        showVenueModal = false;
+    }
+
+
+    private async Task DeleteVenue(int id)
+    {
+        await AdminService.DeleteVenueAsync(id);
+        await LoadVenues();
+        CalculateCityCounts();
+    }
+
+    // ====== CITY MANAGEMENT ======
+
+
+    private async Task LoadCities()
+    {
+        citiesList = await AdminService.GetAllCitiesAsync();
+        CalculateCityCounts();
+    }
+
+    private void ShowAddCityModal()
+    {
+        editingCity = new CityDto();
+        showCityModal = true;
+    }
+
+    private void EditCity(CityDto c)
+    {
+        editingCity = c;
+        showCityModal = true;
+    }
+
+    private async Task SaveCity(CityDto c)
+    {
+        try
+        {
+            // 1️⃣ Validate dropdown selections (these stay Guid since Country/State use Guid)
+            if (c.CountryId == Guid.Empty)
+            {
+                toastService.ShowError("Please select a country before saving the city.");
+                return;
+            }
+
+            if (c.StateId == Guid.Empty)
+            {
+                toastService.ShowError("Please select a state before saving the city.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(c.CityName))
+            {
+                toastService.ShowError("City name cannot be empty.");
+                return;
+            }
+
+            // 2️⃣ Build city object (no Guid.NewGuid here — because City.Id is int)
+            var city = new CityDto
+            {
+                Id = c.Id, // leave it as is — backend will assign a new ID if it's 0
+                CityName = c.CityName.Trim(),
+                CountryId = c.CountryId,
+                StateId = c.StateId
+            };
+
+            // 3️⃣ Save — call Add or Update depending on ID
+            if (city.Id == 0)
+            {
+                await AdminService.AddCityAsync(city);
+                toastService.ShowSuccess("✅ City added successfully!");
+            }
+            else
+            {
+                await AdminService.UpdateCityAsync(city.Id, city);
+                toastService.ShowSuccess("✅ City updated successfully!");
+            }
+
+            showCityModal = false;
+            await LoadCities(); // refresh list
+            CalculateCityCounts();
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Unexpected error: {ex.Message}");
+        }
+    }
+
+
+    private async Task DeleteCity(int id)
+    {
+        await AdminService.DeleteCityAsync(id);
+        await LoadCities();
+        CalculateCityCounts();
+    }
+
+
+    private void ApplyFilters()
+    {
+        var filtered = Events.AsEnumerable();
+        if (selectedDateFilter == "today")
+            filtered = filtered.Where(e => e.ShowDate.Date == DateTime.Today);
+        else if (selectedDateFilter == "tomorrow")
+            filtered = filtered.Where(e => e.ShowDate.Date == DateTime.Today.AddDays(1));
+        else if (selectedDateFilter == "weekend")
+            filtered = filtered.Where(e => new[] { DayOfWeek.Saturday, DayOfWeek.Sunday }.Contains(e.ShowDate.DayOfWeek));
+        else if (selectedDateFilter == "custom" && customStartDate.HasValue && customEndDate.HasValue)
+            filtered = filtered.Where(e => e.ShowDate.Date >= customStartDate.Value.Date && e.ShowDate.Date <= customEndDate.Value.Date);
+
+        if (selectedCategories.Any())
+            filtered = filtered.Where(e => selectedCategories.Contains(e.EventType));
+
+        if (!string.IsNullOrWhiteSpace(selectedCity))
+            filtered = filtered.Where(e => e.CityName.Equals(selectedCity, StringComparison.OrdinalIgnoreCase));
+
+        if (selectedPriceRange.HasValue)
+        {
+            var (min, max) = selectedPriceRange.Value;
+            if (min == 0 && max == 0)
+                filtered = filtered.Where(e => e.TicketPrice == 0);
+            else
+                filtered = filtered.Where(e => e.TicketPrice >= min && e.TicketPrice <= max);
+        }
+        FilteredEvents = filtered.ToList();
+    }
+
+    private void ClearAllFilters()
+    {
+        selectedDateFilter = "all";
+        isCustomRangeEnabled = false;
+        customStartDate = null;
+        customEndDate = null;
+        selectedCategories.Clear();
+        selectedCity = string.Empty;
+        selectedPriceRange = null;
+        FilteredEvents = Events;
+    }
+
+    private void SetDateFilter(string filter)
+    {
+        selectedDateFilter = filter;
+        isCustomRangeEnabled = false;
+        ApplyFilters();
+    }
+
+    private void ClearDateFilter()
+    {
+        selectedDateFilter = "all";
+        isCustomRangeEnabled = false;
+        customStartDate = null;
+        customEndDate = null;
+        ApplyFilters();
+    }
+
+    private void ApplyCustomDateFilter()
+    {
+        selectedDateFilter = "custom";
+        ApplyFilters();
+    }
+
+    private string GetDateButtonClass(string filter)
+        => selectedDateFilter == filter ? "btn btn-outline-danger btn-sm active" : "btn btn-outline-secondary btn-sm";
+
+    private void ToggleCategory(string category)
+    {
+        if (selectedCategories.Contains(category))
+            selectedCategories.Remove(category);
+        else
+            selectedCategories.Add(category);
+        ApplyFilters();
+    }
+
+    private void FilterCity(ChangeEventArgs e)
+    {
+        selectedCity = e.Value?.ToString() ?? string.Empty;
+        ApplyFilters();
+    }
+
+    private void SetPriceRange(decimal min, decimal max)
+    {
+        selectedPriceRange = (min, max);
+        ApplyFilters();
+    }
+
+    private string GetPriceButtonClass(decimal min, decimal max)
+    {
+        if (selectedPriceRange.HasValue && selectedPriceRange.Value.min == min && selectedPriceRange.Value.max == max)
+            return "btn btn-outline-danger btn-sm active";
+        return "btn btn-outline-secondary btn-sm";
+    }
+
+
+
+    private void CalculateCityCounts()
+    {
+        if (citiesList == null || citiesList.Count == 0)
+            return;
+
+        foreach (var city in citiesList)
+        {
+            city.VenueCount = venues.Count(v => v.CityId == city.Id);
+            city.EventCount = Events.Count(e => e.CityName.Equals(city.CityName, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    private void CalculateVenueEventCounts()
+    {
+        foreach (var venue in venues)
+        {
+            // Count events that belong to this venue
+            venue.EventCount = Events.Count(e =>
+    e.CityName.Equals(venue.CityName, StringComparison.OrdinalIgnoreCase));
+
+        }
+    }
+
+    private async Task HandleImageSelected(InputFileChangeEventArgs e)
+    {
+        selectedImageFile = e.File;
+
+        // Optional: create preview
+        using var stream = selectedImageFile.OpenReadStream(2 * 1024 * 1024);
+        var buffer = new byte[selectedImageFile.Size];
+        await stream.ReadAsync(buffer);
+        editingEvent.ImageUrl = $"data:{selectedImageFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+
+
+    }
+
+
+
+}
+
+            

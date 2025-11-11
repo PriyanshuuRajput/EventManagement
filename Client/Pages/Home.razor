@@ -1,0 +1,295 @@
+﻿@page "/"
+@inject NavigationManager Navigation
+
+<PageTitle>EventiGo - Book Your Events</PageTitle>
+
+<style>
+    /* New CSS for Single-Item Carousel */
+    .hero-carousel-item {
+        /* Set a consistent, attractive height for the banner */
+        height: 500px;
+        overflow: hidden;
+    }
+
+    .hero-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Ensures the image covers the area nicely */
+    }
+
+    /*.carousel-caption {*/
+    /* Optional: Add background to caption for better legibility */
+    /*background-color: rgba(0, 0, 0, 0.4);
+        border-radius: 0.5rem;
+        padding: 1rem 2rem;
+    }*/
+    /* Rest of your existing styles (Category Cards, etc.) */
+    .category-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
+        }
+
+    .category-img {
+        height: 150px;
+        object-fit: cover;
+    }
+
+    .unique-banner {
+        display: flex; /* Use flexbox for alignment */
+        align-items: center; /* Vertically center items */
+        justify-content: center; /* Horizontally center content */
+        gap: 1rem; /* Space between logo and text */
+        padding: 1.5rem 0; /* More vertical padding */
+    }
+
+        .unique-banner .logo {
+            height: 50px; /* Adjust logo size as needed */
+            width: auto;
+        }
+</style>
+
+<section class="p-0">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-inner">
+
+            <div class="carousel-item active hero-carousel-item">
+                <img src="concerts-crousel.png" class="hero-img d-block" alt="Live Music Fest">
+                <div class="carousel-caption d-none d-md-block text-start">
+                    <h1 class="display-4 fw-bolder text-uppercase">LIVE MUSIC FEST</h1>
+                    <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Explore Concerts</button>
+                </div>
+            </div>
+
+            <div class="carousel-item hero-carousel-item">
+                <img src="movie-crousel.png" class="hero-img d-block" alt="Big Game Thrills">
+                <div class="carousel-caption d-none d-md-block text-start">
+                    <h1 class="display-4 fw-bolder text-uppercase">LIVE MUSIC FEST</h1>
+                    <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Explore Concerts</button>
+                </div>
+            </div>
+
+            <div class="carousel-item hero-carousel-item">
+                <img src="threater-crousel.png" class="hero-img d-block" alt="Drama and Shows">
+                <div class="carousel-caption d-none d-md-block text-start">
+                    <h1 class="display-4 fw-bolder text-uppercase">DRAMA & SHOWS</h1>
+                    <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Book Shows</button>
+                </div>
+            </div>
+
+            <div class="carousel-item hero-carousel-item">
+                <img src="comedyshow-crousel.png" class="hero-img d-block" alt="Comedy Nights">
+                <div class="carousel-caption d-none d-md-block text-start">
+                    <h1 class="display-4 fw-bolder text-uppercase">COMEDY NIGHTS</h1>
+                    <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Find Comedy</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon bg-dark p-3 rounded-circle" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon bg-dark p-3 rounded-circle" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+
+<hr class="my-5" />
+
+
+<section class="py-4 bg-secondary text-white text-center shadow-lg unique-banner">
+    <div class="container d-flex align-items-center justify-content-center flex-wrap">
+        <img src="logo2.PNG" alt="EventiGo Logo" class="logo me-3 mb-2 mb-md-0" />
+        <div>
+            <h3 class="fw-bold mb-1">Your Passport to Unforgettable Experiences!</h3>
+            <p class="lead mb-0">From local gigs to global spectacles, we've got your tickets ready.</p>
+        </div>
+    </div>
+</section>
+
+<div style="height: 50px;"></div>
+
+<section class="py-5">
+    <div class="container">
+        <h2 class="mb-4 text-center fw-bold">Explore Top Categories</h2>
+        <p class="text-center text-muted mb-5">Click on a category to see available events.</p>
+        <div class="row text-center">
+
+            <div class="col-6 col-md-3 mb-4">
+                <div class="card h-100 shadow category-card" @onclick="GoToEvent">
+                    <img src="concerts-crousel.png" class="card-img-top category-img" alt="Concerts">
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <h5 class="card-title mb-0">Concerts</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3 mb-4">
+                <div class="card h-100 shadow category-card" @onclick="GoToEvent">
+                    <img src="sports-crousel.png" class="card-img-top category-img" alt="Sports">
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <h5 class="card-title mb-0">Sports</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3 mb-4">
+                <div class="card h-100 shadow category-card" @onclick="GoToEvent">
+                    <img src="threater-crousel.png" class="card-img-top category-img" alt="Theatre">
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <h5 class="card-title mb-0">Theatre & Arts</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3 mb-4">
+                <div class="card h-100 shadow category-card" @onclick="GoToEvent">
+                    <img src="comedyshow-crousel.png" class="card-img-top category-img" alt="Comedy">
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <h5 class="card-title mb-0">Comedy</h5>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<hr class="my-5" />
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="mb-4 text-center fw-bold">🔥 Must-See Popular Events</h2>
+        <div class="row">
+
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow event-card" @onclick="GoToEvent">
+                    <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Music</div>
+                    <img src="concerts-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Rock Concert">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold">Summer Rock Festival</h5>
+                        <p class="card-text text-muted">Join the biggest rock concert of the year!</p>
+                        <button class="mt-auto btn btn-outline-danger" @onclick:stopPropagation="true" @onclick="GoToLogin">
+                            Get Tickets Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow event-card" @onclick="GoToEvent">
+                    <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Food</div>
+                    <img src="movie-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Food Festival">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold">International Food Fair</h5>
+                        <p class="card-text text-muted">Taste delicacies from around the world.</p>
+                        <button class="mt-auto btn btn-outline-danger" @onclick:stopPropagation="true" @onclick="GoToLogin">
+                            Get Tickets Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow event-card" @onclick="GoToEvent">
+                    <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Art</div>
+                    <img src="movie-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Art Exhibition">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold">Modern Art Exhibition</h5>
+                        <p class="card-text text-muted">Experience amazing artworks and cultural shows.</p>
+                        <button class="mt-auto btn btn-outline-danger" @onclick:stopPropagation="true" @onclick="GoToLogin">
+                            Get Tickets Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <button class="btn btn-outline-dark btn-lg" @onclick="GoToEvent">
+                View All Events
+            </button>
+        </div>
+    </div>
+</section>
+
+<section class="bg-light text-dark py-5 text-center">
+    <div class="container">
+        <!-- Main Heading -->
+        <h2 class="fw-bold mb-3">Ready to Book Your Next Event?</h2>
+        <p class="lead mb-4">Secure your spot instantly and start creating unforgettable memories.</p>
+
+        <!-- Buttons -->
+        <div class="d-flex justify-content-center gap-3 mb-5 flex-wrap">
+            <button class="btn btn-outline-danger btn-lg" @onclick="GoToLogin">
+                <i class="bi bi-person-fill me-2"></i> Sign Up / Login
+            </button>
+            <button class="btn btn-outline-secondary btn-lg" @onclick="GoToEvent">
+                Explore Events
+            </button>
+        </div>
+
+        <!-- Features / Highlights using Bootstrap Cards -->
+        <div class="row row-cols-1 row-cols-md-3 g-4 mt-4">
+            <div class="col">
+                <div class="card h-100 shadow event-card  border-0 text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-ticket-perforated-fill text-danger display-4 mb-3"></i>
+                        <h5 class="card-title fw-bold">Instant Booking</h5>
+                        <p class="card-text text-muted">Book tickets in seconds for concerts, sports, movies, and more.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow event-card border-0 text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-star-fill text-warning display-4 mb-3"></i>
+                        <h5 class="card-title fw-bold">Top Events</h5>
+                        <p class="card-text text-muted">From local gigs to global spectacles, get access to the hottest events.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow event-card  border-0 text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check text-success display-4 mb-3"></i>
+                        <h5 class="card-title fw-bold">Secure & Reliable</h5>
+                        <p class="card-text text-muted">Your transactions are safe with our trusted booking platform.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optional Extra Text -->
+        <p class="text-muted mt-4">Don’t miss out on amazing experiences. Book now and make memories that last forever!</p>
+    </div>
+</section>
+
+
+
+@code {
+    void GoToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    void GoToEvent()
+    {
+        Navigation.NavigateTo("/events");
+    }
+}

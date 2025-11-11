@@ -1,0 +1,258 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<style>
+    /* Base Dashboard Button */
+    .dashboard-btn {
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        color: #f8f9fa;
+        border-radius: 50%;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        background-color: transparent;
+    }
+
+
+        /* Hover: Glow + Scale */
+        .dashboard-btn:hover {
+            background-color: var(--bs-secondary);
+            border-color: var(--bs-secondary);
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(108, 117, 125, 0.6);
+        }
+
+        /* Active (click) */
+        .dashboard-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 5px rgba(13,110,253,0.8) inset;
+        }
+
+        /* Icon Animation */
+        .dashboard-btn i {
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        /* Slight spin on hover */
+        .dashboard-btn:hover i {
+            transform: rotate(90deg);
+            color: #fff;
+        }
+
+</style>
+
+<nav class="navbar navbar-dark bg-dark px-3">
+    <div class="container-fluid">
+
+        <!-- Logo + App Name -->
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <img src="logo2.png" alt="Logo" height="40" class="me-2" />
+            <span>EventiGO</span>
+        </a>
+
+        <!-- Search bar -->
+        <form class="d-none d-lg-flex mx-auto w-50">
+            <input class="form-control me-2" type="search"
+                   placeholder="Search for Movies, Events, Plays, Sports" aria-label="Search">
+        </form>
+
+        <!-- Right Section: Profile/Login + Dashboard -->
+        <div class="d-flex align-items-center ms-auto gap-2">
+
+            <!-- Profile / Login Button first -->
+            @if (userRole == null)
+            {
+                <a class="btn btn-outline-danger rounded-circle p-2 d-flex align-items-center justify-content-center"
+                   href="/login"
+                   style="width: 42px; height: 42px;"
+                   aria-label="Sign In">
+                    <i class="bi bi-person fs-5"></i>
+                </a>
+            }
+            else
+            {
+                <div class="dropdown">
+                    <button class="btn btn-outline-danger rounded-circle p-2 d-flex align-items-center justify-content-center"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            style="width: 42px; height: 42px;"
+                            aria-label="Profile">
+                        <i class="bi bi-person-circle fs-5"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><h6 class="dropdown-header">@userName</h6></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <button class="dropdown-item text-danger" @onclick="Logout">Logout</button>
+                        </li>
+                    </ul>
+                </div>
+            }
+
+            <!-- Dashboard Button after profile/login -->
+            <button class="btn btn-outline-light rounded-circle p-2 d-flex align-items-center justify-content-center"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#dashboardOffcanvas"
+                    aria-label="Dashboard"
+                    style="width: 42px; height: 42px;">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+
+        </div>
+
+    </div>
+</nav>
+
+<!-- Category Strip -->
+<nav class="navbar navbar-expand bg-body-secondary shadow-sm d-none d-lg-flex">
+    <div class="container justify-content-center">
+        <ul class="navbar-nav gap-3">
+            <li class="nav-item"><NavLink class="nav-link" href="/">Movies</NavLink></li>
+            <li class="nav-item"><NavLink class="nav-link" href="/stream">Stream</NavLink></li>
+            <li class="nav-item"><NavLink class="nav-link" href="/events">Events</NavLink></li>
+            @if (userRole == "Admin")
+            {
+                <li class="nav-item"><NavLink class="nav-link" href="/admin-dashboard">Admin Panel</NavLink></li>
+            }
+            @if (userRole == "Organizer")
+            {
+                <li class="nav-item"><NavLink class="nav-link" href="/organizer-dashboard">Organizer Panel</NavLink></li>
+            }
+        </ul>
+    </div>
+</nav>
+
+<!-- Offcanvas Dashboard -->
+<div class="offcanvas offcanvas-end text-dark bg-light" tabindex="-1" id="dashboardOffcanvas">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title d-flex align-items-start text-dark"><i class="bi bi-person me-2"></i>@GetDashboardTitle()</h5>
+    </div>
+
+    <div class="offcanvas-body p-0">
+        @if (userRole != null)
+        {
+            <ul class="nav flex-column mt-2">
+                @foreach (var item in GetMenuItems(userRole))
+                {
+                    <li class="nav-item">
+                        <NavLink class="nav-link text-dark px-3 py-2 d-flex align-items-center side-link"
+                                 href="@item.Url"
+                                 Match="NavLinkMatch.Prefix">
+                            @if (!string.IsNullOrEmpty(item.Icon))
+                            {
+                                <i class="@item.Icon me-2"></i>
+                            }
+                            <span>@item.Label</span>
+                        </NavLink>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="p-3 text-center">
+                <a href="/login" class="btn btn-danger w-100">Sign In</a>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string? userRole;
+    private string? userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
+        await LoadUserState();
+    }
+
+    private async Task LoadUserState()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userRole = user.FindFirst(c => c.Type == ClaimTypes.Role)?.Value;
+            userName = user.Identity.Name ?? "User";
+        }
+        else
+        {
+            userRole = null;
+            userName = null;
+        }
+
+        StateHasChanged();
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        await LoadUserState();
+    }
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+        await JS.InvokeVoidAsync("localStorage.removeItem", "userRole");
+
+        if (AuthStateProvider is CustomAuthStateProvider customProvider)
+            customProvider.NotifyUserLogout();
+
+        Navigation.NavigateTo("/");
+    }
+
+    private string GetDashboardLabel() => userRole switch
+    {
+        "Admin" => "Admin Dashboard",
+        "Organizer" => "Organizer Dashboard",
+        _ => "My Dashboard"
+    };
+
+    private string GetDashboardTitle() => userRole switch
+    {
+        "Admin" => "Admin Panel",
+        "Organizer" => "Organizer Tools",
+        _ => "User Dashboard"
+    };
+
+    private List<MenuItem> GetMenuItems(string role) => role switch
+    {
+        "Admin" => new()
+    {
+            new("Dashboard", "/admin-dashboard", "bi-speedometer2"),
+            new("Manage Events", "/manage-events", "bi-pencil-square"),
+            new("Bookings", "/admin-booking", "bi-ticket-detailed"),
+            new("Payouts", "/admin-payouts", "bi-wallet2"),
+            new("Settings", "/admin-setting", "bi-gear")
+        },
+        "Organizer" => new()
+    {
+            new("My Events", "/organizer-events", "bi-card-checklist"),
+            new("Create Event", "/organizer-create-event", "bi-plus-circle")
+        },
+        "User" => new()
+    {
+            new("My Tickets", "/user-tickets", "bi-ticket"),
+            new("Browse Events", "/events", "bi-calendar")
+        },
+        _ => new()
+    };
+
+    private record MenuItem(string Label, string Url, string Icon);
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
+    }
+}

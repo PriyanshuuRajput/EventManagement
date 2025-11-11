@@ -1,0 +1,76 @@
+﻿@*@using Applications.Dto
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (Visible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">@(Venue.Id > 0 ? "Edit Venue" : "Add Venue")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <EditForm Model="Venue" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <InputText class="form-control" @bind-Value="Venue.Name" />
+                            <ValidationMessage For="@(() => Venue.Name)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <InputText class="form-control" @bind-Value="Venue.Address" />
+                            <ValidationMessage For="@(() => Venue.Address)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Capacity</label>
+                            <InputNumber class="form-control" @bind-Value="Venue.Capacity" />
+                            <ValidationMessage For="@(() => Venue.Capacity)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">City ID</label>
+                            <InputNumber class="form-control" @bind-Value="Venue.CityId" />
+                            <ValidationMessage For="@(() => Venue.CityId)" />
+                        </div>
+
+                        <div class="mt-3 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </EditForm>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public VenueDto Venue { get; set; } = new();
+    [Parameter] public EventCallback<VenueDto> OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+
+    private async Task HandleValidSubmit()
+    {
+        await OnSave.InvokeAsync(Venue);
+        await Close();
+    }
+
+    private async Task Close()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+        await OnClose.InvokeAsync();
+    }
+}*@

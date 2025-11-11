@@ -1,0 +1,79 @@
+﻿@inherits LayoutComponentBase
+@using EventBooking.Client.SpinnerService
+@inject SpinnerService SpinnerService
+
+<style>
+    .spinnerContainer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.2); /* semi-transparent overlay */
+        z-index: 9999;
+    }
+
+    .spinnerIcon {
+        width: 60px;
+        height: 60px;
+        border-width: 0.4em;
+        color: #020336;
+    }
+</style>
+
+<div class="page" style="@(showSpinner ? "opacity: 0.4;" : "opacity: 1;")">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@if (showSpinner)
+{
+    <div class="spinnerContainer">
+        <div class="text-center">
+            <div class="spinner-border spinnerIcon" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-dark">Loading...</p>
+        </div>
+    </div>
+}
+
+@code {
+    private bool showSpinner = false;
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to spinner events from the service
+        SpinnerService.OnShow += Show;
+        SpinnerService.OnHide += Hide;
+    }
+
+    private void Show()
+    {
+        showSpinner = true;
+        InvokeAsync(StateHasChanged); // refresh UI
+    }
+
+    private void Hide()
+    {
+        showSpinner = false;
+        InvokeAsync(StateHasChanged); // refresh UI
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe to avoid memory leaks
+        SpinnerService.OnShow -= Show;
+        SpinnerService.OnHide -= Hide;
+    }
+}

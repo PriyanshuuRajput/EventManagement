@@ -1,0 +1,113 @@
+﻿@namespace EventBooking.Client.Components
+@using Applications.Dto
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="card shadow-sm border-0 p-4 mb-4">
+
+    <EditForm Model="AccountDto" OnValidSubmit="HandleNext">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger mb-3" />
+
+        <!-- ================= Organization Details ================= -->
+        <fieldset class="border p-3 mb-4 rounded">
+            <legend class="float-none w-auto px-2 fw-bold text-danger">Organization Details</legend>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Organization / Individual Name<span class="text-danger">*</span></label>
+                    <InputText @bind-Value="AccountDto.Name" class="form-control" placeholder="Enter Name" />
+                    <ValidationMessage For="@(() => AccountDto.Name)" class="text-danger" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">PAN Number<span class="text-danger">*</span></label>
+                    <InputText @bind-Value="AccountDto.PAN" class="form-control" placeholder="Enter PAN" />
+                    <ValidationMessage For="@(() => AccountDto.PAN)" class="text-danger" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-bold">Address<span class="text-danger">*</span></label>
+                    <InputText @bind-Value="AccountDto.Address" class="form-control" placeholder="Enter Address" />
+                    <ValidationMessage For="@(() => AccountDto.Address)" class="text-danger" />
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- ================= Contact Person Details ================= -->
+        <fieldset class="border p-3 mb-4 rounded">
+            <legend class="float-none w-auto px-2 fw-bold text-danger">Contact Person Details</legend>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Contact Name</label>
+                    <InputText @bind-Value="AccountDto.ContactName" class="form-control" placeholder="Enter Contact Name" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Email<span class="text-danger">*</span></label>
+                    <InputText @bind-Value="AccountDto.Email" type="email" class="form-control" placeholder="Enter Email" />
+                    <ValidationMessage For="@(() => AccountDto.Email)" class="text-danger" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Mobile<span class="text-danger">*</span></label>
+                    <InputText @bind-Value="AccountDto.Mobile" class="form-control" placeholder="Enter Mobile" />
+                    <ValidationMessage For="@(() => AccountDto.Mobile)" class="text-danger" />
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- ================= Bank Details ================= -->
+        <fieldset class="border p-3 mb-4 rounded">
+            <legend class="float-none w-auto px-2 fw-bold text-danger">Bank Details</legend>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Bank Beneficiary Name<span class="text-danger">*</span></label>
+                    <InputText @bind-Value="AccountDto.BankBeneficiary" class="form-control" placeholder="Enter Beneficiary Name" />
+                    <ValidationMessage For="@(() => AccountDto.BankBeneficiary)" class="text-danger" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Account Type<span class="text-danger">*</span></label>
+                    <InputSelect @bind-Value="AccountDto.AccountType" class="form-select">
+                        <option value="">Select Type</option>
+                        <option value="Savings">Savings</option>
+                        <option value="Current">Current</option>
+                        <option value="Other">Other</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => AccountDto.AccountType)" class="text-danger" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Bank Name<span class="text-danger">*</span></label>
+                    <InputText @bind-Value="AccountDto.BankName" class="form-control" placeholder="Enter Bank Name" />
+                    <ValidationMessage For="@(() => AccountDto.BankName)" class="text-danger" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Account Number<span class="text-danger">*</span></label>
+                    <InputText @bind-Value="AccountDto.AccountNumber" class="form-control" placeholder="Enter Account Number" />
+                    <ValidationMessage For="@(() => AccountDto.AccountNumber)" class="text-danger" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">IFSC Code<span class="text-danger">*</span></label>
+                    <InputText @bind-Value="AccountDto.IFSC" class="form-control" placeholder="Enter IFSC Code" />
+                    <ValidationMessage For="@(() => AccountDto.IFSC)" class="text-danger" />
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Next Button -->
+        <div class="mt-4 text-end">
+            <button type="submit" class="btn btn-outline-danger btn-lg">
+                Next <i class="bi bi-arrow-right-circle ms-1"></i>
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public AccountSetupDto? AccountDto { get; set; }
+    [Parameter] public EventCallback OnNext { get; set; }
+
+    private async Task HandleNext() => await OnNext.InvokeAsync();
+}

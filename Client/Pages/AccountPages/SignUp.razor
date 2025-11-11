@@ -1,0 +1,120 @@
+﻿@page "/signup"
+
+<div class="container d-flex justify-content-center align-items-center min-vh-120 bg-light">
+    <div class="card shadow-lg border-0 rounded-4 p-3 p-md-4" style="max-width: 420px; width: 100%;">
+        <h3 class="text-center text-danger fw-bold mb-2">Create Account</h3>
+        <p class="text-center text-muted mb-4">Join <strong>EventiGO</strong> and explore amazing events</p>
+
+        <EditForm Model="@signupModel" OnValidSubmit="@HandleSignup">
+            <DataAnnotationsValidator />
+
+            <!-- Email -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Email</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-envelope-fill"></i></span>
+                    <InputText type="email" class="form-control" placeholder="Enter email" @bind-Value="signupModel.Email" />
+                </div>
+                <ValidationMessage For="@(() => signupModel.Email)" />
+            </div>
+
+            <!-- Phone -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Phone Number</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-telephone-fill"></i></span>
+                    <InputText type="tel" class="form-control" placeholder="Enter phone number" @bind-Value="signupModel.PhoneNumber" />
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-lock-fill"></i></span>
+                    <InputText type="password" class="form-control" placeholder="Enter password" @bind-Value="signupModel.Password" />
+                </div>
+                <ValidationMessage For="@(() => signupModel.Password)" />
+            </div>
+
+            <!-- Role -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Role</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-people-fill"></i></span>
+                    <InputSelect class="form-select" @bind-Value="signupModel.Role">
+                        <option value="">Select a role</option>
+                        <option value="User">User</option>
+                        <option value="Organizer">Organizer</option>
+                    </InputSelect>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn-danger w-100 fw-semibold mt-2">
+                <i class="bi bi-person-plus-fill me-2"></i>Sign Up
+            </button>
+
+            <!-- Messages -->
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3 text-center small">@errorMessage</div>
+            }
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="alert alert-success mt-3 text-center small">@successMessage</div>
+            }
+
+            <!-- Login Redirect -->
+            <div class="text-center mt-3">
+                <span class="text-muted small">Already have an account?</span>
+                <a href="/login" class="fw-semibold text-decoration-none text-primary"> Login</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private SignUpDto signupModel = new SignUpDto();
+    private string errorMessage = "";
+    private string successMessage = "";
+
+    private async Task HandleSignup()
+    {
+        errorMessage = "";
+        successMessage = "";
+
+        try
+        {
+
+
+            var response = await Http.PostAsJsonAsync("https://localhost:7239/api/Account/signup", signupModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                //Read the respone as JSON
+                var result = await response.Content.ReadFromJsonAsync<SignupResponse>();
+
+                successMessage = $"Signup successful! Your username is {result?.Username ?? "N/A"}. Redirecting to login...";
+                StateHasChanged();
+                await Task.Delay(2500);
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                var resp = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Signup failed: {resp}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred: " + ex.Message;
+        }
+    }
+
+    private class SignupResponse
+    {
+        public string? Message { get; set; }
+        public string? Username { get; set; }
+    }
+}

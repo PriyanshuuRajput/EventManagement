@@ -1,0 +1,73 @@
+﻿@using Applications.Dto
+@inherits ComponentBase
+
+@if (Visible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">@((Seat?.Id ?? 0) > 0 ? "Edit Seat" : "Add Seat")</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="Seat" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="mb-2">
+                            <label class="form-label">Seat Number</label>
+                            <InputText class="form-control" @bind-Value="Seat.SeatNumber" />
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Category</label>
+                            <InputText class="form-control" @bind-Value="Seat.Category" />
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Event ID</label>
+                            <InputNumber class="form-control" @bind-Value="Seat.EventId" />
+                        </div>
+
+                        <div class="form-check mb-2">
+                            <InputCheckbox class="form-check-input" @bind-Value="Seat.IsBooked" />
+                            <label class="form-check-label">Is Booked</label>
+                        </div>
+
+                        <div class="mt-3 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; } // ✅ Needed for @bind-Visible
+    [Parameter] public SeatDto Seat { get; set; } = new();
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+
+    private async Task HandleValidSubmit()
+    {
+        // Save action
+        await OnSave.InvokeAsync(null);
+
+        // ✅ Hide modal after saving
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task Close()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+        await OnClose.InvokeAsync();
+    }
+}

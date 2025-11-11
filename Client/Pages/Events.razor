@@ -1,0 +1,287 @@
+﻿@page "/events"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+
+<div class="container-fluid my-4">
+    <div class="row">
+        <!-- Sidebar Filters (Left Column) -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm p-3 sticky-top" style="top:80px;">
+                <h5 class="mb-3">Filters</h5>
+
+                <!-- Date Filter Card -->
+                <div class="mb-3">
+                    <h6 class="d-flex justify-content-between align-items-center">
+                        Date
+                        @if (selectedDateFilter != "all")
+                        {
+                            <span style="cursor:pointer; color:#dc3545;" @onclick="ClearDateFilter">Clear</span>
+                        }
+                    </h6>
+
+                    <!-- Quick Date Buttons -->
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <button class="@GetDateButtonClass("today")" @onclick='() => SetDateFilter("today")'>Today</button>
+                        <button class="@GetDateButtonClass("tomorrow")" @onclick='() => SetDateFilter("tomorrow")'>Tomorrow</button>
+                        <button class="@GetDateButtonClass("weekend")" @onclick='() => SetDateFilter("weekend")'>This Weekend</button>
+                    </div>
+
+                    <!-- Custom Range -->
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="customRangeCheckbox" @bind="isCustomRangeEnabled" />
+                        <label class="form-check-label" for="customRangeCheckbox"> Select Date </label>
+                    </div>
+
+                    @if (isCustomRangeEnabled)
+                    {
+                        <div class="d-flex flex-column gap-2 mt-1">
+                            <div class="d-flex gap-2">
+                                <input type="date" class="form-control form-control-sm"
+                                       @bind="customStartDate"
+                                       min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                <input type="date" class="form-control form-control-sm"
+                                       @bind="customEndDate"
+                                       min="@customStartDate.ToString("yyyy-MM-dd")" />
+                            </div>
+
+                            @* <div class="form-check mt-1">
+                                    <input class="form-check-input" type="checkbox" checked />
+                                    <label class="form-check-label">
+                                        @customStartDate:dd MMM - @customEndDate:dd MMM
+                                    </label>
+                                </div> *@
+
+                            <div class="d-flex justify-content-between mt-1">
+                                <button class="btn btn-outline-secondary btn-sm" @onclick="ClearDateFilter">Clear</button>
+                                <button class="btn btn-danger btn-sm" @onclick="ApplyCustomDateFilter">Apply</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+
+                <!-- Category Filter -->
+                <div class="mb-3">
+                    <h6>Category</h6>
+                    @foreach (var category in categories)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="@category" @onchange="e => ToggleCategory(category)">
+                            <label class="form-check-label" for="@category">@category</label>
+                        </div>
+                    }
+                </div>
+
+                <!-- City Filter -->
+                <div class="mb-3">
+                    <h6>City</h6>
+                    <select class="form-select" @onchange="FilterCity">
+                        <option value="">All Cities</option>
+                        @foreach (var city in cities)
+                        {
+                            <option value="@city">@city</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="mb-3">
+                    <h6>Ticket Price</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="@GetPriceButtonClass(0, 0)" @onclick="() => SetPriceRange(0, 0)">Free</button>
+                        <button class="@GetPriceButtonClass(1, 500)" @onclick="() => SetPriceRange(1, 500)">0–500</button>
+                        <button class="@GetPriceButtonClass(501, 2000)" @onclick="() => SetPriceRange(501, 2000)">501–2000</button>
+                        <button class="@GetPriceButtonClass(2001, 5000)" @onclick="() => SetPriceRange(2001, 5000)">2001–5000</button>
+                        <button class="@GetPriceButtonClass(5001, 100000)" @onclick="() => SetPriceRange(5001, 100000)">Above 5000</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-danger w-100 mt-2" @onclick="ApplyFilters">Apply Filters</button>
+            </div>
+        </div>
+
+        <!-- Events Grid (Right Column) -->
+        <div class="col-lg-9">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3 g-4">
+                @if (isLoading)
+                {
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-danger" role="status" style="width:4rem;height:4rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading events...</p>
+                    </div>
+                }
+                else if (filteredEvents == null || !filteredEvents.Any())
+                {
+                    <div class="col-12 text-center py-5">
+                        <p class="text-muted">No events found.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var ev in filteredEvents)
+                    {
+                        <div class="col">
+                            <div class="card h-100 shadow-sm event-card">
+                                <img src="@(!string.IsNullOrEmpty(ev.ImageUrl) ? ev.ImageUrl : "images/default-event.png")"
+                                     class="card-img-top" alt="@ev.Title" style="height:180px; object-fit:cover;" />
+                                <div class="card-body">
+                                    <h5 class="card-title">@ev.Title</h5>
+                                    <p class="card-text mb-1"><i class="bi bi-calendar-event me-2"></i>@ev.ShowDate.ToString("dd MMM yyyy")</p>
+                                    <p class="card-text mb-1"><i class="bi bi-clock me-2"></i>@ev.Duration.ToString(@"hh\:mm")</p>
+                                    <p class="card-text mb-1"><i class="bi bi-geo-alt me-2"></i>@ev.VenueName, @ev.CityName</p>
+                                </div>
+                                <div class="card-footer bg-white border-0">
+                                    <span class="fw-bold">₹@ev.TicketPrice</span>
+                                    <button class="btn btn-danger btn-sm float-end"
+                                            @onclick="@(() => Nav.NavigateTo("/book-event/" + ev.Id))">
+                                        Book Now
+                                    </button>
+
+
+
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private List<EventDto> events = new();
+    private List<EventDto> filteredEvents = new();
+    private bool isLoading = true;
+
+    private bool isCustomRangeEnabled = false;
+    private string selectedDateFilter = "all";
+    private DateTime customStartDate = DateTime.Today;
+    private DateTime? customEndDate = null;
+
+    private string? selectedCity = null;
+    private decimal minPrice = 0;
+    private decimal maxPrice = 10000;
+
+    private List<string> selectedCategories = new();
+    private List<string> categories = new() { "Music", "Theatre", "Comedy", "Sports" };
+    private List<string> cities = new() { "New York", "Los Angeles", "Chicago", "Houston", "Phoenix" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            events = await Http.GetFromJsonAsync<List<EventDto>>("https://localhost:7239/api/Events") ?? new List<EventDto>();
+            filteredEvents = events.ToList();
+        }
+        catch
+        {
+            events = new List<EventDto>();
+            filteredEvents = new List<EventDto>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // --- DATE FILTERS ---
+    private void SetDateFilter(string filter)
+    {
+        selectedDateFilter = filter;
+        isCustomRangeEnabled = false;
+        customStartDate = DateTime.Today;
+        customEndDate = null;
+        ApplyFilters();
+    }
+
+
+    private string GetDateButtonClass(string filter) =>
+        selectedDateFilter == filter ? "btn btn-danger btn-sm" : "btn btn-outline-danger btn-sm";
+
+    private void ApplyCustomDateFilter()
+    {
+        if (!isCustomRangeEnabled) return;
+        selectedDateFilter = "custom";
+        ApplyFilters();
+    }
+
+    private void ClearDateFilter()
+    {
+        selectedDateFilter = "all";
+        isCustomRangeEnabled = false;
+        customStartDate = DateTime.Today;
+        customEndDate = null;
+        ApplyFilters();
+    }
+
+    private bool IsEventInSelectedDate(DateTime eventDate)
+    {
+        var today = DateTime.Today;
+        switch (selectedDateFilter)
+        {
+            case "today":
+                return eventDate.Date == today;
+            case "tomorrow":
+                return eventDate.Date == today.AddDays(1);
+            case "weekend":
+                var saturday = today.AddDays(DayOfWeek.Saturday - today.DayOfWeek);
+                var sunday = saturday.AddDays(1);
+                return eventDate.Date == saturday || eventDate.Date == sunday;
+            case "custom":
+                if (customEndDate.HasValue)
+                    return eventDate.Date >= customStartDate.Date && eventDate.Date <= customEndDate.Value.Date;
+                return eventDate.Date == customStartDate.Date;
+            default:
+                return true;
+        }
+    }
+
+    // --- PRICE FILTERS ---
+    private void SetPriceRange(decimal min, decimal max)
+    {
+        minPrice = min;
+        maxPrice = max;
+        ApplyFilters();
+    }
+
+    private string GetPriceButtonClass(decimal min, decimal max)
+    {
+        return (minPrice == min && maxPrice == max)
+            ? "btn btn-secondary btn-sm"
+            : "btn btn-outline-danger btn-sm";
+    }
+
+    // --- CATEGORY & CITY FILTERS ---
+    private void ToggleCategory(string category)
+    {
+        if (selectedCategories.Contains(category))
+            selectedCategories.Remove(category);
+        else
+            selectedCategories.Add(category);
+    }
+
+    private void FilterCity(ChangeEventArgs e)
+    {
+        selectedCity = e.Value?.ToString();
+        ApplyFilters();
+    }
+
+    // --- APPLY ALL FILTERS ---
+    private void ApplyFilters()
+    {
+        filteredEvents = events
+            .Where(ev =>
+                IsEventInSelectedDate(ev.ShowDate) &&
+                (selectedCategories.Count == 0 || selectedCategories.Contains(ev.EventType)) &&
+                (string.IsNullOrEmpty(selectedCity) || ev.CityName == selectedCity) &&
+                ev.TicketPrice >= minPrice && ev.TicketPrice <= maxPrice)
+            .ToList();
+    }
+}

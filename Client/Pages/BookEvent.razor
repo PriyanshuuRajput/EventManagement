@@ -1,0 +1,506 @@
+﻿@page "/book-event/{eventId:int}"
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject Blazored.SessionStorage.ISessionStorageService SessionStorage
+
+
+<style>
+    .event-banner {
+        border-radius: 15px;
+        height: 380px;
+        object-fit: cover;
+    }
+
+    .ticket-card {
+        transition: all 0.2s ease-in-out;
+    }
+
+        .ticket-card:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .gap-2 > * {
+        margin-right: 0.5rem;
+    }
+
+    .price-row {
+        flex-wrap: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+    /*  Seat Grid */
+    .seat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    /*  Seat Buttons */
+    .seat-btn {
+        border: 2px solid #6c757d;
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 8px 0;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        color: #333;
+    }
+
+        .seat-btn:hover {
+            background: #dc3545;
+            color: #fff;
+            border-color: #dc3545;
+        }
+
+        .seat-btn.selected {
+            background: #dc3545;
+            color: #fff;
+            border-color: #dc3545;
+        }
+
+        .seat-btn:disabled {
+            background: #e9ecef;
+            color: #aaa;
+            border-color: #ddd;
+            cursor: not-allowed;
+        }
+    .hover-shadow-sm:hover {
+        transform: translateY(-3px);
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+    }
+
+</style>
+
+
+@if (evtDetails == null)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2">Loading event details...</p>
+    </div>
+}
+else
+{
+    <div class="container my-2">
+        <div class="row align-items-start g-4">
+            <!-- 🎬 Left Section: Event Banner + Info -->
+            <div class="col-lg-8">
+                <h2 class="fw-bold mb-3">@evtDetails.Title</h2>
+
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+                    <img src="@evtDetails.ImageUrl" alt="@evtDetails.Title" class="img-fluid w-100 event-banner" />
+                </div>
+
+                <!-- Tags -->
+                <div class="mb-3 d-flex justify-content-end align-items-center">
+                    <span class="badge bg-secondary mt-2 ms-2">@evtDetails.Genre</span>
+                    <span class="badge bg-dark mt-2 ms-2">@evtDetails.EventType</span>
+
+                    
+                    <i class="bi bi-hand-thumbs-up-fill text-success ms-2 mt-2 fs-5"></i>
+                    <span class="fw-semibold me-2 ms-2 mt-2">@interestedCount are interested</span>
+
+                    @if (isInterested)
+                    {
+                        <button class="btn btn-danger btn-sm fw-semibold" disabled>
+                            <i class="bi bi-check-circle me-1"></i> Interested
+                        </button>
+                    }
+                    else
+                    {
+                <button class="btn btn-outline-danger btn-sm fw-semibold ms-2" @onclick="MarkInterested">  
+                    I'm Interested
+                </button>
+                    }
+                </div>
+
+                <!-- Interested Info -->
+                <!--<div class="d-flex align-items-center mb-4">
+                <i class="bi bi-hand-thumbs-up-fill text-success me-2 fs-5"></i>-->
+                @*<span class="fw-semibold">@new Random().Next(500,1000) are interested</span>*@
+                <!--<button class="btn btn-outline-danger btn-sm ms-3 fw-semibold">I’m Interested</button>
+                </div>-->
+                <!-- About the Event -->
+                <div class="mb-4">
+                    <div class="card-body">
+                        <h4 class="fw-bold mb-3">About The Event</h4>
+                        <p class="text-muted">@evtDetails.Description</p>
+                    </div>
+                </div>
+                <!-- 🎟️ Seat Selection -->
+                @*<div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body">
+                        <h4 class="fw-bold mb-4 d-flex align-items-center">
+                            <i class="bi bi-ticket-perforated-fill text-danger me-2"></i>
+                            Choose Your Seats
+                        </h4>
+
+                        @if (seatCategories.Any())
+                        {
+                            @foreach (var category in seatCategories)
+                            {
+                                <div class="border rounded-3 p-4 mb-4 bg-white shadow-sm hover-shadow-sm mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h4 class="fw-semibold mb-0">@category.Category</h4>
+                                        <h5 class="fw-semibold text-danger mb-0">₹@category.Price</h5>
+                                    </div>                                    
+                                    <p class="text-muted mb-1 small">@GetSeatDescription(category.Category)</p>
+                                    <p class="text-secondary small mb-0">@category.Available available</p>
+                                </div>
+                                <hr class="my-3"/>
+
+                                <div class=" d-flex justify-content-between align-items-center">
+                                    <span class="fw-semibold text-muted">Quantity</span>
+                                    <div class="btn-group" role="group" aria-label="Quantity controls">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" style="width:50% ; height:50%"
+                                                @onclick="() => Decrease(category)">
+                                            <i class="bi bi-dash-lg"></i>
+                                        </button>
+                                        <span class="mx-3 my-1 fw-semibold fs-6">@category.Quantity</span>
+                                        <button type="button" class="btn btn-outline-danger btn-sm" style="width:50%;height:50%"
+                                                @onclick="() => Increase(category)">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-exclamation-circle fs-4 mb-2"></i>
+                                <p>No seats available for this event.</p>
+                            </div>
+                        }
+                    </div>
+                </div>*@
+
+                <!--You may like this -->
+                <div class="mt-5">
+                    <h4 class="fw-bold mb-3">You May Also Like</h4>
+
+                    <!-- Horizontal Scroll Wrapper -->
+                    <div class="d-flex overflow-auto pb-3" style="scroll-snap-type: x mandatory;">
+                        @foreach (var item in suggestedEvents)
+                        {
+                            <div class="card border-0 shadow-sm rounded-3 me-3 flex-shrink-0"
+                                 style="width: 220px; scroll-snap-align: start;">
+                                <img src="@item.ImageUrl" alt="@item.Title"
+                                     class="card-img-top rounded-top"
+                                     style="height:160px; object-fit:cover;" />
+
+                                <div class="card-body p-2">
+                                    <h6 class="fw-semibold text-truncate mb-1">@item.Title</h6>
+                                    <small class="text-muted d-block">@item.CityName</small>
+
+                                    <button class="btn btn-outline-danger btn-sm w-100 mt-2 fw-semibold"
+                                            @onclick="() => ViewEvent(item.Id)">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <!-- 💳 Right Section: Booking Summary -->
+            <div class="col-lg-4 mt-5">
+                <div class="card shadow-lg border-0 rounded-4 sticky-top " style="top: 90px; margin-top: 32px">
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-4">
+                            <li class="d-flex align-items-center mb-2">
+                                <i class="bi bi-calendar-date me-2 text-danger"></i>
+                                <span>@evtDetails.ShowDate.ToString("ddd, dd MMM yyyy")</span>
+                            </li>
+                            <li class="d-flex align-items-center mb-2">
+                                <i class="bi bi-clock me-2 text-danger"></i>
+                                <span>@evtDetails.ShowDate.ToString("hh:mm tt")</span>
+                            </li>
+                            <li class="d-flex align-items-center mb-2">
+                                <i class="bi bi-translate me-2 text-danger"></i>
+                                <span>@evtDetails.Language</span>
+                            </li>
+                            <li class="d-flex align-items-center mb-2">
+                                <i class="bi bi-person-fill me-2 text-danger"></i>
+                                <span>@evtDetails.EventType</span>
+                            </li>
+                            <li class="d-flex align-items-center mb-3">
+                                <i class="bi bi-geo-alt me-2 text-danger"></i>
+                                <span>@evtDetails.VenueName, @evtDetails.CityName</span>
+                            </li>
+                        </ul>
+
+                        <hr class="my-3" />
+
+                        <h4 class="fw-bold mb-4 d-flex align-items-center">
+                            <i class="bi bi-ticket-perforated-fill text-danger me-2"></i>
+                            Choose Your Seats
+                        </h4>
+
+                        @if (seatCategories.Any())
+                        {
+                            @foreach (var category in seatCategories)
+                            {
+                                <div class="border rounded-3 p-4 mb-4 bg-white shadow-sm hover-shadow-sm mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h4 class="fw-semibold mb-0">@category.Category</h4>
+                                        <h5 class="fw-semibold text-danger mb-0">₹@category.Price</h5>
+                                    </div>
+                                    <p class="text-muted mb-1 small">@GetSeatDescription(category.Category)</p>
+                                    <p class="text-secondary small mb-0">@category.Available available</p>
+                                </div>
+
+                                <div class=" d-flex justify-content-between align-items-center">
+                                    <span class="fw-semibold text-muted">Quantity</span>
+                                    <div class="btn-group" role="group" aria-label="Quantity controls">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" style="width:50% ; height:50%"
+                                                @onclick="() => Decrease(category)">
+                                            <i class="bi bi-dash-lg"></i>
+                                        </button>
+                                        <span class="mx-3 my-1 fw-semibold fs-6">@category.Quantity</span>
+                                        <button type="button" class="btn btn-outline-danger btn-sm" style="width:50%;height:50%"
+                                                @onclick="() => Increase(category)">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-exclamation-circle fs-4 mb-2"></i>
+                                <p>No seats available for this event.</p>
+                            </div>
+                        }
+
+                        <hr class="my-3" />
+
+
+                        <div class="alert alert-warning small py-2 mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Bookings are filling fast!
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                            <!-- 🧾 Left Side: Calculation -->
+                            <div class="d-flex align-items-center flex-wrap gap-2 text-muted small price-row">
+                                <span class="fw-bold text-dark fs-6">₹@Subtotal</span>
+                                <span class="fw-bold">+</span>
+                                <span>GST</span>
+                                <span class="fw-bold text-dark fs-6">₹@ServiceFee</span>
+                                <span class="fw-bold">=</span>
+                                <span class="fw-bold text-dark fs-5 text-nowrap">₹@Total</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger w-100 fw-semibold py-2"
+                            @onclick="ProceedToCheckout">
+                        Book Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-1 lh-1" style="--bs-breadcrumb-divider: '→'; font-size:0.75rem; opacity:0.8;">
+        <ol class="breadcrumb small text-muted mb-0">
+            <li class="breadcrumb-item">
+                <a href="/" class="text-decoration-none text-muted">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="/events" class="text-decoration-none text-muted">Events</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="/events" class="text-decoration-none text-muted">@evtDetails.Genre</a>
+            </li>
+            @*<li class="breadcrumb-item">
+                    <a href="/organizer/@evtDetails.VenueName.ToLower().Replace(" ", "-")" class="text-decoration-none text-muted">
+                        @evtDetails.VenueName
+                    </a>
+                </li>*@
+            <li class="breadcrumb-item active text-muted" aria-current="page">
+                @evtDetails.Title
+            </li>
+        </ol>
+    </nav>
+
+
+
+    @*</div>*@
+}
+
+
+@code {
+    [Parameter] public int eventId { get; set; }
+
+    private EventDto? evtDetails;
+    private List<EventDto> suggestedEvents = new();
+    private List<SeatCategory> seatCategories = new();
+    private List<string> selectedSeats = new();
+
+    private decimal Subtotal => seatCategories.Sum(c => c.Quantity * c.Price);
+    private decimal ServiceFee => Math.Round(Subtotal * 0.1m, 2);
+    private decimal Total => Subtotal + ServiceFee;
+
+
+    private int interestedCount = 0;
+    private bool isInterested = false;
+    private string interestKey => $"event_{eventId}_interested";
+
+    protected override async Task OnInitializedAsync()
+    {
+        evtDetails = await Http.GetFromJsonAsync<EventDto>($"api/events/{eventId}");
+        var allSeats = await Http.GetFromJsonAsync<List<SeatDto>>($"api/seats/event/{eventId}");
+
+        if (allSeats != null && allSeats.Any())
+        {
+            seatCategories = allSeats
+                .GroupBy(s => s.Category)
+                .Select(g => new SeatCategory
+                {
+                    Category = g.Key,
+                    Price = g.First().Price,
+                    Available = g.Count(s => !s.IsBooked)
+                })
+                .ToList();
+        }
+        await LoadSuggestedEvents();
+    }
+
+    private void Increase(SeatCategory category)
+    {
+        if (category.Quantity < category.Available)
+            category.Quantity++;
+    }
+
+    private void Decrease(SeatCategory category)
+    {
+        if (category.Quantity > 0)
+            category.Quantity--;
+    }
+    private async Task LoadSuggestedEvents()
+    {
+        var allEvents = await Http.GetFromJsonAsync<List<EventDto>>("api/events");
+
+        suggestedEvents = allEvents?
+            .Where(e => e.Id != eventId &&
+                        (e.Genre == evtDetails?.Genre || e.CityName == evtDetails?.CityName))
+            .Take(8) // show more events for horizontal scroll
+            .ToList() ?? new List<EventDto>();
+    }
+
+    private void ViewEvent(int id)
+    {
+        Nav.NavigateTo($"/book-event/{id}");
+    }
+
+
+    private async Task ProceedToCheckout()
+    {
+        if (Subtotal == 0)
+        {
+            await JS.InvokeVoidAsync("alert", "Please select at least one ticket.");
+            return;
+        }
+
+        var selectedSeats = new List<int>();
+
+        var booking = new BookingRequest
+        {
+            EventId = eventId,
+            UserName = "Test User",
+            UserEmail = "test@gmail.com",
+            Quantity = seatCategories.Sum(c => c.Quantity),
+            TotalPrice = Total,
+            SeatIds = selectedSeats
+        };
+
+        var response = await Http.PostAsJsonAsync("api/Booking", booking);
+        if (response.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync("alert", "✅ Booking successful!");
+            Nav.NavigateTo("/events");
+        }
+        else
+        {
+            var msg = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("alert", $"❌ Booking failed: {msg}");
+        }
+    }
+
+
+    private void ToggleSeat(SeatCategory category, string seatId)
+    {
+        if (selectedSeats.Contains(seatId))
+        {
+            selectedSeats.Remove(seatId);
+            category.Quantity--;
+        }
+        else
+        {
+            selectedSeats.Add(seatId);
+            category.Quantity++;
+        }
+    }
+    private string GetSeatDescription(string category)
+    {
+        return category switch
+        {
+            "Regular" => "Standard seating for casual comfort",
+            "Premium" => "Mid-level seats with excellent view",
+            "VIP" => "Front row seats with exclusive access",
+            "Balcony" => "Top view, relaxed experience",
+            _ => "General seating"
+        };
+    }
+
+    private async Task LoadInterestAsync()
+    {
+        try
+        {
+            isInterested = await SessionStorage.GetItemAsync<bool>(interestKey);
+
+            interestedCount = new Random().Next(500, 900);
+            if (isInterested)
+            {
+                interestedCount += 1;
+            }
+        }
+        catch
+        {
+            interestedCount = 0;
+        }
+    }
+
+    private async Task MarkInterested()
+    {
+        if (isInterested)
+            return;
+
+        isInterested = true;
+        interestedCount++;
+
+        await SessionStorage.SetItemAsync(interestKey, true);
+
+        // await JS.InvokeVoidAsync("alert", "👍 You’ve marked this event as interested!");
+    }
+
+    public class SeatCategory
+    {
+        public string Category { get; set; } = "";
+        public decimal Price { get; set; }
+        public int Quantity { get; set; } = 0;
+        public int Available { get; set; } = 0;
+    }
+}

@@ -1,0 +1,26 @@
+﻿/* Client.styles.css */
+
+/* Basic page styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+}
+
+/* Sidebar and main layout */
+.page {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #020336;
+    color: white;
+}
+
+main {
+    flex: 1;
+    padding: 20px;
+}
