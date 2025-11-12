@@ -33,11 +33,11 @@ namespace Applications.Dto
         public DateTime ShowDate { get; set; }
         public int VenueId { get; set; }
 
-        [Required]
-        [Range(0, 10000)]
-        public decimal TicketPrice { get; set; }
+        //[Required]
+        //[Range(0, 10000)]
+        //public decimal TicketPrice { get; set; }
 
         public IFormFile? ImageFile { get; set; }
-
+        public string? ImageUrl { get; set; }
     }
 }

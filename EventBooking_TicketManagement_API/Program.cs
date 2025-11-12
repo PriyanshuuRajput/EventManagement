@@ -50,6 +50,9 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<IBookingService, BookingService>();
             builder.Services.AddScoped<ICountryService, CountryService>();
 
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
+
             // ---------------------------------------------------------
             // 🔐 Security Services
             // ---------------------------------------------------------
@@ -130,21 +133,32 @@ namespace EventBooking_TicketManagement_API
 
                 db.Database.Migrate();
 
-                if (!db.Users.Any())
+                var admin = db.Users.FirstOrDefault(u => u.Role == "Admin");
+
+                if (admin == null)
                 {
-                    var admin = new AdminUser
+                    admin = new AdminUser
                     {
                         Username = "admin",
-                        Email = "admin@bookingapp.com",
+                        Email = "rajputronak0058@gmail.com",
                         PasswordHash = passwordHasher.HashPassword("Admin@123"),
                         Role = "Admin",
-                        PhoneNumber = "9999999999"
+                        PhoneNumber = "9999999999",
+                        CreatedAt = DateTime.UtcNow,
+                        IsActive = true
                     };
-
                     db.Users.Add(admin);
-                    db.SaveChanges();
                 }
+                else
+                {
+                    admin.Email = "rajputronak0058@gmail.com";
+                    admin.CreatedAt = DateTime.UtcNow;
+                    admin.IsActive = true;
+                    db.Users.Update(admin);
+                }
+                db.SaveChanges();
             }
+
             // Seed data
             using (var scope = app.Services.CreateScope())
             {
