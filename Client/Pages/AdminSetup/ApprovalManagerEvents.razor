@@ -1,0 +1,191 @@
+﻿@page "/approval-manager-events/{eventId:int}"
+@inject HttpClient Http
+@inject Blazored.Toast.Services.IToastService toastService
+@inject NavigationManager Nav
+@using Domains.Entities
+
+<style>
+    .event-banner {
+        border-radius: 15px;
+        height: 350px;
+        object-fit: cover;
+    }
+
+    .hover-shadow-sm:hover {
+        transform: translateY(-3px);
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .badge-status {
+        font-size: 0.9rem;
+        padding: 0.5em 0.8em;
+        border-radius: 10px;
+    }
+</style>
+
+@if (eventDetails == null)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-danger" role="status"></div>
+        <p class="text-muted mt-2">Loading event details...</p>
+    </div>
+}
+else
+{
+    <div class="container my-4">
+        <div class="row align-items-start g-4">
+            <!-- Left: Image & Basic Info -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden hover-shadow-sm mb-4">
+                    <img src="@eventDetails.ImageUrl"
+                         alt="@eventDetails.Title"
+                         class="img-fluid w-100 event-banner" />
+                    </div>
+
+
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="fw-bold text-dark mb-0">@eventDetails.Title</h3>
+                            <span class="badge badge-status @(eventDetails.Status == EventStatus.Pending ? "bg-warning text-dark" :
+                                          eventDetails.Status == EventStatus.Approved ? "bg-success" : "bg-danger")">
+                                @(eventDetails.Status == EventStatus.Pending ? "Pending Review" :
+                              eventDetails.Status == EventStatus.Approved ? "Approved" : "Rejected")
+                            </span>
+                        </div>
+
+                        <div class="d-flex flex-wrap mb-3 gap-2">
+                            <span class="badge bg-secondary">@eventDetails.Genre</span>
+                            <span class="badge bg-dark">@eventDetails.EventType</span>
+                            @*<span class="badge bg-danger">@eventDetails.Language</span>*@
+                        </div>
+
+                        <p class="text-muted mb-4">@eventDetails.Description</p>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <p><strong>📅 Date:</strong> @eventDetails.ShowDate.ToString("MMMM dd, yyyy")</p>
+                                <p><strong>⏰ Time:</strong> @eventDetails.ShowDate.ToString("hh:mm tt")</p>
+                                <p><strong>📍 Venue:</strong> @eventDetails.VenueName, @eventDetails.CityName</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>💰 Language:</strong> @eventDetails.Language</p>
+                                <p><strong>🕒 Duration of Event:</strong> @eventDetails.Duration.Hours hr @eventDetails.Duration.Minutes min</p>
+                                <p><strong>🧾 Created At:</strong> @eventDetails.CreatedAt.ToString("dd MMM yyyy hh:mm tt")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Right: Review Panel -->
+            <div class="col-lg-4 "style="height:500px">
+                <div class="card shadow-lg border-0 rounded-4 sticky-top" style="top: 100px;">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-secondary mb-3"> Submitted By</h5>
+                        <div class="p-3 rounded-3 bg-light border mb-4">
+                            <div class="fw-semibold text-dark">@eventDetails.ManagerName</div>
+                            <div class="text-muted small">manager@example.com</div>
+                        </div>
+
+                        <div class="alert alert-warning small py-2 mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Pending approval action required.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-danger fw-semibold py-2" @onclick="ApproveEvent">
+                                 Approve Event
+                            </button>
+                            <button class="btn btn-outline-secondary fw-semibold py-2" @onclick="ShowRejectModal">
+                                 Reject Event
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showRejectModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5)">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-sm">
+                <div class="modal-header border border-danger text-dark">
+                    <h5 class="modal-title">Reject Event</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => showRejectModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label fw-semibold">Reason for rejection</label>
+                    <textarea class="form-control" rows="3" @bind="rejectionReason" placeholder="Enter reason..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    @*<button class="btn btn-outline-secondary" @onclick="() => showRejectModal = false">Cancel</button>*@
+                    <button class="btn btn-outline-danger" @onclick="RejectEvent">Reject</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int eventId { get; set; }
+
+    private EventDto? eventDetails;
+    private bool showRejectModal = false;
+    private string rejectionReason = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEventDetails();
+    }
+
+    private async Task LoadEventDetails()
+    {
+        try
+        {
+            eventDetails = await Http.GetFromJsonAsync<EventDto>($"api/Events/{eventId}");
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error loading event: {ex.Message}");
+        }
+    }
+
+    private async Task ApproveEvent()
+    {
+        try
+        {
+            await Http.PostAsync($"api/AdminEvent/approve/{eventId}", null);
+            toastService.ShowSuccess("Event approved successfully!");
+            Nav.NavigateTo("/manage-events");
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error approving: {ex.Message}");
+        }
+    }
+
+    private void ShowRejectModal() => showRejectModal = true;
+
+    private async Task RejectEvent()
+    {
+        if (string.IsNullOrWhiteSpace(rejectionReason))
+        {
+            toastService.ShowWarning("Please enter a reason before rejecting.");
+            return;
+        }
+
+        try
+        {
+            await Http.PostAsJsonAsync($"api/AdminEvent/reject/{eventId}", new { Reason = rejectionReason });
+            toastService.ShowInfo("❌ Event rejected successfully!");
+            showRejectModal = false;
+            Nav.NavigateTo("/manage-events");
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error rejecting: {ex.Message}");
+        }
+    }
+}
