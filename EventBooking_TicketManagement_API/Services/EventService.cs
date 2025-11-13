@@ -22,19 +22,6 @@ namespace EventBooking_TicketManagement_API.Services
 
             return events.Select(ev => new EventDto
             {
-                //Id = ev.Id,
-                //Title = ev.Title,
-                //EventType = ev.EventType,
-                //Description = ev.Description,
-                //Genre = ev.Genre,
-                //Language = ev.Language,
-                //Duration = ev.Duration,
-                //ShowDate = ev.ShowDate,
-                ////VenueId = ev.VenueId,
-                //VenueName = ev.Venue?.VenueName ?? string.Empty,
-                //CityName = ev.Venue?.City?.CityName ?? string.Empty,
-                //TicketPrice = ev.TicketPrice,
-                //ImageUrl = ev.ImageUrl
                 Id = ev.Id,
                 Title = ev.Title,
                 EventType = ev.EventType,
@@ -59,20 +46,6 @@ namespace EventBooking_TicketManagement_API.Services
 
             return new EventDto
             {
-                //Id = ev.Id,
-                //Title = ev.Title,
-                //EventType = ev.EventType,
-                //Description = ev.Description,
-                //Genre = ev.Genre,
-                //Language = ev.Language,
-                //Duration = ev.Duration,
-                //ShowDate = ev.ShowDate,
-                //VenueId = ev.VenueId,
-                //VenueName = ev.Venue?.VenueName ?? string.Empty,
-                //CityName = ev.Venue?.City?.CityName ?? string.Empty,
-                //TicketPrice = ev.TicketPrice,
-                //ImageUrl = ev.ImageUrl
-
                 Id = ev.Id,
                 Title = ev.Title,
                 EventType = ev.EventType,
@@ -126,11 +99,23 @@ namespace EventBooking_TicketManagement_API.Services
             ev.Language = dto.Language;
             ev.Duration = dto.Duration;
             ev.ShowDate = dto.ShowDate;
-            //ev.VenueId = dto.VenueId;
+
+            if (dto.VenueId != 0)
+                ev.VenueId = dto.VenueId;
+
             ev.TicketPrice = dto.TicketPrice;
 
             if (!string.IsNullOrEmpty(dto.ImageUrl))
                 ev.ImageUrl = dto.ImageUrl;
+            ev.ManagerId = dto.ManagerId;
+            ev.ManagerName = dto.ManagerName;
+            ev.Status = dto.Status;
+            ev.AdminNote = dto.AdminNote;
+            ev.TicketPrice = dto.TicketPrice;
+
+            //ev.SoldTicket = dto.SoldTickets;
+            //ev.CreatedAt = dto.CreatedAt;
+            ev.ApprovedAt = dto.ApprovedAt;
 
             await _eventRepository.UpdateAsync(ev);
         }

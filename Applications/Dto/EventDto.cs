@@ -61,7 +61,7 @@ namespace Applications.Dto
         public EventStatus Status { get; set; } = EventStatus.Pending;
         public string? AdminNote { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ApprovedAt { get; set; }
     }
 }
