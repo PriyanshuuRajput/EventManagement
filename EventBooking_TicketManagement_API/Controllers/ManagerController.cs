@@ -135,6 +135,21 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok("Event updated successfully.");
         }
 
+        [HttpPost("pay/{eventId}")]
+        public async Task<IActionResult> PayEventAmount(int eventId)
+        {
+            try
+            {
+                await _eventService.MarkEventAsPaidAsync(eventId);
+                return Ok(new { Message = "Payment successful! Event is now published." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+
         // (Optional) Delete event before approval
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteEvent(int id)
@@ -142,5 +157,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             await _eventService.DeleteEventAsync(id);
             return Ok("Event deleted successfully.");
         }
+
+
     }
 }

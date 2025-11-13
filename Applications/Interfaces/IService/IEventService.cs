@@ -14,13 +14,16 @@ namespace Applications.Interfaces.IService
 
         Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId);
 
-        // 👨‍💼 Admin
+        //  Admin
         Task<IEnumerable<EventDto>> GetPendingEventsAsync();
         Task ApproveEventAsync(int eventId);
         Task RejectEventAsync(int eventId, EventRejectDto dto);
 
-        // 👤 User
+        //  User
         Task<IEnumerable<EventDto>> GetApprovedEventsAsync();
-        //Task <IEnumerable<EventDto>>GetManagerEventsAsync(string managerId);
+
+        Task AcceptOfferedAmountAsync(int eventId);
+        Task MarkEventAsPaidAsync(int eventId);
+
     }
 }

@@ -131,7 +131,23 @@
                                 <div class="card-body">
                                     <h5 class="card-title">@ev.Title</h5>
                                     <p class="card-text mb-1"><i class="bi bi-calendar-event me-2"></i>@ev.ShowDate.ToString("dd MMM yyyy")</p>
-                                    <p class="card-text mb-1"><i class="bi bi-clock me-2"></i>@ev.Duration.ToString(@"hh\:mm")</p>
+        <p class="card-text mb-1"><i class="bi bi-clock me-2"></i>@ev.Duration.ToString(@"hh\:mm")</p>
+
+                                    <!--<p class="card-text mb-1">
+                                        <i class="bi bi-calendar-event me-2"></i>
+                                        @ToIST(ev.ShowDate).ToString("dd MMM yyyy")
+                                    </p>
+
+                                    <p class="card-text mb-1">
+                                        <i class="bi bi-clock me-2"></i>
+                                        @ToIST(ev.ShowDate).ToString("hh:mm tt")-->  <!-- IST Correct Time -->
+                                    <!--</p>
+
+                                    <p class="card-text mb-1">
+                                        <i class="bi bi-hourglass-split me-2"></i>
+                                        Duration: @ev.Duration.ToString(@"hh\:mm") hrs-->  <!-- Correct Duration -->
+                                    <!--</p>-->
+
                                     <p class="card-text mb-1"><i class="bi bi-geo-alt me-2"></i>@ev.VenueName, @ev.CityName</p>
                                 </div>
                                 <div class="card-footer bg-white border-0">
@@ -177,7 +193,7 @@
     {
         try
         {
-            events = await Http.GetFromJsonAsync<List<EventDto>>("https://localhost:7239/api/Events") ?? new List<EventDto>();
+            events = await Http.GetFromJsonAsync<List<EventDto>>("https://localhost:7239/api/Events/approved") ?? new List<EventDto>();
             filteredEvents = events.ToList();
         }
         catch
@@ -190,6 +206,11 @@
             isLoading = false;
         }
     }
+    private DateTime ToIST(DateTime utc)
+    {
+        return utc.AddHours(5).AddMinutes(30);
+    }
+
 
     // --- DATE FILTERS ---
     private void SetDateFilter(string filter)

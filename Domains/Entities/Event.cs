@@ -6,8 +6,9 @@ namespace Domains.Entities
     public enum EventStatus
     {
         Pending = 0,
-        Approved = 1,
-        Rejected = 2
+        AdminApproved = 1,
+        PaymentConfirmed = 2,
+        Rejected = 3
     }
     public class Event
     {
@@ -54,5 +55,16 @@ namespace Domains.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? ApprovedAt { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal EventAmount { get; set; } = 0m;
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? OfferedEventAmount { get; set; }
+
+        public bool IsPrizePaid { get; set; } = false;
+
+        public DateTime? PrizePaidAt { get; set; }
+
     }
 }

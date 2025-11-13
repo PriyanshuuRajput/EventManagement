@@ -63,5 +63,10 @@ namespace Applications.Dto
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ApprovedAt { get; set; }
+
+        public decimal EventAmount { get; set; }
+
+        public decimal? OfferedEventAmount { get; set; }
+        public bool? IsAmountAccepted { get; set; }
     }
 }

@@ -39,5 +39,8 @@ namespace Applications.Dto
 
         public IFormFile? ImageFile { get; set; }
         public string? ImageUrl { get; set; }
+
+
+        public decimal? OfferedEventAmount { get; set; }
     }
 }
