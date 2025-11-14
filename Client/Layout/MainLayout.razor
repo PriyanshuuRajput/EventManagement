@@ -64,6 +64,30 @@
         @Body
     </main>
 
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 3000;">
+        <div id="app-toast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="app-toast-message"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 3000;">
+        <div id="app-toast"
+             class="toast align-items-center border-0"
+             role="alert"
+             aria-live="assertive"
+             aria-atomic="true">
+            <div class="d-flex">
+                <div id="app-toast-message" class="toast-body">Message here</div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+
+
 
     <!-- Footer -->
     <footer class="bg-dark text-light text-center py-3 mt-auto">

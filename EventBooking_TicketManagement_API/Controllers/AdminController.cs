@@ -1,11 +1,10 @@
 ﻿using Applications.Dto;
 using Applications.Interfaces.IService;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     [ApiController]
     [Route("api/[controller]")]
     public class AdminEventController : ControllerBase
@@ -48,5 +47,25 @@ namespace EventBooking_TicketManagement_API.Controllers
         //    var events = await _eventService.RejectEventAsync();
         //    return Ok(events);
         //}
+
+
+        [HttpPost("accept-offer/{id}")]
+        public async Task<IActionResult> AcceptOffer(int id, [FromBody] AcceptOfferDto dto)
+        {
+            try
+            {
+                await _eventService.AcceptOfferedAmountAsync(id, dto.FinalAmount);
+                return Ok(new { Message = "Offer accepted. Waiting for manager payment." });
+            }
+            catch (BadHttpRequestException ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Error = "Something went Wrong." });
+            }
+        }
+
     }
 }

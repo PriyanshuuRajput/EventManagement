@@ -32,7 +32,6 @@ namespace Infrastructures.Repository
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .Include(e => e.Seats)
-                .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
 
@@ -62,6 +61,7 @@ namespace Infrastructures.Repository
             if (e == null) throw new ArgumentNullException(nameof(e));
 
             _context.Events.Update(e);
+            _context.Entry(e).Property(x => x.CreatedAt).IsModified = false;
             await _context.SaveChangesAsync();
         }
 
@@ -113,7 +113,8 @@ namespace Infrastructures.Repository
         public async Task<IEnumerable<Event>> GetApprovedEventsAsync()
         {
             return await _context.Events
-                .Where(e => e.Status == EventStatus.Approved)
+                .Where(e => e.Status == EventStatus.AdminApproved
+                        || e.Status == EventStatus.PaymentConfirmed)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .OrderByDescending(e => e.ShowDate)

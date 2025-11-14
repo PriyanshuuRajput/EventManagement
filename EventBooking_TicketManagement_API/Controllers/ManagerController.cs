@@ -81,7 +81,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             if (existingEvent == null)
                 return NotFound($"Event with ID {id} not found.");
 
-            //  Handle image upload (if manager changes image)
+            //  Handle image upload 
             if (dto.ImageFile != null)
             {
                 var allowedExtensions = new[] { ".jpeg", ".jpg", ".png", ".webp" };
@@ -119,11 +119,36 @@ namespace EventBooking_TicketManagement_API.Controllers
                 ShowDate = dto.ShowDate,
                 VenueId = dto.VenueId,
                 //TicketPrice = dto.TicketPrice,
-                ImageFile = dto.ImageFile
+                ImageUrl = dto.ImageUrl,
+
+
+                ManagerId = existingEvent.ManagerId,
+                ManagerName = existingEvent.ManagerName,
+                Status = existingEvent.Status,
+                AdminNote = existingEvent.AdminNote,
+                TotalTickets = existingEvent.TotalTickets,
+                SoldTickets = existingEvent.SoldTickets,
+                CreatedAt = existingEvent.CreatedAt,
+                ApprovedAt = existingEvent.ApprovedAt
             });
 
             return Ok("Event updated successfully.");
         }
+
+        [HttpPost("pay/{eventId}")]
+        public async Task<IActionResult> PayEventAmount(int eventId)
+        {
+            try
+            {
+                await _eventService.MarkEventAsPaidAsync(eventId);
+                return Ok(new { Message = "Payment successful! Event is now published." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
 
         // (Optional) Delete event before approval
         [HttpDelete("delete/{id}")]
@@ -132,5 +157,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             await _eventService.DeleteEventAsync(id);
             return Ok("Event deleted successfully.");
         }
+
+
     }
 }

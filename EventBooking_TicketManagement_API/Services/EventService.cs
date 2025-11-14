@@ -22,19 +22,6 @@ namespace EventBooking_TicketManagement_API.Services
 
             return events.Select(ev => new EventDto
             {
-                //Id = ev.Id,
-                //Title = ev.Title,
-                //EventType = ev.EventType,
-                //Description = ev.Description,
-                //Genre = ev.Genre,
-                //Language = ev.Language,
-                //Duration = ev.Duration,
-                //ShowDate = ev.ShowDate,
-                ////VenueId = ev.VenueId,
-                //VenueName = ev.Venue?.VenueName ?? string.Empty,
-                //CityName = ev.Venue?.City?.CityName ?? string.Empty,
-                //TicketPrice = ev.TicketPrice,
-                //ImageUrl = ev.ImageUrl
                 Id = ev.Id,
                 Title = ev.Title,
                 EventType = ev.EventType,
@@ -48,7 +35,11 @@ namespace EventBooking_TicketManagement_API.Services
                 TicketPrice = ev.TicketPrice,
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
-                ManagerName = ev.ManagerName
+                ManagerName = ev.ManagerName,
+                EventAmount = ev.EventAmount,
+                OfferedEventAmount = ev.OfferedEventAmount,
+                CreatedAt = ev.CreatedAt,
+                ApprovedAt = ev.ApprovedAt,
             });
         }
 
@@ -59,20 +50,6 @@ namespace EventBooking_TicketManagement_API.Services
 
             return new EventDto
             {
-                //Id = ev.Id,
-                //Title = ev.Title,
-                //EventType = ev.EventType,
-                //Description = ev.Description,
-                //Genre = ev.Genre,
-                //Language = ev.Language,
-                //Duration = ev.Duration,
-                //ShowDate = ev.ShowDate,
-                //VenueId = ev.VenueId,
-                //VenueName = ev.Venue?.VenueName ?? string.Empty,
-                //CityName = ev.Venue?.City?.CityName ?? string.Empty,
-                //TicketPrice = ev.TicketPrice,
-                //ImageUrl = ev.ImageUrl
-
                 Id = ev.Id,
                 Title = ev.Title,
                 EventType = ev.EventType,
@@ -88,7 +65,11 @@ namespace EventBooking_TicketManagement_API.Services
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
                 ManagerName = ev.ManagerName,
-                AdminNote = ev.AdminNote
+                AdminNote = ev.AdminNote,
+                OfferedEventAmount = ev.OfferedEventAmount,
+                EventAmount = ev.EventAmount,
+                IsAmountAccepted = ev.IsPrizePaid
+
             };
         }
 
@@ -126,11 +107,23 @@ namespace EventBooking_TicketManagement_API.Services
             ev.Language = dto.Language;
             ev.Duration = dto.Duration;
             ev.ShowDate = dto.ShowDate;
-            //ev.VenueId = dto.VenueId;
+
+            if (dto.VenueId != 0)
+                ev.VenueId = dto.VenueId;
+
             ev.TicketPrice = dto.TicketPrice;
 
             if (!string.IsNullOrEmpty(dto.ImageUrl))
                 ev.ImageUrl = dto.ImageUrl;
+            ev.ManagerId = dto.ManagerId;
+            ev.ManagerName = dto.ManagerName;
+            ev.Status = dto.Status;
+            ev.AdminNote = dto.AdminNote;
+            ev.TicketPrice = dto.TicketPrice;
+
+            //ev.SoldTicket = dto.SoldTickets;
+            //ev.CreatedAt = dto.CreatedAt;
+            ev.ApprovedAt = dto.ApprovedAt;
 
             await _eventRepository.UpdateAsync(ev);
         }
@@ -155,6 +148,71 @@ namespace EventBooking_TicketManagement_API.Services
             });
         }
 
+
+        public async Task<EventDto> CreateEventAsync(ManagerEventDto mdto, string managerId, string managerName)
+        {
+            var ev = new Event
+            {
+                Title = mdto.Title,
+                EventType = mdto.EventType,
+                Description = mdto.Description,
+                Genre = mdto.Genre,
+                Language = mdto.Language,
+                Duration = mdto.Duration,
+                ShowDate = mdto.ShowDate,
+                //TicketPrice = mdto.TicketPrice,
+                ImageUrl = mdto.ImageUrl!,
+                VenueId = mdto.VenueId,
+                ManagerId = managerId,
+                ManagerName = managerName,
+                Status = EventStatus.Pending,
+                CreatedAt = DateTime.UtcNow,
+                OfferedEventAmount = mdto.OfferedEventAmount ?? 0m,
+                IsPrizePaid = false,
+                PrizePaidAt = null,
+                EventAmount = mdto.OfferedEventAmount ?? 0m
+            };
+
+            await _eventRepository.AddAsync(ev);
+
+            //Send Email to Admin
+            string adminEmail = "rajputronak0058@gmail.com";
+            string subject = $"New Event Submitted :{ev.Title}";
+
+            string approvalUrl = $"https://localhost:7117/approval-manager-events/{ev.Id}";
+            string body = $@"
+                            <h2>New Event pending Approval </h2>
+                            <p><b>Title:</b> {ev.Title}</p>
+                            <p><b>Manager:</b> {managerName}</p>
+                            <p><b>Date:</b> {ev.ShowDate:dd MMM yyyy HH:mm}</p>
+                            <p>Please review and approve/reject this event in the admin dashboard.</p>
+                            <p>
+                                <a href ='{approvalUrl}' style ='color:#fff; background-color:#d9534f;padding:10px 15px ; border-radius:6px; text-decoration:none;'>Review Event</a>
+                            </p>
+                            <hr/>
+                            <small>This Link opens the Admin Dashboard for event verification</small>";
+
+            await _emailService.SendEmailAsync(adminEmail, subject, body);
+
+            return new EventDto
+            {
+                Id = ev.Id,
+                Title = ev.Title,
+                EventType = ev.EventType,
+                Description = ev.Description,
+                Genre = ev.Genre,
+                Language = ev.Language,
+                Duration = ev.Duration,
+                ShowDate = ev.ShowDate,
+                TicketPrice = ev.TicketPrice,
+                ManagerId = ev.ManagerId,
+                ManagerName = ev.ManagerName,
+                Status = ev.Status,
+                CreatedAt = ev.CreatedAt,
+
+            };
+        }
+
         public async Task<IEnumerable<EventDto>> GetPendingEventsAsync()
         {
             var events = await _eventRepository.GetPendingEventsAsync();
@@ -166,8 +224,11 @@ namespace EventBooking_TicketManagement_API.Services
             var ev = await _eventRepository.GetByIdAsync(eventId)
                 ?? throw new Exception("Event not found");
 
-            ev.Status = EventStatus.Approved;
+            ev.Status = EventStatus.AdminApproved;
             ev.ApprovedAt = DateTime.UtcNow;
+            ev.AdminNote = null;
+            ev.IsPrizePaid = false;
+            ev.PrizePaidAt = null;
             await _eventRepository.UpdateAsync(ev);
 
             //Send email to Manager
@@ -181,6 +242,9 @@ namespace EventBooking_TicketManagement_API.Services
 
             await _emailService.SendEmailAsync(managerEmail, subject, body);
         }
+
+
+
 
         public async Task RejectEventAsync(int eventId, EventRejectDto dto)
         {
@@ -227,68 +291,14 @@ namespace EventBooking_TicketManagement_API.Services
             Status = e.Status,
             AdminNote = e.AdminNote,
             CreatedAt = e.CreatedAt,
-            ApprovedAt = e.ApprovedAt
+            ApprovedAt = e.ApprovedAt,
+            OfferedEventAmount = e.OfferedEventAmount,
+            EventAmount = e.EventAmount,
+            IsAmountAccepted = e.IsPrizePaid
+
+
         };
 
-        public async Task<EventDto> CreateEventAsync(ManagerEventDto mdto, string managerId, string managerName)
-        {
-            var ev = new Event
-            {
-                Title = mdto.Title,
-                EventType = mdto.EventType,
-                Description = mdto.Description,
-                Genre = mdto.Genre,
-                Language = mdto.Language,
-                Duration = mdto.Duration,
-                ShowDate = mdto.ShowDate,
-                //TicketPrice = mdto.TicketPrice,
-                ImageUrl = mdto.ImageUrl!,
-                VenueId = mdto.VenueId,
-                ManagerId = managerId,
-                ManagerName = managerName,
-                Status = EventStatus.Pending,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _eventRepository.AddAsync(ev);
-
-            //Send Email to Admin
-            string adminEmail = "rajputronak0058@gmail.com";
-            string subject = $"New Event Submitted :{ev.Title}";
-
-            string approvalUrl = $"https://localhost:7117/approval-manager-events/{ev.Id}";
-            string body = $@"
-                            <h2>New Event pending Approval </h2>
-                            <p><b>Title:</b> {ev.Title}</p>
-                            <p><b>Manager:</b> {managerName}</p>
-                            <p><b>Date:</b> {ev.ShowDate:dd MMM yyyy HH:mm}</p>
-                            <p>Please review and approve/reject this event in the admin dashboard.</p>
-                            <p>
-                                <a href ='{approvalUrl}' style ='color:#fff; background-color:#d9534f;padding:10px 15px ; border-radius:6px; text-decoration:none;'>Review Event</a>
-                            </p>
-                            <hr/>
-                            <small>This Link opens the Admin Dashboard for event verification</small>";
-
-            await _emailService.SendEmailAsync(adminEmail, subject, body);
-
-            return new EventDto
-            {
-                Id = ev.Id,
-                Title = ev.Title,
-                EventType = ev.EventType,
-                Description = ev.Description,
-                Genre = ev.Genre,
-                Language = ev.Language,
-                Duration = ev.Duration,
-                ShowDate = ev.ShowDate,
-                TicketPrice = ev.TicketPrice,
-                ManagerId = ev.ManagerId,
-                ManagerName = ev.ManagerName,
-                Status = ev.Status,
-                CreatedAt = ev.CreatedAt,
-
-            };
-        }
 
         public async Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId)
         {
@@ -304,6 +314,62 @@ namespace EventBooking_TicketManagement_API.Services
                 ShowDate = e.ShowDate
             });
         }
+
+
+        public async Task AcceptOfferedAmountAsync(int eventId, decimal finalAmount)
+        {
+            var ev = await _eventRepository.GetByIdAsync(eventId)
+                ?? throw new Exception("Event not found");
+
+            if (finalAmount <= 0)
+                throw new InvalidOperationException("Final amount must be > 0.");
+
+            if (!ev.OfferedEventAmount.HasValue || ev.OfferedEventAmount.Value <= 0)
+                throw new BadHttpRequestException("No amount was offered by manager.");
+
+
+            // copy manager's offer into admin-controlled EventAmount
+            ev.EventAmount = finalAmount;
+            ev.Status = EventStatus.AdminApproved; // offer accepted
+            ev.IsPrizePaid = false;
+            ev.PrizePaidAt = null;
+            await _eventRepository.UpdateAsync(ev);
+
+            // Send Email to Manager
+            string managerEmail = "rajputpriyanshu676@gmail.com";
+            string subject = $"Offer Accepted for Event: {ev.Title}";
+            string body = $@"<h2>Your offer has been accepted</h2>
+                     <p>Please pay the final amount: <b>₹{ev.OfferedEventAmount}</b></p>";
+
+            await _emailService.SendEmailAsync(managerEmail, subject, body);
+        }
+
+
+        public async Task MarkEventAsPaidAsync(int eventId)
+        {
+            var ev = await _eventRepository.GetByIdAsync(eventId)
+                ?? throw new Exception("Event not found");
+
+            if (ev.IsPrizePaid)
+                throw new Exception("Payment already done.");
+
+            ev.IsPrizePaid = true;
+            ev.PrizePaidAt = DateTime.UtcNow;
+            ev.Status = EventStatus.PaymentConfirmed;
+
+            await _eventRepository.UpdateAsync(ev);
+
+            // Notify Admin
+            string adminEmail = "rajputronak0058@gmail.com";
+            string subject = $"Event Payment Completed: {ev.Title}";
+            string body = $@"<h3>Payment Completed</h3>
+                     <p>Manager has paid the event amount.</p>
+                     <p><b>Amount Paid:</b> ₹{ev.EventAmount}</p>";
+
+            await _emailService.SendEmailAsync(adminEmail, subject, body);
+        }
+
+
     }
 }
 

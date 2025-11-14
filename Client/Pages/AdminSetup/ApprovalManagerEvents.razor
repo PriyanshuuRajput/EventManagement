@@ -1,6 +1,6 @@
 ﻿@page "/approval-manager-events/{eventId:int}"
 @inject HttpClient Http
-@inject Blazored.Toast.Services.IToastService toastService
+@*@inject Blazored.Toast.Services.IToastService toastService*@
 @inject NavigationManager Nav
 @using Domains.Entities
 
@@ -48,9 +48,9 @@ else
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h3 class="fw-bold text-dark mb-0">@eventDetails.Title</h3>
                             <span class="badge badge-status @(eventDetails.Status == EventStatus.Pending ? "bg-warning text-dark" :
-                                          eventDetails.Status == EventStatus.Approved ? "bg-success" : "bg-danger")">
+                                          eventDetails.Status == EventStatus.AdminApproved ? "bg-success" : "bg-danger")">
                                 @(eventDetails.Status == EventStatus.Pending ? "Pending Review" :
-                              eventDetails.Status == EventStatus.Approved ? "Approved" : "Rejected")
+                              eventDetails.Status == EventStatus.AdminApproved ? "Approved" : "Rejected")
                             </span>
                         </div>
 
@@ -71,7 +71,7 @@ else
                             <div class="col-md-6">
                                 <p><strong>💰 Language:</strong> @eventDetails.Language</p>
                                 <p><strong>🕒 Duration of Event:</strong> @eventDetails.Duration.Hours hr @eventDetails.Duration.Minutes min</p>
-                                <p><strong>🧾 Created At:</strong> @eventDetails.CreatedAt.ToString("dd MMM yyyy hh:mm tt")</p>
+                                @*<p><strong>🧾 Created At:</strong> @eventDetails.CreatedAt.ToString("dd MMM yyyy hh:mm tt")</p>*@
                             </div>
                         </div>
                     </div>
@@ -84,19 +84,37 @@ else
                         <h5 class="fw-bold text-secondary mb-3"> Submitted By</h5>
                         <div class="p-3 rounded-3 bg-light border mb-4">
                             <div class="fw-semibold text-dark">@eventDetails.ManagerName</div>
-                            <div class="text-muted small">manager@example.com</div>
+                            @*<div class="text-muted small">manager@example.com</div>*@
+                        </div>
+                        <h5 class="fw-semibold text-dark mb-3">
+                            <span>Manager Offered Amount:</span>
+                            <span class="text-danger fw-bold">₹ @eventDetails.OfferedEventAmount</span>
+                        </h5>
+
+                        <hr />
+                        <div class="alert alert-info small py-2 mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Admin can adjust amount before approval.
                         </div>
 
-                        <div class="alert alert-warning small py-2 mb-3">
-                            <i class="bi bi-info-circle me-2"></i>Pending approval action required.
+                        <div class="mb-3">
+                            <label class="fw-semibold">Enter Final Event Amount</label>
+                            <input type="number" class="form-control" @bind="finalAmount" placeholder="Enter amount (₹)">
                         </div>
+
+
+                        @*<div class="alert alert-warning small py-2 mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Pending approval action required.
+                        </div>*@
 
                         <div class="d-grid gap-2">
-                            <button class="btn btn-outline-danger fw-semibold py-2" @onclick="ApproveEvent">
-                                 Approve Event
+                            <button class="btn btn-outline-danger fw-semibold py-2"
+                                    @onclick="ApproveEvent"
+                                    disabled="@isApproved">
+                                @(!isApproved ? "Approve Event" : "Approved")
                             </button>
+
                             <button class="btn btn-outline-secondary fw-semibold py-2" @onclick="ShowRejectModal">
-                                 Reject Event
+                                Reject Event
                             </button>
                         </div>
                     </div>
@@ -132,8 +150,12 @@ else
     [Parameter] public int eventId { get; set; }
 
     private EventDto? eventDetails;
+    private ManagerEventDto? evt;
     private bool showRejectModal = false;
     private string rejectionReason = string.Empty;
+    private bool isApproved = false;
+    private decimal? finalAmount = null;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -148,23 +170,44 @@ else
         }
         catch (Exception ex)
         {
-            toastService.ShowError($"Error loading event: {ex.Message}");
+            await JS.InvokeVoidAsync("showToast","error",$"Error loading event: {ex.Message}");
         }
     }
 
     private async Task ApproveEvent()
     {
+        if (finalAmount == null || finalAmount <= 0)
+        {
+            await JS.InvokeVoidAsync("showToast", "info", "Please enter a valid final amount.");
+            return;
+        }
+
         try
         {
-            await Http.PostAsync($"api/AdminEvent/approve/{eventId}", null);
-            toastService.ShowSuccess("Event approved successfully!");
-            Nav.NavigateTo("/manage-events");
+            var response = await Http.PostAsJsonAsync(
+                $"api/AdminEvent/accept-offer/{eventId}",
+                new { FinalAmount = finalAmount }
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                isApproved = true;
+                await JS.InvokeVoidAsync("showToast", "success", "Amount accepted & event approved!");
+                await Task.Delay(1000);
+                Nav.NavigateTo("/manage-events", forceLoad: true);
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("showToast","error","No amount was offered by manager!");
+            }
         }
         catch (Exception ex)
         {
-            toastService.ShowError($"Error approving: {ex.Message}");
+            await JS.InvokeVoidAsync("showToast", $"Error: {ex.Message}");
         }
     }
+
 
     private void ShowRejectModal() => showRejectModal = true;
 
@@ -172,20 +215,21 @@ else
     {
         if (string.IsNullOrWhiteSpace(rejectionReason))
         {
-            toastService.ShowWarning("Please enter a reason before rejecting.");
+            await JS.InvokeVoidAsync("showToast","info","Please enter a reason before rejecting.");
             return;
         }
 
         try
         {
             await Http.PostAsJsonAsync($"api/AdminEvent/reject/{eventId}", new { Reason = rejectionReason });
-            toastService.ShowInfo("❌ Event rejected successfully!");
+            await JS.InvokeVoidAsync("showToast","error","Event rejected successfully!");
+            await Task.Delay(1000);
             showRejectModal = false;
-            Nav.NavigateTo("/manage-events");
+            Nav.NavigateTo("/manage-events" , forceLoad:true);
         }
         catch (Exception ex)
         {
-            toastService.ShowError($"Error rejecting: {ex.Message}");
+            await JS.InvokeVoidAsync("showToast","error",$"Error rejecting: {ex.Message}");
         }
     }
 }
