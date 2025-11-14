@@ -67,6 +67,6 @@ namespace Applications.Dto
         public decimal EventAmount { get; set; }
 
         public decimal? OfferedEventAmount { get; set; }
-        public bool? IsAmountAccepted { get; set; }
+        public bool IsAmountAccepted { get; set; }
     }
 }

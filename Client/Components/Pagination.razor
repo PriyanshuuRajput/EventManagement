@@ -1,0 +1,53 @@
+﻿<div class="d-flex justify-content-end mt-3 me-3">
+    <ul class="pagination pagination-sm ">
+
+        <li class="page-item @(Page == 1 ? "disabled" : "")">
+            <button class="page-link" @onclick="Previous">Previous</button>
+        </li>
+
+        @*@for (int i = 1; i <= TotalPages; i++)
+        {
+            <li class="page-item @(i == Page ? "active" : "")">
+                <button class="page-link" @onclick="() => SetPage(i)">@i</button>
+            </li>
+        }*@
+
+        <li class="page-item @(Page == TotalPages ? "disabled" : "")">
+            <button class="page-link" @onclick="Next">Next</button>
+        </li>
+
+    </ul>
+</div>
+
+@code {
+    [Parameter] public int Page { get; set; }
+    [Parameter] public int PageSize { get; set; } = 8;
+    [Parameter] public int TotalItems { get; set; }
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)TotalItems / PageSize));
+
+    private async Task Previous()
+    {
+        if (Page > 1)
+        {
+            Page--;
+            await PageChanged.InvokeAsync(Page);
+        }
+    }
+
+    private async Task Next()
+    {
+        if (Page < TotalPages)
+        {
+            Page++;
+            await PageChanged.InvokeAsync(Page);
+        }
+    }
+
+    private async Task SetPage(int page)
+    {
+        Page = page;
+        await PageChanged.InvokeAsync(Page);
+    }
+}

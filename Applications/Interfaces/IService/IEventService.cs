@@ -22,7 +22,7 @@ namespace Applications.Interfaces.IService
         //  User
         Task<IEnumerable<EventDto>> GetApprovedEventsAsync();
 
-        Task AcceptOfferedAmountAsync(int eventId);
+        Task AcceptOfferedAmountAsync(int eventId, decimal finalAmount);
         Task MarkEventAsPaidAsync(int eventId);
 
     }

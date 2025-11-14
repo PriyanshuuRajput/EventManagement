@@ -62,6 +62,8 @@ namespace Domains.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal? OfferedEventAmount { get; set; }
 
+        public bool IsAmountAccepted { get; set; } = false;
+
         public bool IsPrizePaid { get; set; } = false;
 
         public DateTime? PrizePaidAt { get; set; }

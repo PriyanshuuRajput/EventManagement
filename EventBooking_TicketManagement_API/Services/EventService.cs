@@ -35,7 +35,11 @@ namespace EventBooking_TicketManagement_API.Services
                 TicketPrice = ev.TicketPrice,
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
-                ManagerName = ev.ManagerName
+                ManagerName = ev.ManagerName,
+                EventAmount = ev.EventAmount,
+                OfferedEventAmount = ev.OfferedEventAmount,
+                CreatedAt = ev.CreatedAt,
+                ApprovedAt = ev.ApprovedAt,
             });
         }
 
@@ -166,7 +170,7 @@ namespace EventBooking_TicketManagement_API.Services
                 OfferedEventAmount = mdto.OfferedEventAmount ?? 0m,
                 IsPrizePaid = false,
                 PrizePaidAt = null,
-                EventAmount = 0m,
+                EventAmount = mdto.OfferedEventAmount ?? 0m
             };
 
             await _eventRepository.AddAsync(ev);
@@ -312,17 +316,20 @@ namespace EventBooking_TicketManagement_API.Services
         }
 
 
-        public async Task AcceptOfferedAmountAsync(int eventId)
+        public async Task AcceptOfferedAmountAsync(int eventId, decimal finalAmount)
         {
             var ev = await _eventRepository.GetByIdAsync(eventId)
                 ?? throw new Exception("Event not found");
 
+            if (finalAmount <= 0)
+                throw new InvalidOperationException("Final amount must be > 0.");
+
             if (!ev.OfferedEventAmount.HasValue || ev.OfferedEventAmount.Value <= 0)
-                throw new Exception("No amount was offered by manager.");
+                throw new BadHttpRequestException("No amount was offered by manager.");
 
 
             // copy manager's offer into admin-controlled EventAmount
-            ev.EventAmount = ev.OfferedEventAmount.Value;
+            ev.EventAmount = finalAmount;
             ev.Status = EventStatus.AdminApproved; // offer accepted
             ev.IsPrizePaid = false;
             ev.PrizePaidAt = null;

@@ -50,10 +50,21 @@ namespace EventBooking_TicketManagement_API.Controllers
 
 
         [HttpPost("accept-offer/{id}")]
-        public async Task<IActionResult> AcceptOffer(int id)
+        public async Task<IActionResult> AcceptOffer(int id, [FromBody] AcceptOfferDto dto)
         {
-            await _eventService.AcceptOfferedAmountAsync(id);
-            return Ok(new { Message = "Offer accepted. Waiting for manager payment." });
+            try
+            {
+                await _eventService.AcceptOfferedAmountAsync(id, dto.FinalAmount);
+                return Ok(new { Message = "Offer accepted. Waiting for manager payment." });
+            }
+            catch (BadHttpRequestException ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Error = "Something went Wrong." });
+            }
         }
 
     }
