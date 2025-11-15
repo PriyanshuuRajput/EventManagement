@@ -99,6 +99,31 @@
     .fade-in {
         animation: fadeIn 0.3s ease-in-out;
     }
+    .event-card {
+        border-radius: 14px;
+        transition: all 0.3s ease;
+    }
+
+        .event-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        
+        .event-card .price-box {
+            transition: all 0.3s ease;
+        }
+
+        .event-card:hover .price-box {
+            color: #dc3545 !important;
+            font-weight: 800 !important;
+            transform: scale(1.08);
+        }
+    .nav-pills .nav-link {
+        color: #343a40 !important;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+
 
     @@keyframes fadeIn {
         from {
@@ -126,9 +151,19 @@
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
     }
 
-        .promo-banner span {
+/*        .promo-banner span {
             color: #dc3545;
-        }
+        }*/
+
+    .banner {
+        padding: 22px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
 
     /* ====== MODAL ====== */
     .modal-header {
@@ -140,7 +175,7 @@
 <div class="container-fluid px-4">
 
     <!-- ====== NAV TABS ====== -->
-    <ul class="nav nav-pills mb-4" id="adminTabs">
+    <ul class="nav nav-pills m-2" id="adminTabs">
         <li class="nav-item">
             <button class="nav-link @(activeTab == "events" ? "active" : "")"
                     @onclick='() => activeTab = "events"'>
@@ -235,109 +270,88 @@
                         </button>
                     </div>
 
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body p-0">
-                            <table class="table align-middle mb-0">
-                                <thead class="bg-light text-secondary">
-                                    <tr>
-                                        <th>Event</th>
-                                        <th>Date</th>
-                                        <th>Venue</th>
-                                        <th>Duration</th>
-                                        <th>Vocal</th>
-                                        <th>Price</th>
-                                        <th class="text-center">Actions</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    @if (FilteredEvents == null || !FilteredEvents.Any())
-                                    {
-                                        <tr>
-                                            <td colspan="7" class="text-center py-5 text-muted">
-                                                <i class="bi bi-info-circle me-2"></i>No events found
-                                            </td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var evt in FilteredEvents)
-                                        {
-                                            var soldPercentage = evt.TotalTickets > 0
-                                                ? (int)((double)evt.SoldTickets / evt.TotalTickets * 100)
-                                                : 0;
-
-                                            <tr>
-                                                <!-- EVENT TITLE & CATEGORY -->
-                                                <td>
-                                                    <div class="d-flex flex-column">
-                                                        <strong>@evt.Title</strong>
-                                                        <small class="text-muted">@evt.EventType</small>
-                                                    </div>
-                                                </td>
-
-                                                <!-- DATE -->
-                                                <td>
-                                                    <div class="d-flex flex-column">
-                                                        <strong>@evt.ShowDate.ToString("dd-MMM-yyyy")</strong>
-                                                        <small class="text-muted">@evt.ShowDate.ToString("hh:mm tt")</small>
-                                                    </div>
-                                                </td>
-
-
-                                                <!-- VENUE -->
-                                                <td>@evt.VenueName</td>
-
-                                                <!--Duration -->
-                                                <td>@($"{evt.Duration.Hours}h {evt.Duration.Minutes}m")</td>
-
-                                                <!--Vocal  -->
-                                                <td>@evt.Language</td>
-
-
-                                                <!-- TICKETS -->
-                                                @*<td>
-                                                <div class="d-flex align-items-center" style="width: 150px;">
-                                                    <small class="me-2">@evt.SoldTickets/@evt.TotalTickets</small>
-                                                    <div class="progress flex-grow-1" style="height: 6px;">
-                                                        <div class="progress-bar bg-purple" role="progressbar"
-                                                             style="width: @(soldPercentage)%"
-                                                             aria-valuenow="@soldPercentage" aria-valuemin="0" aria-valuemax="100">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>*@
-
-                                                <!-- PRICE -->
-                                                <td><strong>₹@evt.TicketPrice</strong></td>
-
-                                                <!-- ACTIONS -->
-                                                <td class="text-center">
-                                                    <div class="btn-group btn-group-sm">
-                                                        <button class="btn btn-outline-warning" @onclick="() => ShowEditEventModal(evt)">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </button>
-                                                        <button class="btn btn-outline-danger" @onclick="() => DeleteEvent(evt.Id)">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                </tbody>
-                            </table>
+                    @if (FilteredEvents == null || !FilteredEvents.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-info-circle-circle me-2"></i>No Events found..
                         </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <div class="row g-3">
+                            @foreach (var evt in FilteredEvents)
+                            {
+                                var soldPercentage = evt.TotalTickets > 0
+                                            ? (int)((double)evt.SoldTickets / evt.TotalTickets * 100)
+                                            : 0;
+                                <div class="col-md-4 col-lg-3">
+                                    <div class="card shadow-sm event-card border-0 h-100 fade-in">
+                                        <div class="card-body">
 
-                    <div class="mt-3 text-muted small">
-                        Showing @FilteredEvents.Count of @FilteredEvents.Count events
-                    </div>
+                                            <!-- TITLE -->
+                                            <h5 class="fw-bold text-dark mb-1">
+                                                @evt.Title
+                                            </h5>
+                                            <p class="text-muted small">@evt.EventType</p>
+
+                                            <!-- DATE & TIME -->
+                                            <div class="d-flex justify-content-between text-center mb-3 gap-3">
+                                                <div class="flex-fill p-2 border rounded bg-light">
+                                                    <p class="text-muted m-0 small">Date</p>
+                                                    <h6 class="fw-semibold">@evt.ShowDate.ToString("dd-MMM")</h6>
+                                                </div>
+                                                <div class="flex-fill p-2 border rounded bg-light">
+                                                    <p class="text-muted m-0 small">Time</p>
+                                                    <h6 class="fw-semibold">@evt.ShowDate.ToString("hh:mm tt")</h6>
+                                                </div>
+                                            </div>
+
+                                            <hr/>
+
+                                            <!-- VENUE -->
+                                            <p class="small text-muted mb-1">
+                                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>@evt.VenueName
+                                            </p>
+
+                                            <!-- DURATION -->
+                                            <p class="small text-muted mb-1">
+                                                <i class="bi bi-clock me-1 text-danger"></i>
+                                                @($"{evt.Duration.Hours}h {evt.Duration.Minutes}m")
+                                            </p>
+
+                                            <!-- LANGUAGE -->
+                                            <p class="small text-muted mb-2">
+                                                <i class="bi bi-translate me-1 text-danger"></i>@evt.Language
+                                            </p>
+
+                                            <!-- PRICE - Gets highlighted on hover -->
+                                            <h5 class="fw-bold mt-3 mb-3 price-box text-dark">
+                                                ₹@evt.TicketPrice.ToString("N2")
+                                            </h5>
+
+                                            <!-- BUTTONS -->
+                                            <div class="d-flex justify-content-between">
+                                                <button class="btn btn-light w-100 me-2 ms-2"
+                                                        @onclick="() => ShowEditEventModal(evt)">
+                                                    <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
+                                                </button>
+
+                                                <button class="btn btn-outline-danger "
+                                                        @onclick="() => DeleteEvent(evt.Id)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            }
+                        </div>
+                    }
                 </div>
+
             }
-
-
             else if (activeTab == "venues")
             {
                 <div class=" fade-in">
@@ -497,7 +511,7 @@
                             <!-- Body -->
                             <div class="modal-body bg-light">
                                 <EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">
-                                    <ValidationSummary/>
+                                    <ValidationSummary />
                                     <DataAnnotationsValidator />
 
                                     <!-- General Info -->
@@ -678,12 +692,7 @@
                         </div>
                     </div>
                 </div>
-            }  <div class="promo-banner mt-4">
-                <div class="fs-4 fw-bold text-dark">
-                    <span>bookmyshow</span> STREAM
-                </div>
-                <div class="fw-semibold text-muted">Endless Entertainment. Anytime. Anywhere!</div>
-            </div>
+            }
 
             @if (showCityModal)
             {
@@ -744,6 +753,17 @@
                     </div>
                 </div>
             }
+            <div class="promo-banner banner mt-4 text-center">
+                <h4 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-collection-play text-danger me-2"></i>
+                    Streamline Your Events
+                </h4>
+
+                <p class="text-muted small m-0">
+                    Manage bookings, venues, and cities with ease.
+                </p>
+            </div>
+
         </div>
     </div>
 </div>
