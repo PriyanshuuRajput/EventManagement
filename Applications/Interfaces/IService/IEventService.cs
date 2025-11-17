@@ -10,9 +10,9 @@ namespace Applications.Interfaces.IService
         Task UpdateEventAsync(int id, EventDto dto);
         Task DeleteEventAsync(int id);
         Task<IEnumerable<SeatDto>> GetSeatsByEventIdAsync(int eventId);
-        Task<EventDto> CreateEventAsync(ManagerEventDto mdto, string managerId, string managerName);
+        Task<EventDto> CreateEventAsync(ManagerEventDto mdto, int managerId, string managerName);
 
-        Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId);
+        Task<IEnumerable<EventDto>> GetManagerEventsAsync(int managerId);
 
         //  Admin
         Task<IEnumerable<EventDto>> GetPendingEventsAsync();

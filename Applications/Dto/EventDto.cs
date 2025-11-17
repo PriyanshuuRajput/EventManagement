@@ -41,6 +41,9 @@ namespace Applications.Dto
 
         public string? CityName { get; set; }
 
+        public string Address { get; set; } = string.Empty;
+
+
 
         [Required(ErrorMessage = "Ticket price is required.")]
         [Range(0, 10000, ErrorMessage = "Ticket price must be between 0 and 10,000.")]
@@ -55,7 +58,7 @@ namespace Applications.Dto
         public int TotalTickets { get; set; } = 0;
         public int SoldTickets { get; set; } = 0;
 
-        public string ManagerId { get; set; } = string.Empty;
+        public int ManagerId { get; set; }
         public string ManagerName { get; set; } = string.Empty;
 
         public EventStatus Status { get; set; } = EventStatus.Pending;

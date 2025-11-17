@@ -35,7 +35,8 @@ namespace EventBooking_TicketManagement_API.Services
                 TicketPrice = ev.TicketPrice,
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
-                ManagerName = ev.ManagerName,
+                ManagerId = ev.ManagerId,
+                ManagerName = ev.Manager?.Username!,
                 EventAmount = ev.EventAmount,
                 OfferedEventAmount = ev.OfferedEventAmount,
                 CreatedAt = ev.CreatedAt,
@@ -64,7 +65,8 @@ namespace EventBooking_TicketManagement_API.Services
                 TicketPrice = ev.TicketPrice,
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
-                ManagerName = ev.ManagerName,
+                ManagerId = ev.ManagerId,
+                ManagerName = ev.Manager?.Username!,
                 AdminNote = ev.AdminNote,
                 OfferedEventAmount = ev.OfferedEventAmount,
                 EventAmount = ev.EventAmount,
@@ -116,7 +118,7 @@ namespace EventBooking_TicketManagement_API.Services
             if (!string.IsNullOrEmpty(dto.ImageUrl))
                 ev.ImageUrl = dto.ImageUrl;
             ev.ManagerId = dto.ManagerId;
-            ev.ManagerName = dto.ManagerName;
+            //ManagerName = ev.Manager?.Username!;
             ev.Status = dto.Status;
             ev.AdminNote = dto.AdminNote;
             ev.TicketPrice = dto.TicketPrice;
@@ -149,7 +151,7 @@ namespace EventBooking_TicketManagement_API.Services
         }
 
 
-        public async Task<EventDto> CreateEventAsync(ManagerEventDto mdto, string managerId, string managerName)
+        public async Task<EventDto> CreateEventAsync(ManagerEventDto mdto, int managerId, string managerName)
         {
             var ev = new Event
             {
@@ -164,7 +166,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ImageUrl = mdto.ImageUrl!,
                 VenueId = mdto.VenueId,
                 ManagerId = managerId,
-                ManagerName = managerName,
+                //ManagerName = mdto.Manager?.Username!,
                 Status = EventStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 OfferedEventAmount = mdto.OfferedEventAmount ?? 0m,
@@ -183,7 +185,7 @@ namespace EventBooking_TicketManagement_API.Services
             string body = $@"
                             <h2>New Event pending Approval </h2>
                             <p><b>Title:</b> {ev.Title}</p>
-                            <p><b>Manager:</b> {managerName}</p>
+                            <p><b>Manager:</b></p>
                             <p><b>Date:</b> {ev.ShowDate:dd MMM yyyy HH:mm}</p>
                             <p>Please review and approve/reject this event in the admin dashboard.</p>
                             <p>
@@ -206,7 +208,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ShowDate = ev.ShowDate,
                 TicketPrice = ev.TicketPrice,
                 ManagerId = ev.ManagerId,
-                ManagerName = ev.ManagerName,
+                ManagerName = ev.Manager?.Username!,
                 Status = ev.Status,
                 CreatedAt = ev.CreatedAt,
 
@@ -236,7 +238,7 @@ namespace EventBooking_TicketManagement_API.Services
             string managerEmail = "rajputpriyanshu676@gmail.com";
             string subject = $"Event Approved :{ev.Title}";
             string body = $@"<h2>Good news!</h2>
-                          <p>Dear {ev.ManagerName},</p>
+                          <p>Dear,</p>
                           <p>Your event <strong>{ev.Title}</strong> has been approved by the admin.</p>
                           <p>🎉 It is now visible to all users in the application.</p>";
 
@@ -258,7 +260,7 @@ namespace EventBooking_TicketManagement_API.Services
             string managerEmail = "rajputpriyanshu676@gmail.com";
             string subject = $"Event Rejected:{ev.Title}";
             string body = $@"<h2>Your Event Was Rejected</h2>
-        <p>Dear {ev.ManagerName},</p>
+        <p>Dear ,</p>
         <p>Unfortunately, your event <b>{ev.Title}</b> was rejected by the admin.</p>
         <p><b>Reason:</b> {dto.Reason}</p>
         <p>You can modify and resubmit the event for approval.</p>";
@@ -287,7 +289,7 @@ namespace EventBooking_TicketManagement_API.Services
             TicketPrice = e.TicketPrice,
             ImageUrl = e.ImageUrl,
             VenueName = e.Venue?.VenueName ?? string.Empty,
-            ManagerName = e.ManagerName,
+            //ManagerName = e.ManagerName,
             Status = e.Status,
             AdminNote = e.AdminNote,
             CreatedAt = e.CreatedAt,
@@ -300,18 +302,51 @@ namespace EventBooking_TicketManagement_API.Services
         };
 
 
-        public async Task<IEnumerable<EventDto>> GetManagerEventsAsync(string managerId)
+        public async Task<IEnumerable<EventDto>> GetManagerEventsAsync(int managerId)
         {
             var events = await _eventRepository.GetEventsByManagerByIdAsync(managerId);
             return events.Select(e => new EventDto
             {
                 Id = e.Id,
                 Title = e.Title,
+                EventType = e.EventType,
                 Description = e.Description,
+                Genre = e.Genre,
+                Language = e.Language,
+
+
+                Duration = e.Duration,
+                ShowDate = e.ShowDate,
+
+
+                TicketPrice = e.TicketPrice,
+                ImageUrl = e.ImageUrl,
+
+                VenueId = e.VenueId,
+                CityName = e.Venue?.VenueName ?? string.Empty,
                 VenueName = e.Venue?.VenueName ?? string.Empty,
+                Address = e.Venue?.Address ?? string.Empty,
+
+
                 Status = e.Status,
+                AdminNote = e.AdminNote,
+                ApprovedAt = e.ApprovedAt,
+
+
+
+                OfferedEventAmount = e.OfferedEventAmount,
+                EventAmount = e.EventAmount,
+
+
+                //TotalTickets = e.TotalTickets,
+                //SoldTickets = e.SoldTickets,
+                //IsAmountAccepted = e.IsAmountAccepted,
+
+
+
                 CreatedAt = e.CreatedAt,
-                ShowDate = e.ShowDate
+                ManagerId = e.ManagerId,
+                ManagerName = e.Manager != null ? e.Manager.Username : string.Empty
             });
         }
 

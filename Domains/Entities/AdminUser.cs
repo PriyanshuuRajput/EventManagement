@@ -27,5 +27,6 @@ namespace Domains.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public bool IsActive { get; set; } = true;
+        public ICollection<Event>? Events { get; set; }
     }
 }
