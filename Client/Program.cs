@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
-
 namespace Client
 {
     public class Program
@@ -19,38 +18,34 @@ namespace Client
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            // Base HttpClient for public requests (no auth)
-            builder.Services.AddScoped(sp => new HttpClient
-            {
-                BaseAddress = new Uri("https://localhost:7239")
-            });
+            // Register auth handler
+            builder.Services.AddTransient<AuthMessageHandler>();
 
-            // Register custom Auth handler to attach token
-            builder.Services.AddScoped<AuthMessageHandler>();
-
-            // HttpClient for AdminService (includes JWT automatically)
-            builder.Services.AddHttpClient<AdminService>(client =>
+            // Authorized HttpClient: attaches JWT token automatically
+            builder.Services.AddHttpClient("AuthorizedAPI", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7239/");
-            }).AddHttpMessageHandler<AuthMessageHandler>();
+            })
+            .AddHttpMessageHandler<AuthMessageHandler>();
 
-            // Register other services
+            // Set THIS as the default HttpClient everywhere
+            builder.Services.AddScoped(sp =>
+                sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthorizedAPI"));
 
+            // Services
+            builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<ClientEventService>();
             builder.Services.AddScoped<SpinnerService>();
-            builder.Services.AddScoped<AdminService>();
+
             builder.Services.AddBlazoredToast();
+            builder.Services.AddBlazoredSessionStorage();
 
-
-
-            // Add authentication state provider
+            // Auth state provider
             builder.Services.AddScoped<CustomAuthStateProvider>();
-            builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<CustomAuthStateProvider>());
-
-
+            builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
+                provider.GetRequiredService<CustomAuthStateProvider>());
 
             builder.Services.AddAuthorizationCore();
-            builder.Services.AddBlazoredSessionStorage();
 
             await builder.Build().RunAsync();
         }

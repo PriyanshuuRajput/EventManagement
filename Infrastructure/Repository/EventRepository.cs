@@ -87,11 +87,11 @@ namespace Infrastructures.Repository
             return await _context.Events.AnyAsync(e => e.Id == eventId);
         }
 
-        // ✅ Get events created by a specific Organizer
-        public async Task<IEnumerable<Event>> GetEventsByManagerByIdAsync(string organizerId)
+        // Get events created by a specific Organizer
+        public async Task<IEnumerable<Event>> GetEventsByManagerByIdAsync(int managerId)
         {
             return await _context.Events
-                .Where(e => e.ManagerId == organizerId)
+                .Where(e => e.ManagerId == managerId)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .OrderByDescending(e => e.CreatedAt)
@@ -131,5 +131,7 @@ namespace Infrastructures.Repository
                 .OrderByDescending(e => e.CreatedAt)
                 .ToListAsync();
         }
+
+
     }
 }

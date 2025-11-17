@@ -22,11 +22,6 @@ namespace EventBooking_TicketManagement_API.Controllers
             _passwordHasher = passwordHasher;
         }
 
-        //public IJwtTokenService Get_jwt()
-        //{
-        //    return _jwt;
-        //}
-
         // LOGIN: username/email/phone
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginDto dto, IJwtTokenService _jwt)
@@ -46,20 +41,21 @@ namespace EventBooking_TicketManagement_API.Controllers
             // Generate JWT
             var token = _jwt.GenerateToken(user);
 
-            // Store in HttpOnly cookie
-            Response.Cookies.Append("jwt", token, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddHours(1)
-            });
+            //// Store in HttpOnly cookie
+            //Response.Cookies.Append("jwt", token, new CookieOptions
+            //{
+            //    HttpOnly = true,
+            //    Secure = true,
+            //    SameSite = SameSiteMode.Strict,
+            //    Expires = DateTime.UtcNow.AddHours(1)
+            //});
 
             return Ok(new
             {
                 message = "Login successful",
                 role = user.Role,
-                token = token
+                token = token,
+                userId = user.Id
             });
         }
 
@@ -108,7 +104,7 @@ namespace EventBooking_TicketManagement_API.Controllers
 
         }
 
-        // Dashboard (protected)
+        // Dashboard 
         [Authorize]
         [HttpGet("dashboard")]
         public IActionResult Dashboard()

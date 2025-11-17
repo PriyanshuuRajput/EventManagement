@@ -977,7 +977,7 @@
     {
         try
         {
-            // 1️⃣ Validate dropdown selections (these stay Guid since Country/State use Guid)
+            // 1️Validate dropdown selections (these stay Guid since Country/State use Guid)
             if (c.CountryId == Guid.Empty)
             {
                 toastService.ShowError("Please select a country before saving the city.");
@@ -1158,7 +1158,6 @@
     {
         selectedImageFile = e.File;
 
-        // Optional: create preview
         using var stream = selectedImageFile.OpenReadStream(2 * 1024 * 1024);
         var buffer = new byte[selectedImageFile.Size];
         await stream.ReadAsync(buffer);

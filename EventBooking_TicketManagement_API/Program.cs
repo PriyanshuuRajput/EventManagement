@@ -76,7 +76,7 @@ namespace EventBooking_TicketManagement_API
                     policy.WithOrigins("https://localhost:7117") // Blazor client URL
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials(); // ✅ Required for cookie auth
+                          .AllowCredentials(); // Required for cookie auth
                 });
             });
 
@@ -104,13 +104,26 @@ namespace EventBooking_TicketManagement_API
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
 
-                // ✅ Extract JWT token from cookie
+                //  IMPORTANT: Accept JWT from BOTH Cookie and Authorization Header
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
-                        if (context.Request.Cookies.TryGetValue("jwt", out var token))
-                            context.Token = token;
+                        // First try cookie
+                        if (context.Request.Cookies.TryGetValue("jwt", out var cookieToken))
+                        {
+                            context.Token = cookieToken;
+                            return Task.CompletedTask;
+                        }
+
+                        // Then Authorization header (used by Blazor WebAssembly)
+                        var authHeader = context.Request.Headers["Authorization"].ToString();
+                        if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer "))
+                        {
+                            context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                            return Task.CompletedTask;
+                        }
+
                         return Task.CompletedTask;
                     }
                 };

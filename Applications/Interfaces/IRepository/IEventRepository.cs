@@ -18,7 +18,7 @@ namespace Applications.Interfaces.IRepository
         Task<IEnumerable<Event>> GetPendingEventsAsync();
         Task<IEnumerable<Event>> GetApprovedEventsAsync();
         Task<IEnumerable<Event>> GetRejectedEventsAsync();
-        Task<IEnumerable<Event>> GetEventsByManagerByIdAsync(string managerId);
+        Task<IEnumerable<Event>> GetEventsByManagerByIdAsync(int managerId);
 
     }
 }

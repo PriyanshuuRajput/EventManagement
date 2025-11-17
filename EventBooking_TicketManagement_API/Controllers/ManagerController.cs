@@ -1,11 +1,14 @@
 ﻿using Applications.Dto;
 using Applications.Interfaces.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
     //[Authorize(Roles = "Organizer")] // ✅ Restrict only to Managers/Organizers
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ManagerEventController : ControllerBase
@@ -19,58 +22,112 @@ namespace EventBooking_TicketManagement_API.Controllers
             _hostEnvironment = hostEnvironment;
         }
 
-        // Create new event (goes to admin as Pending)
+        // Create new event 
+        //[HttpPost("create")]
+        //[Consumes("multipart/form-data")]
+        //public async Task<IActionResult> CreateEvent([FromForm] ManagerEventDto dto)
+        //{
+        //    // Extract manager identity from JWT
+        //    var managerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        //    if (!int.TryParse(managerIdClaim, out var managerId))
+        //        return BadRequest("Invalid ManagerId in JWT token.");
+
+        //    var managerName = User.Identity?.Name ?? "Unknown Manager";
+
+
+        //    if (dto.ImageFile != null)
+        //    {
+        //        var allowedExtensions = new[] { ".jpeg", ".jpg", ".png", ".webp" };
+        //        var ext = Path.GetExtension(dto.ImageFile.FileName).ToLowerInvariant();
+
+        //        if (!allowedExtensions.Contains(ext))
+        //            return BadRequest("Invalid image file type.");
+        //        var uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "Uploads");
+
+
+        //        if (!Directory.Exists(uploadsFolder))
+        //            Directory.CreateDirectory(uploadsFolder);
+
+        //        var uniqueFile = $"{Guid.NewGuid()}{ext}";
+        //        var filePath = Path.Combine(uploadsFolder, uniqueFile);
+
+        //        using var fileStream = new FileStream(filePath, FileMode.Create);
+        //        await dto.ImageFile.CopyToAsync(fileStream);
+
+        //        //  Generate public URL for image
+        //        dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{uniqueFile}";
+
+        //    }
+
+        //    var createdEvent = await _eventService.CreateEventAsync(dto, managerId, managerName);
+
+        //    return Ok(new
+        //    {
+        //        Message = " Event submitted successfully! Pending admin approval.",
+        //        Data = createdEvent
+        //    });
+        //}
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateEvent([FromForm] ManagerEventDto dto)
         {
-            // Extract manager identity from JWT
-            var managerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "unknown";
+            // Extract manager identity FROM JWT (and parse to int)
+            var managerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(managerIdClaim, out var managerId))
+                return BadRequest("Invalid ManagerId in JWT token.");
+
             var managerName = User.Identity?.Name ?? "Unknown Manager";
 
-
+            // 1️ Handle image file
             if (dto.ImageFile != null)
             {
-                var allowedExtensions = new[] { ".jpeg", ".jpg", ".png", ".webp" };
+                var allowedExt = new[] { ".jpeg", ".jpg", ".png", ".webp" };
                 var ext = Path.GetExtension(dto.ImageFile.FileName).ToLowerInvariant();
 
-                if (!allowedExtensions.Contains(ext))
+                if (!allowedExt.Contains(ext))
                     return BadRequest("Invalid image file type.");
-                var uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "Uploads");
 
+                var uploadFolder = Path.Combine(_hostEnvironment.WebRootPath, "Uploads");
+                if (!Directory.Exists(uploadFolder))
+                    Directory.CreateDirectory(uploadFolder);
 
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
+                var fileName = $"{Guid.NewGuid()}{ext}";
+                var filePath = Path.Combine(uploadFolder, fileName);
 
-                var uniqueFile = $"{Guid.NewGuid()}{ext}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFile);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.ImageFile.CopyToAsync(stream);
+                }
 
-                using var fileStream = new FileStream(filePath, FileMode.Create);
-                await dto.ImageFile.CopyToAsync(fileStream);
-
-                //  Generate public URL for image
-                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{uniqueFile}";
-
+                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{fileName}";
             }
 
+            // 2 Create event
             var createdEvent = await _eventService.CreateEventAsync(dto, managerId, managerName);
 
             return Ok(new
             {
-                Message = " Event submitted successfully! Pending admin approval.",
+                Message = "Event submitted successfully! Pending admin approval.",
                 Data = createdEvent
             });
         }
+
 
         //  Get all events created by this manager
         [HttpGet("my-events")]
         public async Task<IActionResult> GetMyEvents()
         {
-            var managerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "unknown";
-            var events = await _eventService.GetManagerEventsAsync(managerId);
+            var managerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            if (!int.TryParse(managerIdClaim, out var managerId))
+                return BadRequest("Invalid ManagerId in JWT token.");
+
+            var events = await _eventService.GetManagerEventsAsync(managerId);
             return Ok(events);
         }
+
 
         // (Optional) Update event before approval
         [HttpPut("update/{id}")]

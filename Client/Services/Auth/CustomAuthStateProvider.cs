@@ -7,16 +7,18 @@ namespace EventBooking.Client.Services.Auth
 {
     public class CustomAuthStateProvider : AuthenticationStateProvider
     {
-        public readonly IJSRuntime jsRuntime;
+        private readonly IJSRuntime _js;
 
-        public CustomAuthStateProvider(IJSRuntime jsRuntime)
+        public CustomAuthStateProvider(IJSRuntime js)
         {
-            this.jsRuntime = jsRuntime;
+            _js = js;
         }
+
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var token = await jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+            var token = await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
             var identity = new ClaimsIdentity();
+
             if (!string.IsNullOrEmpty(token))
             {
                 var handler = new JwtSecurityTokenHandler();
@@ -24,32 +26,30 @@ namespace EventBooking.Client.Services.Auth
 
                 if (jwtToken.ValidTo > DateTime.UtcNow)
                 {
-                    var claims = jwtToken.Claims;
-                    identity = new ClaimsIdentity(claims, "jwt");
+                    identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
                 }
                 else
                 {
-                    await jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
+                    await _js.InvokeVoidAsync("localStorage.removeItem", "authToken");
                 }
             }
 
-            var user = new ClaimsPrincipal(identity);
-            return new AuthenticationState(user);
+            return new AuthenticationState(new ClaimsPrincipal(identity));
         }
 
         public void NotifyUserAuthentication(string token)
         {
-            var authenticateUser = new ClaimsPrincipal(
-                new ClaimsIdentity(new JwtSecurityTokenHandler().ReadJwtToken(token).Claims, "jwt"));
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(authenticateUser)));
+            var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+            var identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
 
-
+            var user = new ClaimsPrincipal(identity);
+            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
         }
 
         public void NotifyUserLogout()
         {
-            var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(anonymousUser)));
+            var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
+            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(anonymous)));
         }
     }
 }

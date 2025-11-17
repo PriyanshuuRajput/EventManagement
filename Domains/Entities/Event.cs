@@ -44,8 +44,10 @@ namespace Domains.Entities
         // 🔗 Optional: Seats or bookings related to this event
         public ICollection<Seat>? Seats { get; set; }
 
-        public string ManagerId { get; set; } = string.Empty;
-        public string ManagerName { get; set; } = string.Empty;
+        [ForeignKey(nameof(Manager))]
+        public int ManagerId { get; set; }
+
+        public AdminUser? Manager { get; set; }
 
         public EventStatus Status { get; set; } = EventStatus.Pending;
 

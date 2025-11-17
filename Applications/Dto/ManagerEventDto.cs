@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Domains.Entities;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace Applications.Dto
 {
     public class ManagerEventDto
     {
+        public int Id { get; set; }
 
         [Display(Name = "Event Name")]
         [Required(ErrorMessage = "Event title is required.")]
@@ -32,13 +34,26 @@ namespace Applications.Dto
         [DataType(DataType.DateTime)]
         public DateTime ShowDate { get; set; }
         public int VenueId { get; set; }
+        public string? VenueName { get; set; }
 
-        //[Required]
-        //[Range(0, 10000)]
-        //public decimal TicketPrice { get; set; }
+        public int? CityId { get; set; }
+
+        public string? CityName { get; set; }
+        public string Address { get; set; } = string.Empty;
+
+
+        [Required]
+        [Range(0, 10000)]
+        public decimal TicketPrice { get; set; }
+        public int TotalTickets { get; set; } = 0;
+        public int SoldTickets { get; set; } = 0;
 
         public IFormFile? ImageFile { get; set; }
         public string? ImageUrl { get; set; }
+        public EventStatus Status { get; set; }
+        public string? AdminNote { get; set; }
+        public decimal EventAmount { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
 
         public decimal? OfferedEventAmount { get; set; }

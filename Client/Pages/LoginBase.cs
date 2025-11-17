@@ -4,70 +4,63 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Net.Http.Json;
 
-
-namespace EventBooking.Client.Pages
+public class LoginBase : ComponentBase
 {
-    public class LoginBase : ComponentBase
+    [Inject] protected HttpClient Http { get; set; } = default!;
+    [Inject] protected IJSRuntime JS { get; set; } = default!;
+    [Inject] protected NavigationManager Navigation { get; set; } = default!;
+    [Inject] protected CustomAuthStateProvider AuthStateProvider { get; set; } = default!;
+
+    protected LoginDto loginModel = new();
+    protected string errorMessage = "";
+
+    protected async Task<bool> LoginAsync(string url, string redirectUrl)
     {
-        [Inject] protected HttpClient Http { get; set; } = default!;
-        [Inject] protected NavigationManager Nav { get; set; } = default!;
-        [Inject] protected IJSRuntime JS { get; set; } = default!;
-        [Inject] protected CustomAuthStateProvider AuthStateProvider { get; set; } = default!;
+        errorMessage = "";
 
-
-        protected LoginDto loginModel = new();
-        protected string errorMessage = "";
-
-        protected async Task<bool> LoginAsync(string apiUrl, string redirectUrl)
+        try
         {
+            var response = await Http.PostAsJsonAsync(url, loginModel);
 
-            errorMessage = "";
-            try
+            if (!response.IsSuccessStatusCode)
             {
-                var response = await Http.PostAsJsonAsync(apiUrl, loginModel);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-
-                    if (result != null && !string.IsNullOrEmpty(result.Token))
-                    {
-                        await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
-                        await JS.InvokeVoidAsync("localStorage.setItem", "userRole", result.Role ?? "");
-
-
-                        // Notify authentication
-                        AuthStateProvider.NotifyUserAuthentication(result.Token);
-
-                        // Redirect
-                        Nav.NavigateTo(redirectUrl, true);
-                        return true;
-                    }
-                    else
-                    {
-                        errorMessage = "Invalid credentials.";
-                    }
-                }
-                else
-                {
-                    var resp = await response.Content.ReadAsStringAsync();
-                    errorMessage = $"Login failed:{resp}";
-
-                }
+                errorMessage = await response.Content.ReadAsStringAsync();
+                return false;
             }
-            catch (Exception ex)
+
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+            if (result == null || string.IsNullOrEmpty(result.Token))
             {
-                errorMessage = ex.Message;
-
+                errorMessage = "Invalid login response.";
+                return false;
             }
+
+            // Save JWT, role, and userId
+            await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+            await JS.InvokeVoidAsync("localStorage.setItem", "userRole", result.Role ?? "");
+            await JS.InvokeVoidAsync("localStorage.setItem", "userId", result.UserId.ToString());
+
+            // Notify state provider
+            AuthStateProvider.NotifyUserAuthentication(result.Token);
+
+            // Redirect
+            Navigation.NavigateTo(redirectUrl, true);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Login failed: " + ex.Message;
             return false;
-
         }
-        protected class LoginResponse
-        {
-            public string? Token { get; set; }
-            public string? Role { get; set; }
-        }
+    }
 
+    public class LoginResponse
+    {
+        public string? Message { get; set; }
+        public string? Token { get; set; }
+        public string? Role { get; set; }
+        public int UserId { get; set; }
     }
 }
