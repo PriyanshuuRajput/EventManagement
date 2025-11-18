@@ -19,11 +19,12 @@ namespace Infrastructure.Security
 
         public string GenerateToken(AdminUser admin)
         {
+            var roleName = admin.Role?.Name ?? "User";
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
                 new Claim(ClaimTypes.Name, admin.Username),
-                new Claim(ClaimTypes.Role, admin.Role),
+                new Claim(ClaimTypes.Role, roleName),
                 new Claim(ClaimTypes.Email, admin.Email ?? string.Empty)
             };
 

@@ -128,6 +128,37 @@ namespace EventBooking_TicketManagement_API
                     }
                 };
             });
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new() { Title = "Event Booking API", Version = "v1" });
+
+                //  Add JWT Auth to Swagger
+                options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "Enter JWT token like: Bearer {your token}"
+                });
+
+                options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+            });
+
 
             builder.Services.AddAuthorization();
 
@@ -144,9 +175,22 @@ namespace EventBooking_TicketManagement_API
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
+                // Ensure DB is created
                 db.Database.Migrate();
 
-                var admin = db.Users.FirstOrDefault(u => u.Role == "Admin");
+                // Seed Roles (only if empty)
+                if (!db.Roles.Any())
+                {
+                    db.Roles.AddRange(
+                        new Role { Name = "Admin" },
+                        new Role { Name = "Manager" },
+                        new Role { Name = "User" }
+                    );
+                    db.SaveChanges();
+                }
+
+
+                var admin = db.Users.FirstOrDefault(u => u.RoleId == 1);
 
                 if (admin == null)
                 {
@@ -155,7 +199,7 @@ namespace EventBooking_TicketManagement_API
                         Username = "admin",
                         Email = "rajputronak0058@gmail.com",
                         PasswordHash = passwordHasher.HashPassword("Admin@123"),
-                        Role = "Admin",
+                        RoleId = 1,
                         PhoneNumber = "9999999999",
                         CreatedAt = DateTime.UtcNow,
                         IsActive = true
@@ -200,8 +244,8 @@ namespace EventBooking_TicketManagement_API
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                Console.WriteLine("✅ Connected DB: " + db.Database.GetDbConnection().Database);
-                Console.WriteLine("✅ Connected Server: " + db.Database.GetDbConnection().DataSource);
+                Console.WriteLine("Connected DB: " + db.Database.GetDbConnection().Database);
+                Console.WriteLine("Connected Server: " + db.Database.GetDbConnection().DataSource);
                 Console.WriteLine("✅ Venue Count: " + db.Venues.Count());
             }
 

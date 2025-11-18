@@ -6,7 +6,7 @@ namespace Applications.Dto.OrganizerDto
     public class AccountSetupDto
     {
         // ===============================
-        // Organization Details
+        // Details
         // ===============================
 
         [Required(ErrorMessage = "Organization Name is required")]
@@ -21,7 +21,7 @@ namespace Applications.Dto.OrganizerDto
         public string Address { get; set; } = string.Empty;
 
         // ===============================
-        // Contact Person
+        //  Person
         // ===============================
 
         [Required(ErrorMessage = "Contact person name is required")]

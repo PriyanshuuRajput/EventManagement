@@ -20,6 +20,13 @@
             border-radius: 10px;
         }
 
+    .truncate-text {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     /* ====== FOOTER BANNER ====== */
     .promo-banner {
         background: linear-gradient(to right, #fff, #f8f9fa);
@@ -176,23 +183,24 @@
             <tbody>
                 @foreach (var ev in PagedItems)
                 {
-                    <tr>
+                    <tr @onclick="()=> GoToEvent(ev.Id)" style="cursor:pointer;">
 
                         <!-- Image -->
                         <td>
                             <img src="@ev.ImageUrl"
                                  class="rounded-3 border"
                                  style="width:85px; height:55px; object-fit:cover;"
-                                 onerror="this.src='https://via.placeholder.com/85x55?text=No+Image'" />
+                                 alt="No Img" />
                         </td>
 
                         <!-- Event Info -->
                         <td>
                             <div class="fw-semibold">@ev.Title</div>
-                            <div class="small text-muted">@ev.EventType • @ev.Language</div>
+                            <div class="small text-muted ">@ev.EventType </div>
+                            <div class="small text-muted ">@ev.Language</div>
                         </td>
 
-                        <td class="small text-muted">@ev.Description</td>
+                        <td class=" truncate-text small text-muted" data-bs-toggle="tooltip" data-placement="top" title="@ev.Description">@ev.Description</td>
 
                         <!-- Date -->
                         <td>
@@ -217,13 +225,13 @@
                         <!-- Revenue -->
                         <td>₹@(ev.SoldTickets * ev.TicketPrice)</td>
 
-                        <td><span class="badge rounded-4 bg-light text-dark px-3 py-2 shadow-sm">₹@ev.EventAmount</span></td>
+                        <td><span class="badge rounded-3 bg-light text-dark p-2 shadow-sm">₹@ev.EventAmount</span></td>
 
                         <!-- Status -->
                         <td>
                             @if (ev.Status == EventStatus.Pending)
                             {
-                                <span class="badge px-2 rounded-2 text-dark"
+                                <span class="badge p-2 rounded-2 text-dark"
                                       style="background:#fff3cd;">
                                     <i class="bi bi-hourglass-split"></i> Pending
                                 </span>
@@ -277,6 +285,7 @@
             </ul>
         </nav>
     </div>
+
     <div class="promo-banner banner mt-4 text-center">
         <h4 class="fw-bold text-dark mb-1">
             <i class="bi bi-collection-play text-danger me-2"></i>
@@ -328,6 +337,7 @@
 
     }
 
+
     private void UpdateSuggestions()
     {
         if (string.IsNullOrWhiteSpace(searchText))
@@ -376,14 +386,17 @@ managerEvents
        (e.EventType ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
 ).OrderByDescending(e => e.CreatedAt);
 
+
     private IEnumerable<ManagerEventDto> PagedItems =>
         FilteredItems.Skip((currentPage - 1) * pageSize).Take(pageSize);
+
 
     private void SetStatusFilter(EventStatus? s)
     {
         activeStatusFilter = s;
         currentPage = 1;
     }
+
 
     private void PageSizeChanged(ChangeEventArgs e)
     {
@@ -404,9 +417,14 @@ managerEvents
         if (currentPage < TotalPages) currentPage++;
     }
 
+    private void GoToEvent(int id)
+    {
+        Nav.NavigateTo($"/manager-event-details/{id}");
+    }
     private void GoToPage(int i)
     {
         currentPage = i;
+         StateHasChanged();
     }
 
 

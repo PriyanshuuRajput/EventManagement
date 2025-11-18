@@ -18,9 +18,12 @@ namespace Domains.Entities
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
-        public string Role { get; set; } = "User"; // Admin / Organizer / User
+        //[Required]
+        //public string Role { get; set; } = "User"; // Admin / Organizer / User
+        //public string Role { get; set; } = "User";
 
+        public int RoleId { get; set; }
+        public Role? Role { get; set; }
         [Phone]
         public string? PhoneNumber { get; set; }
 
@@ -28,5 +31,6 @@ namespace Domains.Entities
 
         public bool IsActive { get; set; } = true;
         public ICollection<Event>? Events { get; set; }
+        public Manager? Manager { get; set; }
     }
 }
