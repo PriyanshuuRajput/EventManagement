@@ -1,5 +1,6 @@
 ﻿using Applications.Dto;
 using Applications.Interfaces.IService;
+using Domains.Entities;
 using Infrastructures.DbContexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,52 +28,6 @@ namespace EventBooking_TicketManagement_API.Controllers
             _db = db;
         }
 
-        // Create new event 
-        //[HttpPost("create")]
-        //[Consumes("multipart/form-data")]
-        //public async Task<IActionResult> CreateEvent([FromForm] ManagerEventDto dto)
-        //{
-        //    // Extract manager identity from JWT
-        //    var managerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        //    if (!int.TryParse(managerIdClaim, out var managerId))
-        //        return BadRequest("Invalid ManagerId in JWT token.");
-
-        //    var managerName = User.Identity?.Name ?? "Unknown Manager";
-
-
-        //    if (dto.ImageFile != null)
-        //    {
-        //        var allowedExtensions = new[] { ".jpeg", ".jpg", ".png", ".webp" };
-        //        var ext = Path.GetExtension(dto.ImageFile.FileName).ToLowerInvariant();
-
-        //        if (!allowedExtensions.Contains(ext))
-        //            return BadRequest("Invalid image file type.");
-        //        var uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "Uploads");
-
-
-        //        if (!Directory.Exists(uploadsFolder))
-        //            Directory.CreateDirectory(uploadsFolder);
-
-        //        var uniqueFile = $"{Guid.NewGuid()}{ext}";
-        //        var filePath = Path.Combine(uploadsFolder, uniqueFile);
-
-        //        using var fileStream = new FileStream(filePath, FileMode.Create);
-        //        await dto.ImageFile.CopyToAsync(fileStream);
-
-        //        //  Generate public URL for image
-        //        dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{uniqueFile}";
-
-        //    }
-
-        //    var createdEvent = await _eventService.CreateEventAsync(dto, managerId, managerName);
-
-        //    return Ok(new
-        //    {
-        //        Message = " Event submitted successfully! Pending admin approval.",
-        //        Data = createdEvent
-        //    });
-        //}
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateEvent([FromForm] ManagerEventDto dto)
@@ -146,41 +101,52 @@ namespace EventBooking_TicketManagement_API.Controllers
 
 
 
-        // (Optional) Update event before approval
         [HttpPut("update/{id}")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UpdateMyEvent(int id, [FromForm] ManagerEventDto dto)
+        public async Task<IActionResult> UpdateMyEvent(int id, [FromForm] ManagerEventUpdateDto dto)
         {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var manager = await _db.Managers.FirstOrDefaultAsync(m => m.UserId == userId);
+            if (manager == null)
+                return Unauthorized("Manager profile not found.");
+
             var existingEvent = await _eventService.GetEventByIdAsync(id);
             if (existingEvent == null)
-                return NotFound($"Event with ID {id} not found.");
+                return NotFound("Event not found.");
 
-            //  Handle image upload 
+            if (existingEvent.ManagerId != manager.Id)
+                return Unauthorized("You can only edit your own events.");
+
+            if (existingEvent.Status == EventStatus.PaymentConfirmed ||
+                existingEvent.Status == EventStatus.AdminApproved)
+                return BadRequest("This event is approved already. Editing needs admin approval.");
+
+            // IMAGE UPLOAD
             if (dto.ImageFile != null)
             {
-                var allowedExtensions = new[] { ".jpeg", ".jpg", ".png", ".webp" };
-                var ext = Path.GetExtension(dto.ImageFile.FileName).ToLowerInvariant();
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var ext = Path.GetExtension(dto.ImageFile.FileName).ToLower();
 
                 if (!allowedExtensions.Contains(ext))
-                    return BadRequest("Invalid image file type.");
+                    return BadRequest("Invalid image file.");
 
-                var uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "Uploads");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
+                var folder = Path.Combine(_hostEnvironment.WebRootPath, "Uploads");
+                Directory.CreateDirectory(folder);
 
-                var uniqueFile = $"{Guid.NewGuid()}{ext}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFile);
+                var fileName = $"{Guid.NewGuid()}{ext}";
+                var filePath = Path.Combine(folder, fileName);
 
-                using var fileStream = new FileStream(filePath, FileMode.Create);
-                await dto.ImageFile.CopyToAsync(fileStream);
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await dto.ImageFile.CopyToAsync(stream);
 
-                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{uniqueFile}";
+                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{fileName}";
             }
             else
             {
-                // If no new image uploaded, keep existing one
-                dto.ImageUrl = existingEvent.ImageUrl;
+                dto.ImageUrl = existingEvent.ImageUrl; // keep old image
             }
+
             await _eventService.UpdateEventAsync(id, new EventDto
             {
                 Id = id,
@@ -192,22 +158,22 @@ namespace EventBooking_TicketManagement_API.Controllers
                 Duration = dto.Duration,
                 ShowDate = dto.ShowDate,
                 VenueId = dto.VenueId,
-                //TicketPrice = dto.TicketPrice,
+                CityId = dto.CityId,
+                TicketPrice = dto.TicketPrice,
                 ImageUrl = dto.ImageUrl,
-
 
                 ManagerId = existingEvent.ManagerId,
                 ManagerName = existingEvent.ManagerName,
                 Status = existingEvent.Status,
-                AdminNote = existingEvent.AdminNote,
+                CreatedAt = existingEvent.CreatedAt,
+                ApprovedAt = existingEvent.ApprovedAt,
                 TotalTickets = existingEvent.TotalTickets,
                 SoldTickets = existingEvent.SoldTickets,
-                CreatedAt = existingEvent.CreatedAt,
-                ApprovedAt = existingEvent.ApprovedAt
             });
 
             return Ok("Event updated successfully.");
         }
+
 
         [HttpPost("pay/{eventId}")]
         public async Task<IActionResult> PayEventAmount(int eventId)
