@@ -1,6 +1,7 @@
 ﻿@page "/manage-events"
 @using Applications.Dto
 @inject AdminService AdminService
+@inject AuthenticationStateProvider AuthProvider
 @inject Blazored.Toast.Services.IToastService toastService
 
 @using Blazored.Typeahead
@@ -99,6 +100,7 @@
     .fade-in {
         animation: fadeIn 0.3s ease-in-out;
     }
+
     .event-card {
         border-radius: 14px;
         transition: all 0.3s ease;
@@ -109,7 +111,7 @@
             box-shadow: 0 6px 16px rgba(0,0,0,0.12);
         }
 
-        
+
         .event-card .price-box {
             transition: all 0.3s ease;
         }
@@ -119,6 +121,7 @@
             font-weight: 800 !important;
             transform: scale(1.08);
         }
+
     .nav-pills .nav-link {
         color: #343a40 !important;
         border: 1px solid rgba(0,0,0,0.1);
@@ -151,7 +154,7 @@
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
     }
 
-/*        .promo-banner span {
+    /*        .promo-banner span {
             color: #dc3545;
         }*/
 
@@ -259,6 +262,7 @@
         </div>
 
 
+
         <div class="col-lg-9">
             @if (activeTab == "events")
             {
@@ -306,7 +310,7 @@
                                                 </div>
                                             </div>
 
-                                            <hr/>
+                                            <hr />
 
                                             <!-- VENUE -->
                                             <p class="small text-muted mb-1">
@@ -492,8 +496,6 @@
                 </div>
             }
 
-
-            <!-- ================= EVENT MODAL ================= -->
             <!-- ================= EVENT MODAL ================= -->
             @if (showEventModal)
             {
@@ -809,12 +811,22 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadEvents();
-        //await LoadEvents();
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.IsInRole("Admin"))
+        {
+            await LoadAdminEvents();
+        }
+        else if (user.IsInRole("Manager"))
+        {
+            await LoadManagerEvents();
+
+        }
         await LoadCities();
         await LoadVenues();
         await LoadCountriesAsync();
-        cities = Events.Select(e => e.CityName).Distinct().OrderBy(c => c).ToList();
+        cities = Events.Select(e => e.CityName).Distinct().OrderBy(c => c).ToList()!;
         categories = Events.Select(e => e.EventType).Distinct().OrderBy(c => c).ToList();
 
 
@@ -828,12 +840,19 @@
 
 
 
-    private async Task LoadEvents()
+    private async Task LoadAdminEvents()
     {
         Events = await AdminService.GetAllEventsAsync();
         FilteredEvents = Events;
         CalculateCityCounts();
     }
+
+    private async Task LoadManagerEvents()
+    {
+        Events = await Http.GetFromJsonAsync<List<EventDto>>("api/ManagerEvent/my-events");
+        FilteredEvents = Events!;
+    }
+
     private void ShowAddEventModal()
     {
         editingEvent = new EventDto();
@@ -855,22 +874,73 @@
 
     private async Task SaveEvent(EventDto evt)
     {
-        if (evt.Id > 0)
-            await AdminService.UpdateEventAsync(evt.Id, evt, null);
-        else
-            await AdminService.AddEventAsync(evt, null);
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-        await LoadEvents();
-        CalculateCityCounts();
-        showEventModal = false;
+        try
+        {
+            if (user.IsInRole("Admin"))
+            {
+                // ADMIN saves using AdminService
+                if (evt.Id > 0)
+                    await AdminService.UpdateEventAsync(evt.Id, evt, null);
+                else
+                    await AdminService.AddEventAsync(evt, null);
+
+                // Reload admin events
+                await LoadAdminEvents();
+            }
+            else if (user.IsInRole("Manager"))
+            {
+                // MANAGER saves using manager endpoints
+                if (evt.Id > 0)
+                    await Http.PutAsJsonAsync($"api/ManagerEvent/update/{evt.Id}", evt);
+                else
+                    await Http.PostAsJsonAsync("api/ManagerEvent/create", evt);
+
+                // Reload manager events
+                await LoadManagerEvents();
+            }
+
+            CalculateCityCounts();
+            showEventModal = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Save failed: " + ex.Message);
+        }
     }
 
     private async Task DeleteEvent(int eventId)
     {
-        await AdminService.DeleteEventAsync(eventId);
-        await LoadEvents();
-        CalculateCityCounts();
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        try
+        {
+            if (user.IsInRole("Admin"))
+            {
+                await AdminService.DeleteEventAsync(eventId);
+            }
+            else if (user.IsInRole("Manager"))
+            {
+                await Http.DeleteAsync($"api/ManagerEvent/delete/{eventId}");
+            }
+
+            // Refresh events after delete
+            if (user.IsInRole("Admin"))
+                await LoadAdminEvents();
+            else if (user.IsInRole("Manager"))
+                await LoadManagerEvents();
+
+            CalculateCityCounts();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Delete failed: " + ex.Message);
+        }
     }
+
 
 
 
@@ -888,7 +958,7 @@
 
     private async Task<IEnumerable<CountryDto>> SearchCountries(string searchText)
     {
-        // If you’re fetching from an API:
+
         _allCountries = await AdminService.GetAllCountriesAsync();
         return _allCountries
             .Where(c => c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
@@ -996,7 +1066,7 @@
                 return;
             }
 
-            // 2️⃣ Build city object (no Guid.NewGuid here — because City.Id is int)
+            //  Build city object (no Guid.NewGuid here — because City.Id is int)
             var city = new CityDto
             {
                 Id = c.Id, // leave it as is — backend will assign a new ID if it's 0
@@ -1005,7 +1075,7 @@
                 StateId = c.StateId
             };
 
-            // 3️⃣ Save — call Add or Update depending on ID
+            // 3 Save — call Add or Update depending on ID
             if (city.Id == 0)
             {
                 await AdminService.AddCityAsync(city);
@@ -1170,4 +1240,4 @@
 
 }
 
-            
+

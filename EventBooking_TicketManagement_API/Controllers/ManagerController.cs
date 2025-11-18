@@ -1,25 +1,30 @@
 ﻿using Applications.Dto;
 using Applications.Interfaces.IService;
+using Infrastructures.DbContexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
-    //[Authorize(Roles = "Organizer")] // ✅ Restrict only to Managers/Organizers
-    [Authorize]
+    [Authorize(Roles = "Manager")]
     [ApiController]
     [Route("api/[controller]")]
     public class ManagerEventController : ControllerBase
     {
         private readonly IEventService _eventService;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly AppDbContext _db;
 
-        public ManagerEventController(IEventService eventService, IWebHostEnvironment hostEnvironment)
+
+
+        public ManagerEventController(IEventService eventService, IWebHostEnvironment hostEnvironment, AppDbContext db)
         {
             _eventService = eventService;
             _hostEnvironment = hostEnvironment;
+            _db = db;
         }
 
         // Create new event 
@@ -72,39 +77,41 @@ namespace EventBooking_TicketManagement_API.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateEvent([FromForm] ManagerEventDto dto)
         {
-            // Extract manager identity FROM JWT (and parse to int)
-            var managerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Get AdminUser.Id from JWT
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var userId))
+                return BadRequest("Invalid User Id in token.");
 
-            if (!int.TryParse(managerIdClaim, out var managerId))
-                return BadRequest("Invalid ManagerId in JWT token.");
+            // Convert AdminUser.Id -> Manager.Id 
+            var manager = await _db.Managers.FirstOrDefaultAsync(m => m.UserId == userId);
+            if (manager == null)
+                return BadRequest("Manager profile not found for this user. Please register as manager.");
 
-            var managerName = User.Identity?.Name ?? "Unknown Manager";
+            int managerId = manager.Id;
+            string managerName = manager.ManagerName;
 
-            // 1️ Handle image file
+            // Handle Image Upload
             if (dto.ImageFile != null)
             {
-                var allowedExt = new[] { ".jpeg", ".jpg", ".png", ".webp" };
+                var allowed = new[] { ".jpeg", ".jpg", ".png", ".webp" };
                 var ext = Path.GetExtension(dto.ImageFile.FileName).ToLowerInvariant();
 
-                if (!allowedExt.Contains(ext))
-                    return BadRequest("Invalid image file type.");
+                if (!allowed.Contains(ext))
+                    return BadRequest("Invalid image file.");
 
-                var uploadFolder = Path.Combine(_hostEnvironment.WebRootPath, "Uploads");
-                if (!Directory.Exists(uploadFolder))
-                    Directory.CreateDirectory(uploadFolder);
+                var folder = Path.Combine(_hostEnvironment.WebRootPath, "Uploads");
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
 
-                var fileName = $"{Guid.NewGuid()}{ext}";
-                var filePath = Path.Combine(uploadFolder, fileName);
+                var file = $"{Guid.NewGuid()}{ext}";
+                var path = Path.Combine(folder, file);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.ImageFile.CopyToAsync(stream);
-                }
+                using var stream = new FileStream(path, FileMode.Create);
+                await dto.ImageFile.CopyToAsync(stream);
 
-                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{fileName}";
+                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{file}";
             }
 
-            // 2 Create event
             var createdEvent = await _eventService.CreateEventAsync(dto, managerId, managerName);
 
             return Ok(new
@@ -115,18 +122,28 @@ namespace EventBooking_TicketManagement_API.Controllers
         }
 
 
+
         //  Get all events created by this manager
         [HttpGet("my-events")]
         public async Task<IActionResult> GetMyEvents()
         {
-            var managerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // 1. Extract AdminUser.Id from JWT
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var userId))
+                return BadRequest("Invalid User Id in token.");
 
-            if (!int.TryParse(managerIdClaim, out var managerId))
-                return BadRequest("Invalid ManagerId in JWT token.");
+            // 2. Convert AdminUser → Manager
+            var manager = await _db.Managers.FirstOrDefaultAsync(m => m.UserId == userId);
+            if (manager == null)
+                return BadRequest("Manager profile not found.");
 
-            var events = await _eventService.GetManagerEventsAsync(managerId);
+            // 3. Use real Manager.Id
+            var events = await _eventService.GetManagerEventsAsync(manager.Id);
+
             return Ok(events);
         }
+
+
 
 
         // (Optional) Update event before approval

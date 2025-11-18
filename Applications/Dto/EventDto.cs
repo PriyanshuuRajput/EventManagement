@@ -71,5 +71,7 @@ namespace Applications.Dto
 
         public decimal? OfferedEventAmount { get; set; }
         public bool IsAmountAccepted { get; set; }
+        public bool PrizePaid { get; set; } = false;
+        public DateTime? PrizePaidAt { get; set; }
     }
 }

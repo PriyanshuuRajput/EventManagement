@@ -36,7 +36,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
                 ManagerId = ev.ManagerId,
-                ManagerName = ev.Manager?.Username!,
+                //ManagerName = ev.Manager?.Username!,
                 EventAmount = ev.EventAmount,
                 OfferedEventAmount = ev.OfferedEventAmount,
                 CreatedAt = ev.CreatedAt,
@@ -66,7 +66,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
                 ManagerId = ev.ManagerId,
-                ManagerName = ev.Manager?.Username!,
+                //ManagerName = ev.Manager?.Username!,
                 AdminNote = ev.AdminNote,
                 OfferedEventAmount = ev.OfferedEventAmount,
                 EventAmount = ev.EventAmount,
@@ -208,7 +208,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ShowDate = ev.ShowDate,
                 TicketPrice = ev.TicketPrice,
                 ManagerId = ev.ManagerId,
-                ManagerName = ev.Manager?.Username!,
+                //ManagerName = ev.Manager?.Username!,
                 Status = ev.Status,
                 CreatedAt = ev.CreatedAt,
 
@@ -346,7 +346,7 @@ namespace EventBooking_TicketManagement_API.Services
 
                 CreatedAt = e.CreatedAt,
                 ManagerId = e.ManagerId,
-                ManagerName = e.Manager != null ? e.Manager.Username : string.Empty
+                //ManagerName = e.Manager != null ? e.Manager.Username : string.Empty
             });
         }
 

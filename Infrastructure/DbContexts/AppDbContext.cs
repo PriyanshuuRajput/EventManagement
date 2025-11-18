@@ -19,47 +19,78 @@ namespace Infrastructures.DbContexts
         public DbSet<AdminUser> Users { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<State> States { get; set; }
+        public DbSet<Manager> Managers { get; set; }
+        public DbSet<Role> Roles { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            //  Booking → Seat (one-to-many)
+            modelBuilder.Entity<Role>()
+     .HasMany(r => r.Users)
+     .WithOne(u => u.Role)
+     .HasForeignKey(u => u.RoleId)
+     .OnDelete(DeleteBehavior.Restrict);
+
+
+            // AdminUser ⇄ Manager (One-to-One)
+            // ===========================
+            modelBuilder.Entity<AdminUser>()
+                .HasOne(u => u.Manager)
+                .WithOne(m => m.User)
+                .HasForeignKey<Manager>(m => m.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Manager ⇄ Events (One-to-Many)
+            // ===========================
+            modelBuilder.Entity<Manager>()
+               .HasMany(m => m.Events)
+               .WithOne(e => e.Manager)
+               .HasForeignKey(e => e.ManagerId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+            //  3. Booking ⇄ Seat (One-to-Many)
+            // ===========================
             modelBuilder.Entity<Booking>()
                 .HasMany(b => b.Seats)
                 .WithOne(s => s.Booking)
                 .HasForeignKey(s => s.BookingId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            //  Country configuration
+            //  Country config
+            // ===========================
             modelBuilder.Entity<Country>(b =>
             {
                 b.HasKey(x => x.Id);
+
                 b.Property(x => x.Name)
                     .IsRequired()
                     .HasMaxLength(200);
+
                 b.Property(x => x.IsoCode)
                     .IsRequired()
                     .HasMaxLength(10);
+
                 b.Property(x => x.CreatedAt)
                     .HasDefaultValueSql("SYSUTCDATETIME()");
             });
 
-            // Country → State (1-to-many)
+            // Country → State
             modelBuilder.Entity<Country>()
                 .HasMany(c => c.States)
                 .WithOne(s => s.Country)
                 .HasForeignKey(s => s.CountryId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            //  State → City (1-to-many)
+            // State → City
             modelBuilder.Entity<State>()
                 .HasMany(s => s.Cities)
                 .WithOne(c => c.State)
                 .HasForeignKey(c => c.StateId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            //  City → Venue (1-to-many)
+            // City → Venue
             modelBuilder.Entity<City>()
                 .HasMany(c => c.Venues)
                 .WithOne(v => v.City)
