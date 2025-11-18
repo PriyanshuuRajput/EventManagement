@@ -1,5 +1,6 @@
 ﻿@page "/manage-events"
 @using Applications.Dto
+@using Domains.Entities
 @inject AdminService AdminService
 @inject AuthenticationStateProvider AuthProvider
 @inject Blazored.Toast.Services.IToastService toastService
@@ -334,17 +335,46 @@
                                             </h5>
 
                                             <!-- BUTTONS -->
-                                            <div class="d-flex justify-content-between">
-                                                <button class="btn btn-light w-100 me-2 ms-2"
+
+                                            @if (isAdmin)
+                                            {
+                                                <!--Admin -Full Control-->
+
+                                                <button class="btn btn-light w-100 m-2"
                                                         @onclick="() => ShowEditEventModal(evt)">
                                                     <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
                                                 </button>
-
-                                                <button class="btn btn-outline-danger "
+                                                <button class="btn btn-outline-danger"
                                                         @onclick="() => DeleteEvent(evt.Id)">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
-                                            </div>
+                                            }
+                                            else if(isManager)
+                                            {
+                                                @if (evt.Status == EventStatus.Pending)
+                                                {
+                                                    <!-- Manager: Editable only before approval -->
+                                                    <button class="btn btn-light w-100 me-2 ms-2"
+                                                            @onclick="() => ShowEditEventModal(evt)">
+                                                        <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
+                                                    </button>
+
+                                                    <button class="btn btn-outline-danger"
+                                                            @onclick="() => DeleteEvent(evt.Id)">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <!-- After Approved / Published -->
+                                                    <button class="btn btn-outline-warning w-100 me-2 ms-2" disabled>
+                                                        Needs Admin Approval
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" disabled>
+                                                        <i class="bi bi-lock"></i>
+                                                    </button>
+                                                }
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -784,6 +814,9 @@
     private List<string> categories = new();
 
     private bool showEventModal = false;
+    private bool isAdmin = false;
+    private bool isManager = false;
+
     private EventDto editingEvent = new();
 
     private string selectedDateFilter = "all";
@@ -808,31 +841,34 @@
     private IBrowserFile? selectedImageFile;
 
 
-
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        if (user.IsInRole("Admin"))
+        isAdmin = user.IsInRole("Admin");
+        isManager = user.IsInRole("Manager");
+
+        if (isAdmin)
         {
             await LoadAdminEvents();
         }
-        else if (user.IsInRole("Manager"))
+        else if (isManager)
         {
             await LoadManagerEvents();
-
         }
+
         await LoadCities();
         await LoadVenues();
         await LoadCountriesAsync();
+
         cities = Events.Select(e => e.CityName).Distinct().OrderBy(c => c).ToList()!;
         categories = Events.Select(e => e.EventType).Distinct().OrderBy(c => c).ToList();
-
 
         CalculateVenueEventCounts();
         CalculateCityCounts();
     }
+
     private void HandleInvalidSubmit()
     {
         Console.WriteLine("Form validation failed. Please fill all required fields.");
@@ -868,48 +904,137 @@
 
     private void ShowEditEventModal(EventDto evt)
     {
-        editingEvent = evt;
+        editingEvent = new EventDto
+        {
+            Id = evt.Id,
+            Title = evt.Title,
+            EventType = evt.EventType,
+            Description = evt.Description,
+            Language = evt.Language,
+            Genre = evt.Genre,
+            VenueId = evt.VenueId,
+            TicketPrice = evt.TicketPrice,
+            ImageUrl = evt.ImageUrl,
+            ShowDate = evt.ShowDate,
+            Duration = evt.Duration,
+            CityId = evt.CityId
+        };
+
         showEventModal = true;
     }
 
     private async Task SaveEvent(EventDto evt)
     {
-        var authState = await AuthProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
         try
         {
-            if (user.IsInRole("Admin"))
-            {
-                // ADMIN saves using AdminService
-                if (evt.Id > 0)
-                    await AdminService.UpdateEventAsync(evt.Id, evt, null);
-                else
-                    await AdminService.AddEventAsync(evt, null);
+            var authState = await AuthProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
 
-                // Reload admin events
+            // =============== Manager Restrictions ==================
+            if (isManager)
+            {
+                var existing = Events.FirstOrDefault(e => e.Id == evt.Id);
+
+                if (existing != null &&
+                    (existing.Status == EventStatus.AdminApproved ||
+                     existing.Status == EventStatus.PaymentConfirmed))
+                {
+                    toastService.ShowWarning("This event is approved or published. Manager cannot edit. Contact admin.");
+                    return;
+                }
+            }
+            // BUILD MULTIPART FORM ONLY ONCE (CRITICAL FIX)
+            var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(evt.Title), "Title");
+            content.Add(new StringContent(evt.EventType), "EventType");
+            content.Add(new StringContent(evt.Description ?? ""), "Description");
+            content.Add(new StringContent(evt.Genre ?? ""), "Genre");
+            content.Add(new StringContent(evt.Language ?? ""), "Language");
+            content.Add(new StringContent(evt.VenueId.ToString()), "VenueId");
+            content.Add(new StringContent(evt.CityId.ToString()), "CityId");
+
+
+            // Ensure Duration format correct
+            content.Add(new StringContent(evt.Duration.ToString(@"hh\:mm\:ss")), "Duration");
+
+            content.Add(new StringContent(evt.ShowDate.ToString("yyyy-MM-ddTHH:mm:ss")), "ShowDate");
+            //content.Add(new StringContent(evt.VenueId.ToString()), "VenueId");
+
+            content.Add(new StringContent(evt.TicketPrice.ToString(
+                System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
+
+            // =================== IMAGE UPLOAD ===================
+            if (selectedImageFile != null)
+            {
+                var stream = selectedImageFile.OpenReadStream(maxAllowedSize: 5_000_000);
+                var fileContent = new StreamContent(stream);
+                fileContent.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue(selectedImageFile.ContentType);
+
+                content.Add(fileContent, "ImageFile", selectedImageFile.Name);
+            }
+
+            HttpResponseMessage response;
+            // ADMIN SECTION
+
+            if (isAdmin)
+            {
+                if (evt.Id > 0)
+                {
+                    await AdminService.UpdateEventAsync(evt.Id, evt, selectedImageFile);
+                    toastService.ShowSuccess("Event updated successfully.");
+                }
+                else
+                {
+                    await AdminService.AddEventAsync(evt, selectedImageFile);
+                    toastService.ShowSuccess("Event created successfully.");
+                }
+
                 await LoadAdminEvents();
+                showEventModal = false;
+                selectedImageFile = null; // reset
+                return;
             }
-            else if (user.IsInRole("Manager"))
+            // MANAGER SECTION
+
+            if (isManager)
             {
-                // MANAGER saves using manager endpoints
                 if (evt.Id > 0)
-                    await Http.PutAsJsonAsync($"api/ManagerEvent/update/{evt.Id}", evt);
+                {
+                    // Update existing event
+                    response = await Http.PutAsync($"api/ManagerEvent/update/{evt.Id}", content);
+                }
                 else
-                    await Http.PostAsJsonAsync("api/ManagerEvent/create", evt);
+                {
+                    // Create new event
+                    response = await Http.PostAsync("api/ManagerEvent/create", content);
+                }
 
-                // Reload manager events
+                var body = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("MANAGER API RESPONSE: " + body);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    toastService.ShowError(body);
+                    return;
+                }
+
+                toastService.ShowSuccess("Event saved successfully!");
                 await LoadManagerEvents();
+                showEventModal = false;
             }
 
-            CalculateCityCounts();
-            showEventModal = false;
+            selectedImageFile = null; // clear file after save
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Save failed: " + ex.Message);
+            toastService.ShowError("Error: " + ex.Message);
+            Console.WriteLine("Save Event Error: " + ex);
         }
     }
+
+
 
     private async Task DeleteEvent(int eventId)
     {
@@ -1227,15 +1352,7 @@
     private async Task HandleImageSelected(InputFileChangeEventArgs e)
     {
         selectedImageFile = e.File;
-
-        using var stream = selectedImageFile.OpenReadStream(2 * 1024 * 1024);
-        var buffer = new byte[selectedImageFile.Size];
-        await stream.ReadAsync(buffer);
-        editingEvent.ImageUrl = $"data:{selectedImageFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
-
-
     }
-
 
 
 }

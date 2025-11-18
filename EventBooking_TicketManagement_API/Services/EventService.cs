@@ -102,6 +102,9 @@ namespace EventBooking_TicketManagement_API.Services
             var ev = await _eventRepository.GetByIdAsync(id);
             if (ev == null) throw new KeyNotFoundException($"Event with Id {id} not found.");
 
+            if (ev.Status == EventStatus.PaymentConfirmed)
+                throw new InvalidOperationException("This event is already published .Edit requires admin approval .");
+
             ev.Title = dto.Title;
             ev.EventType = dto.EventType;
             ev.Description = dto.Description;
@@ -117,15 +120,16 @@ namespace EventBooking_TicketManagement_API.Services
 
             if (!string.IsNullOrEmpty(dto.ImageUrl))
                 ev.ImageUrl = dto.ImageUrl;
-            ev.ManagerId = dto.ManagerId;
+
+            //ev.ManagerId = dto.ManagerId;
             //ManagerName = ev.Manager?.Username!;
-            ev.Status = dto.Status;
-            ev.AdminNote = dto.AdminNote;
+            ev.Status = EventStatus.Pending; ;
+            ev.AdminNote = null;
             ev.TicketPrice = dto.TicketPrice;
 
             //ev.SoldTicket = dto.SoldTickets;
             //ev.CreatedAt = dto.CreatedAt;
-            ev.ApprovedAt = dto.ApprovedAt;
+            ev.ApprovedAt = null;
 
             await _eventRepository.UpdateAsync(ev);
         }
