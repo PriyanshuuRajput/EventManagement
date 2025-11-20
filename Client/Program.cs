@@ -36,9 +36,13 @@ namespace Client
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<ClientEventService>();
             builder.Services.AddScoped<SpinnerService>();
+            builder.Services.AddScoped<ManagerAccountService>();
+
 
             builder.Services.AddBlazoredToast();
             builder.Services.AddBlazoredSessionStorage();
+            //builder.Services.AddBlazoredLocalStorage();
+
 
             // Auth state provider
             builder.Services.AddScoped<CustomAuthStateProvider>();
