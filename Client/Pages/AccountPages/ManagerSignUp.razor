@@ -1,49 +1,99 @@
-﻿<!--<div class="position-relative">-->
-    <!-- Close Icon -->
-    <!--<button type="button" class="btn-close position-absolute top-0 end-0 m-0"
+﻿
+@inject ManagerAccountService signupService
+@inject NavigationManager Navigation 
+@inject Blazored.Toast.Services.IToastService toastService
+
+<div class="position-relative">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-0"
             aria-label="Close" @onclick="OnCancelClicked"></button>
 
-    <EditForm Model="@signupModel" OnValidSubmit="@HandleSignup">
-        <DataAnnotationsValidator />
+        <EditForm Model="@signupModel" OnValidSubmit="@HandleSignup">
+            <DataAnnotationsValidator />
 
-        <h4 class="text-center text-danger fw-bold mb-4">Create Account</h4>
-        <p class="text-center text-muted mb-4">Join <strong>EventiGO</strong> and explore amazing events</p>-->
+            <h4 class="text-center text-danger fw-bold mb-4">Create Account</h4>
+            <p class="text-center text-muted mb-4">Join <strong>EventiGO</strong> and list your show.</p>
 
-        <!-- Email -->
-        <!--<div class="mb-3">
-            <label class="form-label fw-semibold">Email</label>
-            <div class="input-group">
-                <span class="input-group-text bg-white"><i class="bi bi-envelope-fill"></i></span>
-                <InputText type="email" class="form-control" placeholder="Enter email" @bind-Value="signupModel.Email" />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Email<span class="text-danger m-2">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-envelope-fill"></i></span>
+                    <InputText type="email" class="form-control" placeholder="Enter email" @bind-Value="signupModel.Email" />
+                </div>
+                <ValidationMessage For="@(() => signupModel.Email)" />
             </div>
-            <ValidationMessage For="@(() => signupModel.Email)" />
-        </div>-->
+            @*<div class="text-center my-2">OR</div>
 
-        <!-- Phone -->
-        <!--<div class="mb-3">
-            <label class="form-label fw-semibold">Phone Number</label>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Mobile Number</label>
             <div class="input-group">
                 <span class="input-group-text bg-white"><i class="bi bi-telephone-fill"></i></span>
                 <InputText type="tel" class="form-control" placeholder="Enter phone number" @bind-Value="signupModel.PhoneNumber" />
+                <ValidationMessage For="@(() => signupModel.PhoneNumber)" />
             </div>
-        </div>-->
+        </div>*@
+            <button type="submit" class="btn btn-danger w-100 fw-semibold mt-2">
+                Submit
+            </button>
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="alert alert-danger mt-3 small text-center">
+                    @errorMessage
+                </div>
+            }
 
-        <!-- Password -->
-        <!--<div class="mb-3">
-            <label class="form-label fw-semibold">Password</label>
-            <div class="input-group">
-                <span class="input-group-text bg-white"><i class="bi bi-lock-fill"></i></span>
-                <InputText type="password" class="form-control" placeholder="Enter password" @bind-Value="signupModel.Password" />
-            </div>
-            <ValidationMessage For="@(() => signupModel.Password)" />
-        </div>
-
-        <button type="submit" class="btn btn-danger w-100 fw-semibold mt-2">
-            <i class="bi bi-person-plus-fill me-2"></i> Sign Up
-        </button>
-    </EditForm>
+        </EditForm>
 </div>
 
 @code {
 
-}-->
+    private ManagerSignUpDto signupModel = new();
+    private string? errorMessage;
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    [Parameter] public EventCallback OnSwitchToLogin { get; set; }
+
+    private async Task HandleSignup()
+    {
+        errorMessage = null;
+        if (string.IsNullOrWhiteSpace(signupModel.Email))
+        {
+            errorMessage = "Please enter Email!";
+            return;
+        }
+
+        var response = await signupService.SignupManagerAsync(signupModel);
+
+        if (response.IsSuccessStatusCode)
+        {
+            //toastService.ShowSuccess("Signup submitted!");
+
+            await Task.Delay(1000);
+
+            if (OnCancel.HasDelegate)
+                await OnCancel.InvokeAsync();
+
+            if (OnSwitchToLogin.HasDelegate)
+                await OnSwitchToLogin.InvokeAsync();
+
+            return;
+        }
+
+
+        var error = await response.Content.ReadAsStringAsync();
+        errorMessage = error;
+    }
+
+
+    private async Task OnCancelClicked()
+    {
+        if (OnCancel.HasDelegate)
+            await OnCancel.InvokeAsync();
+
+    }
+
+    private async Task SwitchToLogin() => await OnSwitchToLogin.InvokeAsync();
+
+
+}

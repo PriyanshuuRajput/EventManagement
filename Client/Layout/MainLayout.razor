@@ -4,6 +4,8 @@
 @inject NavigationManager Navigation
 @using EventBooking.Client.Pages.AccountPages
 
+
+
 <style>
     .blur-overlay {
         position: fixed;
@@ -105,16 +107,22 @@
                 <p class="text-center text-muted mb-4">Login to continue</p>
 
                 <!-- Reusable Login Component -->
-        <UserLogin OnSuccess="CloseOverlay"
-                   OnCancel="CloseOverlay"
-                   OnSwitchToSignup="ShowSignupOverlay" />
+                <UserLogin OnSuccess="CloseOverlay"
+                           OnCancel="CloseOverlay"
+                           OnSwitchToSignup="ShowUserSignup" />
             }
             else if (IsSignupVisible)
             {
-                <!--Reusable SignUp componenet-->
-                <SignUp OnCancel="CloseOverlay"
-                        OnSwitchToLogin="ShowLoginOverlay" />
-            }
+                @if (SignupMode == "User")
+                {
+                <SignUp OnCancel="CloseOverlay" 
+                OnSwitchToLogin ="ShowLoginOverlay"/>
+                }
+                else if(SignupMode=="Manager")
+                    {
+                        <ManagerSignUp OnCancel="CloseOverlay"/>
+                    }
+                }
 
         </div>
     </div>
@@ -124,6 +132,24 @@
     private bool IsLoginVisible = false;
     private bool IsSignupVisible = false;
 
+    private string SignupMode = "User";
+
+    public static MainLayout Instance { get; private set; }
+
+    protected override void OnInitialized()
+    {
+        Instance = this;
+        var uri = new Uri(Navigation.Uri);
+        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        var managerSignup = queryParams["managerSignup"];
+        if (managerSignup == "true")
+        {
+            IsSignupVisible = true;
+        }
+
+    }
+
     private void ShowLoginOverlay()
     {
         IsSignupVisible = false;
@@ -131,17 +157,37 @@
         StateHasChanged();
     }
 
-    private void ShowSignupOverlay()
+    private void CloseOverlay()
     {
+        IsSignupVisible = false;
+        IsLoginVisible = false;
+        StateHasChanged();
+    }
+
+    private void ShowUserSignup()
+    {
+        SignupMode = "User";
         IsLoginVisible = false;
         IsSignupVisible = true;
         StateHasChanged();
     }
 
-    private void CloseOverlay()
+    public void ShowManagerSignup()
     {
+        SignupMode = "Manager";
+        IsSignupVisible = true;
         IsLoginVisible = false;
-        IsSignupVisible = false;
         StateHasChanged();
     }
+
+
+    //private void ShowSignupOverlay()
+    //{
+    //    IsLoginVisible = false;
+    //    IsSignupVisible = true;
+    //    StateHasChanged();
+    //}
+
+
 }
+

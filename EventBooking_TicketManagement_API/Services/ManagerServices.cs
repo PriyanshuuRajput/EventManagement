@@ -1,4 +1,5 @@
 ﻿using Applications.Dto.OrganizerDto;
+using Applications.Interfaces;
 using Applications.Interfaces.IRepository;
 using Applications.Interfaces.IService;
 using Domains.Entities;
@@ -9,18 +10,20 @@ namespace EventBooking_TicketManagement_API.Services
     {
         private readonly IManagerRepository _managerRepo;
         private readonly IEmailService _emailService;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public ManagerServices(IManagerRepository managerRepo, IEmailService emailService)
+        public ManagerServices(IManagerRepository managerRepo, IEmailService emailService, IPasswordHasher passwordHasher)
         {
             _managerRepo = managerRepo;
             _emailService = emailService;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<string> SignUpManagerAsync(ManagerSignUpDto dto)
         {
             // Validation: At least 1 field must be filled
-            if (string.IsNullOrWhiteSpace(dto.Email) && string.IsNullOrWhiteSpace(dto.PhoneNumber))
-                return "Email or Phone number is required.";
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                return "Phone number is required.";
 
             // Check if email exists (if provided)
             if (!string.IsNullOrWhiteSpace(dto.Email) &&
@@ -37,7 +40,7 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Email = dto.Email ?? "",
                 Username = username,
-                PhoneNumber = dto.PhoneNumber,
+                PhoneNumber = "",
                 RoleId = 3,               // Manager Role
                 IsActive = true,
                 ChangePassword = true,    // Manager must change password after approval
@@ -51,7 +54,7 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 UserId = user.Id,
                 ManagerName = "",         // Manager will fill after approval
-                Mobile = dto.PhoneNumber ?? "",
+                Mobile = "",
                 Address = "",
                 IsApproved = false,
                 CreatedAt = DateTime.UtcNow
@@ -71,7 +74,7 @@ namespace EventBooking_TicketManagement_API.Services
 
             string tempPassword = GenerateTempPassword();
 
-            manager.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+            manager.User.PasswordHash = _passwordHasher.HashPassword(tempPassword);
             manager.IsApproved = true;
             manager.ApprovedAt = DateTime.Now;
 

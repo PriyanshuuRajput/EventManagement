@@ -1,6 +1,8 @@
 ﻿@page "/"
 @inject NavigationManager Navigation
 
+
+
 <PageTitle>EventiGo - Book Your Events</PageTitle>
 
 <style>
@@ -219,29 +221,28 @@
                 </div>
             </div>
         </div>
-
-        <div class="text-center mt-4">
-            <button class="btn btn-outline-dark btn-lg" @onclick="GoToEvent">
-                View All Events
-            </button>
-        </div>
     </div>
 </section>
 
 <section class="bg-light text-dark py-5 text-center">
     <div class="container">
         <!-- Main Heading -->
-        <h2 class="fw-bold mb-3">Ready to Book Your Next Event?</h2>
-        <p class="lead mb-4">Secure your spot instantly and start creating unforgettable memories.</p>
+        <h2 class="fw-bold mb-3">Ready to List Your Events</h2>
+        @*<p class="lead mb-4">Secure your spot instantly and start creating unforgettable memories.</p>*@
 
         <!-- Buttons -->
-        <div class="d-flex justify-content-center gap-3 mb-5 flex-wrap">
-            <button class="btn btn-outline-danger btn-lg" @onclick="GoToLogin">
-                <i class="bi bi-person-fill me-2"></i> Sign Up / Login
+        <div class="d-flex justify-content-center gap-3  flex-wrap">
+            @*<button class="btn btn-outline-danger btn-lg" @onclick="GoToLogin">
+            <i class="bi bi-person-fill me-2"></i> Sign Up / Login
+        </button>*@
+            <button class="btn btn-outline-danger border-2 btn-lg rounded-2 py-0 px-4">
+                Explore !
             </button>
-            <button class="btn btn-outline-secondary btn-lg" @onclick="GoToEvent">
-                Explore Events
-            </button>
+
+
+
+
+
         </div>
 
         <!-- Features / Highlights using Bootstrap Cards -->
@@ -292,4 +293,6 @@
     {
         Navigation.NavigateTo("/events");
     }
+
+    
 }

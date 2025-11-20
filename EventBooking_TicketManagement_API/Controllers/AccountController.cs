@@ -7,6 +7,7 @@ using Infrastructures.DbContexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
@@ -57,9 +58,11 @@ namespace EventBooking_TicketManagement_API.Controllers
 
                 if (user.ChangePassword)
                 {
+                    string token = _jwt.GenerateToken(user);
                     return Ok(new
                     {
                         ChangePassword = true,
+                        token = token,
                         message = "Passsword change required.",
                         userId = user.Id
                     });
@@ -69,7 +72,7 @@ namespace EventBooking_TicketManagement_API.Controllers
 
 
             // Generate JWT
-            var token = _jwt.GenerateToken(user);
+            var loginToken = _jwt.GenerateToken(user);
 
             //// Store in HttpOnly cookie
             //Response.Cookies.Append("jwt", token, new CookieOptions
@@ -84,7 +87,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             {
                 message = "Login successful",
                 role = user.Role?.Name,
-                token = token,
+                token = loginToken,
                 userId = user.Id
             });
         }
@@ -156,16 +159,16 @@ namespace EventBooking_TicketManagement_API.Controllers
         [HttpPost("manager-signup")]
         public async Task<IActionResult> ManagerSignup([FromBody] ManagerSignUpDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Email) && string.IsNullOrWhiteSpace(dto.PhoneNumber))
-                return BadRequest("Either Email or Phone Number is required.");
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                return BadRequest("Email is required.");
 
             if (!string.IsNullOrWhiteSpace(dto.Email) &&
                 _db.Users.Any(u => u.Email == dto.Email))
                 return BadRequest("Email already registered");
 
-            if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) &&
-                _db.Users.Any(u => u.PhoneNumber == dto.PhoneNumber))
-                return BadRequest("Phone number already registered");
+            //if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) &&
+            //    _db.Users.Any(u => u.PhoneNumber == dto.PhoneNumber))
+            //    return BadRequest("Phone number already registered");
 
             // Generate username
             string username = dto.Email != null
@@ -177,7 +180,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             {
                 Username = username,
                 Email = dto.Email ?? "",
-                PhoneNumber = dto.PhoneNumber,
+                PhoneNumber = "",
                 RoleId = 2,
                 PasswordHash = "",
                 ChangePassword = true,
@@ -194,7 +197,7 @@ namespace EventBooking_TicketManagement_API.Controllers
                 UserId = user.Id,
                 ManagerName = "",
                 Address = "",
-                Mobile = dto.PhoneNumber ?? "",
+                Mobile = "",
                 IsApproved = false,
                 CreatedAt = DateTime.UtcNow
             };
@@ -212,7 +215,6 @@ namespace EventBooking_TicketManagement_API.Controllers
             <h2>New Manager Request</h2>
             <p>A new manager has applied for approval.</p>
             <p><b>Email:</b> {dto.Email}</p>
-            <p><b>Phone:</b> {dto.PhoneNumber}</p>
             <p>Please review and approve them in the Admin Dashboard.</p>
             "
             );
@@ -227,11 +229,18 @@ namespace EventBooking_TicketManagement_API.Controllers
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
         {
-            var userId = int.Parse(User.Claims.First(c => c.Type == "id").Value);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             var user = await _db.Users.FindAsync(userId);
             if (user == null)
                 return BadRequest("User not found.");
+
+            if (!string.IsNullOrEmpty(user.PasswordHash) &&
+                !_passwordHasher.VerifyPassword(dto.OldPassword, user.PasswordHash))
+            {
+                return BadRequest("Old password is incorrect.");
+            }
+
 
             user.PasswordHash = _passwordHasher.HashPassword(dto.NewPassword);
             user.ChangePassword = false; // password update completed
