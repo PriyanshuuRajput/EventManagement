@@ -157,6 +157,9 @@ namespace EventBooking_TicketManagement_API.Services
 
         public async Task<EventDto> CreateEventAsync(ManagerEventDto mdto, int managerId, string managerName)
         {
+            if (mdto.ShowDate <= DateTime.UtcNow)
+                throw new InvalidOperationException("ShowDate must be in the future.");
+
             var ev = new Event
             {
                 Title = mdto.Title,
@@ -166,17 +169,21 @@ namespace EventBooking_TicketManagement_API.Services
                 Language = mdto.Language,
                 Duration = mdto.Duration,
                 ShowDate = mdto.ShowDate,
-                //TicketPrice = mdto.TicketPrice,
-                ImageUrl = mdto.ImageUrl!,
+                TicketPrice = mdto.TicketPrice,
+                ImageUrl = mdto.ImageUrl,
                 VenueId = mdto.VenueId,
+
                 ManagerId = managerId,
-                //ManagerName = mdto.Manager?.Username!,
+                ManagerName = managerName,
                 Status = EventStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
-                OfferedEventAmount = mdto.OfferedEventAmount ?? 0m,
+                //OfferedEventAmount = mdto.OfferedEventAmount ?? 0m,
                 IsPrizePaid = false,
                 PrizePaidAt = null,
-                EventAmount = mdto.OfferedEventAmount ?? 0m
+                EventAmount = 0m,
+
+                TotalTickets = mdto.TotalTickets,
+                SoldTickets = 0
             };
 
             await _eventRepository.AddAsync(ev);
@@ -189,7 +196,7 @@ namespace EventBooking_TicketManagement_API.Services
             string body = $@"
                             <h2>New Event pending Approval </h2>
                             <p><b>Title:</b> {ev.Title}</p>
-                            <p><b>Manager:</b></p>
+                            <p><b>Manager:</b>{managerName}</p>
                             <p><b>Date:</b> {ev.ShowDate:dd MMM yyyy HH:mm}</p>
                             <p>Please review and approve/reject this event in the admin dashboard.</p>
                             <p>
@@ -212,9 +219,18 @@ namespace EventBooking_TicketManagement_API.Services
                 ShowDate = ev.ShowDate,
                 TicketPrice = ev.TicketPrice,
                 ManagerId = ev.ManagerId,
-                //ManagerName = ev.Manager?.Username!,
+                ManagerName = ev.ManagerName,
                 Status = ev.Status,
                 CreatedAt = ev.CreatedAt,
+                ImageUrl = ev.ImageUrl,
+
+                TotalTickets = ev.TotalTickets,
+                SoldTickets = ev.SoldTickets,
+                EventAmount = ev.EventAmount,
+                OfferedEventAmount = ev.OfferedEventAmount,
+                VenueId = ev.VenueId,
+                VenueName = ev.Venue?.VenueName ?? string.Empty,
+                Address = ev.Venue?.Address ?? string.Empty
 
             };
         }
@@ -293,14 +309,20 @@ namespace EventBooking_TicketManagement_API.Services
             TicketPrice = e.TicketPrice,
             ImageUrl = e.ImageUrl,
             VenueName = e.Venue?.VenueName ?? string.Empty,
-            //ManagerName = e.ManagerName,
+            ManagerId = e.ManagerId,
+            ManagerName = e.ManagerName,
             Status = e.Status,
             AdminNote = e.AdminNote,
             CreatedAt = e.CreatedAt,
             ApprovedAt = e.ApprovedAt,
             OfferedEventAmount = e.OfferedEventAmount,
             EventAmount = e.EventAmount,
-            IsAmountAccepted = e.IsPrizePaid
+            IsAmountAccepted = e.IsPrizePaid,
+
+            TotalTickets = e.TotalTickets,
+            SoldTickets = e.SoldTickets,
+            Address = e.Venue?.Address ?? string.Empty,
+            // VenueId = e.VenueId
 
 
         };
@@ -309,6 +331,7 @@ namespace EventBooking_TicketManagement_API.Services
         public async Task<IEnumerable<EventDto>> GetManagerEventsAsync(int managerId)
         {
             var events = await _eventRepository.GetEventsByManagerByIdAsync(managerId);
+
             return events.Select(e => new EventDto
             {
                 Id = e.Id,
@@ -342,9 +365,9 @@ namespace EventBooking_TicketManagement_API.Services
                 EventAmount = e.EventAmount,
 
 
-                //TotalTickets = e.TotalTickets,
-                //SoldTickets = e.SoldTickets,
-                //IsAmountAccepted = e.IsAmountAccepted,
+                TotalTickets = e.TotalTickets,
+                SoldTickets = e.SoldTickets,
+                IsAmountAccepted = e.IsAmountAccepted,
 
 
 

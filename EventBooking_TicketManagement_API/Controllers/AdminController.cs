@@ -7,13 +7,40 @@ namespace EventBooking_TicketManagement_API.Controllers
     //[Authorize(Roles = "Admin")]
     [ApiController]
     [Route("api/[controller]")]
-    public class AdminEventController : ControllerBase
+    public class AdminController : ControllerBase
     {
         private readonly IEventService _eventService;
+        private readonly IManagerService _managerService;
 
-        public AdminEventController(IEventService eventService)
+        public AdminController(IEventService eventService, IManagerService managerService)
         {
             _eventService = eventService;
+            _managerService = managerService;
+        }
+
+        [HttpGet("pending-managers")]
+        public async Task<IActionResult> GetPendingManagers()
+        {
+            var pending = await _managerService.GetPendingManagersAsync();
+            return Ok(pending);
+        }
+
+        [HttpPost("approve-manager/{id}")]
+        public async Task<IActionResult> ApproveManager(int id)
+        {
+            var result = await _managerService.ApproveManagerAsync(id);
+
+            if (result.Contains("not found") || result.Contains("Already"))
+                return BadRequest(new { message = result });
+
+            return Ok(new { message = result });
+        }
+
+        [HttpPost("reject-manager/{id}")]
+        public async Task<IActionResult> RejectManager(int id)
+        {
+            await _managerService.RejectManagerAsync(id);
+            return Ok(new { message = "Manager request rejected." });
         }
 
         //  Get all pending events

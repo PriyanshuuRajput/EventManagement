@@ -13,6 +13,7 @@ using Infrastructures.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 namespace EventBooking_TicketManagement_API
@@ -24,13 +25,13 @@ namespace EventBooking_TicketManagement_API
             var builder = WebApplication.CreateBuilder(args);
 
             // ---------------------------------------------------------
-            // 🗃️ Database
+            // Database
             // ---------------------------------------------------------
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("default")));
 
             // ---------------------------------------------------------
-            // 🧩 Repositories
+            // Repositories
             // ---------------------------------------------------------
             builder.Services.AddScoped<IEventRepository, EventRepository>();
             builder.Services.AddScoped<ICityRepository, CityRepository>();
@@ -38,10 +39,10 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<ISeatRepository, SeatRepository>();
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<ICountryRepository, CountryRepository>();
-
+            builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
 
             // ---------------------------------------------------------
-            // 🧠 Services
+            // Services
             // ---------------------------------------------------------
             builder.Services.AddScoped<IEventService, EventService>();
             builder.Services.AddScoped<ICityService, CityService>();
@@ -49,39 +50,76 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<IVenueService, VenueService>();
             builder.Services.AddScoped<IBookingService, BookingService>();
             builder.Services.AddScoped<ICountryService, CountryService>();
-
             builder.Services.AddScoped<IEmailService, EmailService>();
-
+            builder.Services.AddScoped<IManagerService, ManagerServices>();
 
             // ---------------------------------------------------------
-            // 🔐 Security Services
+            // Security Services
             // ---------------------------------------------------------
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
             builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
             // ---------------------------------------------------------
-            // 🌐 MVC + Swagger
+            // Controllers + Swagger
             // ---------------------------------------------------------
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
 
-            // ---------------------------------------------------------
-            // 🌍 CORS (allow Blazor + credentials for cookies)
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Event Booking API",
+                    Version = "v1"
+                });
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "Enter JWT token like: Bearer {your token}",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
+
+
+
+            });
+
+
+            // CORS
             // ---------------------------------------------------------
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowBlazorClient", policy =>
                 {
-                    policy.WithOrigins("https://localhost:7117") // Blazor client URL
+                    policy.WithOrigins("https://localhost:7117")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials(); // Required for cookie auth
+                          .AllowCredentials();
                 });
             });
 
             // ---------------------------------------------------------
-            // 🔑 JWT Authentication
+            // JWT Authentication
             // ---------------------------------------------------------
             var jwtSection = builder.Configuration.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSection["Key"]!);
@@ -104,81 +142,66 @@ namespace EventBooking_TicketManagement_API
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
 
-                //  IMPORTANT: Accept JWT from BOTH Cookie and Authorization Header
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
-                        // First try cookie
-                        if (context.Request.Cookies.TryGetValue("jwt", out var cookieToken))
+                        // Check cookie
+                        if (context.Request.Cookies.TryGetValue("jwt", out var jwt))
                         {
-                            context.Token = cookieToken;
+                            context.Token = jwt;
                             return Task.CompletedTask;
                         }
 
-                        // Then Authorization header (used by Blazor WebAssembly)
-                        var authHeader = context.Request.Headers["Authorization"].ToString();
-                        if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer "))
+                        // Check Authorization header
+                        var header = context.Request.Headers.Authorization.ToString();
+                        if (!string.IsNullOrWhiteSpace(header) && header.StartsWith("Bearer "))
                         {
-                            context.Token = authHeader.Substring("Bearer ".Length).Trim();
-                            return Task.CompletedTask;
+                            context.Token = header.Substring("Bearer ".Length).Trim();
                         }
 
                         return Task.CompletedTask;
                     }
                 };
             });
-            builder.Services.AddSwaggerGen(options =>
-            {
-                options.SwaggerDoc("v1", new() { Title = "Event Booking API", Version = "v1" });
-
-                //  Add JWT Auth to Swagger
-                options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-                    Description = "Enter JWT token like: Bearer {your token}"
-                });
-
-                options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
-    });
-            });
-
 
             builder.Services.AddAuthorization();
 
             // ---------------------------------------------------------
-            // 🧾 Build Application
+            // Build app
             // ---------------------------------------------------------
             var app = builder.Build();
 
             // ---------------------------------------------------------
-            // 🧪 Database Seeding (Admin)
+            // Development tools: Swagger
+            // ---------------------------------------------------------
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            // ---------------------------------------------------------
+            // Middleware Pipeline
+            // ---------------------------------------------------------
+            app.UseStaticFiles();
+            app.UseHttpsRedirection();
+            app.UseCors("AllowBlazorClient");
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.MapControllers();
+
+            // ---------------------------------------------------------
+            // Database Seeding
             // ---------------------------------------------------------
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
-                // Ensure DB is created
                 db.Database.Migrate();
 
-                // Seed Roles (only if empty)
+                // Seed roles
                 if (!db.Roles.Any())
                 {
                     db.Roles.AddRange(
@@ -189,9 +212,7 @@ namespace EventBooking_TicketManagement_API
                     db.SaveChanges();
                 }
 
-
                 var admin = db.Users.FirstOrDefault(u => u.RoleId == 1);
-
                 if (admin == null)
                 {
                     admin = new AdminUser
@@ -213,10 +234,10 @@ namespace EventBooking_TicketManagement_API
                     admin.IsActive = true;
                     db.Users.Update(admin);
                 }
+
                 db.SaveChanges();
             }
 
-            // Seed data
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -226,30 +247,8 @@ namespace EventBooking_TicketManagement_API
             }
 
             // ---------------------------------------------------------
-            // 🚀 Middleware Pipeline
+            // Run App
             // ---------------------------------------------------------
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseStaticFiles();
-            app.UseHttpsRedirection();
-            app.UseCors("AllowBlazorClient");
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.MapControllers();
-
-            using (var scope = app.Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                Console.WriteLine("Connected DB: " + db.Database.GetDbConnection().Database);
-                Console.WriteLine("Connected Server: " + db.Database.GetDbConnection().DataSource);
-                Console.WriteLine("✅ Venue Count: " + db.Venues.Count());
-            }
-
-
             app.Run();
         }
     }

@@ -127,6 +127,87 @@
         color: #343a40 !important;
         border: 1px solid rgba(0,0,0,0.1);
     }
+              /* ===== RIGHT DRAWER PANEL ===== */
+    .drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        backdrop-filter: blur(2px);
+        animation: fadeIn 0.3s ease-in-out;
+        z-index: 2000;
+    }
+
+    .drawer-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100vh;
+        background: #fff;
+        border-left: 2px solid #dc3545;
+        border-radius: 0 0 0 12px;
+        display: flex;
+        flex-direction: column;
+/*        padding: 20px;
+        overflow-y: auto;*/
+        z-index: 2001;
+        transform: translateX(100%);
+        animation: slideIn 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+
+@@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0%); }
+}
+
+    .drawer-header {
+        padding: 18px 20px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(6px);
+        border-bottom: 1px solid #efefef;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+
+    .drawer-body {
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+        .drawer-body::-webkit-scrollbar {
+            width: 0px;
+        }
+
+/*        .drawer-body::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 10px;
+        }*/
+
+    /* ===== FOOTER ===== */
+    .drawer-footer {
+        background: #fff;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        position: sticky;
+        bottom: 0;
+    }
+
+    /* ===== FORM INPUT STYLE ===== */
+    .drawer-input {
+        border-radius: 10px !important;
+        padding: 10px 14px !important;
+        font-size: 1rem;
+        border: 1px solid #ddd !important;
+        transition: 0.2s ease;
+    }
+
+        .drawer-input:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2) !important;
+        }
+
 
 
     @@keyframes fadeIn {
@@ -290,7 +371,7 @@
                                             ? (int)((double)evt.SoldTickets / evt.TotalTickets * 100)
                                             : 0;
                                 <div class="col-md-4 col-lg-3">
-                                    <div class="card shadow-sm event-card border-0 h-100 fade-in">
+                                    <div class="card shadow-sm event-card border-0 fade-in">
                                         <div class="card-body">
 
                                             <!-- TITLE -->
@@ -311,11 +392,12 @@
                                                 </div>
                                             </div>
 
-                                            <hr />
+                                            <hr style="height:10px" />
 
                                             <!-- VENUE -->
-                                            <p class="small text-muted mb-1">
-                                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>@evt.VenueName
+                                            <p class="small fw-bold text-muted mb-2" style="font-size:15px">
+                                                <i class="bi bi-geo-alt-fill text-danger me-2"></i>@evt.VenueName
+                                                <span class="small text-muted m-4">@evt.Address</span>
                                             </p>
 
                                             <!-- DURATION -->
@@ -330,7 +412,7 @@
                                             </p>
 
                                             <!-- PRICE - Gets highlighted on hover -->
-                                            <h5 class="fw-bold mt-3 mb-3 price-box text-dark">
+                                            <h5 class="fw-bold mt-3 mb-3 ms-2 price-box text-dark">
                                                 ₹@evt.TicketPrice.ToString("N2")
                                             </h5>
 
@@ -340,37 +422,37 @@
                                             {
                                                 <!--Admin -Full Control-->
 
-                                                <button class="btn btn-light w-100 m-2"
+                                                <button class="btn btn-light me-2 ms-2 mt-3" style="width:62%"
                                                         @onclick="() => ShowEditEventModal(evt)">
                                                     <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
                                                 </button>
-                                                <button class="btn btn-outline-danger"
+                                                <button class="btn btn-outline-danger m-1 mt-3" style="width:22%"
                                                         @onclick="() => DeleteEvent(evt.Id)">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             }
-                                            else if(isManager)
+                                            else if (isManager)
                                             {
                                                 @if (evt.Status == EventStatus.Pending)
                                                 {
                                                     <!-- Manager: Editable only before approval -->
-                                                    <button class="btn btn-light w-100 me-2 ms-2"
+                                                    <button class="btn btn-light me-2 ms-2 mt-3" style="width:65%"
                                                             @onclick="() => ShowEditEventModal(evt)">
                                                         <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
                                                     </button>
 
-                                                    <button class="btn btn-outline-danger"
+                                                    <button class="btn btn-outline-danger m-1 mt-3" style="width:21%"
                                                             @onclick="() => DeleteEvent(evt.Id)">
-                                                        <i class="bi bi-trash"></i>
+                                                        <i class="bi bi-trash me-2"></i>
                                                     </button>
                                                 }
                                                 else
                                                 {
                                                     <!-- After Approved / Published -->
-                                                    <button class="btn btn-outline-warning w-100 me-2 ms-2" disabled>
-                                                        Needs Admin Approval
+                                                    <button class="btn btn-outline-warning  me-2 ms-2 mt-3" style="width:62%" disabled>
+                                                        <i class=" me-2 text-secondary  bi bi-lock"></i>Edit
                                                     </button>
-                                                    <button class="btn btn-outline-secondary" disabled>
+                                                    <button class="btn btn-outline-secondary m-1 mt-3" style="width:22%" disabled>
                                                         <i class="bi bi-lock"></i>
                                                     </button>
                                                 }
@@ -529,153 +611,166 @@
             <!-- ================= EVENT MODAL ================= -->
             @if (showEventModal)
             {
-                <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-                    <div class="modal-dialog modal-md modal-dialog-scrollable" style="max-width:800px;">
-                        <div class="modal-content border-0 shadow-lg rounded-3">
-                            <!-- Header -->
-                            <div class="modal-header border border-danger-subtle text-dark py-2">
-                                <h5 class="modal-title">
-                                    @((editingEvent?.Id > 0 ? "Update Event" : "Add New Event"))
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" @onclick="() => showEventModal = false"></button>
+                <!--<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-md modal-dialog-scrollable" style="max-width:800px;">
+                <div class="modal-content border-0 shadow-lg rounded-3">-->
+                <!-- Header -->
+                <!--<div class="modal-header border border-danger-subtle text-dark py-2">
+            <h5 class="modal-title">
+                @((editingEvent?.Id > 0 ? "Update Event" : "Add New Event"))
+            </h5>
+            <button type="button" class="btn-close btn-close-white" @onclick="() => showEventModal = false"></button>
+        </div>-->
+
+                <!-- Body -->
+                <!--<div class="modal-body bg-light">-->
+
+                <div class="drawer-overlay" @onclick="() => showEventModal = false"></div>
+
+                <div class="drawer-panel">
+                    <div class="drawer-header d-flex justify-content-between align-items-center">
+                        <h5 class="m-0 fw-bold">
+                            @(editingEvent?.Id > 0 ? "Update Event" : "Add New Event")
+                        </h5>
+
+                        @*<button class="btn-close" @onclick="() => showEventModal = false"></button>*@
+                    </div>
+
+                    <div class="drawer-body">
+                        <EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">
+                            <ValidationSummary />
+                            <DataAnnotationsValidator />
+
+                            <!-- General Info -->
+                            <div class="card shadow-sm mb-2">
+                                <div class="card-header  text-dark fw-bold">
+                                    🎫 General Information
+                                </div>
+                                <div class="card-body row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Event Name<span class="text-danger">*</span></label>
+                                        <InputText @bind-Value="editingEvent.Title" class="form-control" />
+                                        <ValidationMessage For="@(() => editingEvent.Title)" class="text-danger small" />
+
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Event Type<span class="text-danger">*</span></label>
+                                        <InputText @bind-Value="editingEvent.EventType" class="form-control" />
+                                        <ValidationMessage For="@(() => editingEvent.EventType)" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Language</label>
+                                        <InputText @bind-Value="editingEvent.Language" class="form-control" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Genre</label>
+                                        <InputText @bind-Value="editingEvent.Genre" class="form-control" />
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Body -->
-                            <div class="modal-body bg-light">
-                                <EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">
-                                    <ValidationSummary />
-                                    <DataAnnotationsValidator />
-
-                                    <!-- General Info -->
-                                    <div class="card shadow-sm mb-2">
-                                        <div class="card-header  text-dark fw-bold">
-                                            🎫 General Information
-                                        </div>
-                                        <div class="card-body row g-3">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Event Name<span class="text-danger">*</span></label>
-                                                <InputText @bind-Value="editingEvent.Title" class="form-control" />
-                                                <ValidationMessage For="@(() => editingEvent.Title)" class="text-danger small" />
-
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Event Type<span class="text-danger">*</span></label>
-                                                <InputText @bind-Value="editingEvent.EventType" class="form-control" />
-                                                <ValidationMessage For="@(() => editingEvent.EventType)" class="text-danger small" />
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Language</label>
-                                                <InputText @bind-Value="editingEvent.Language" class="form-control" />
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Genre</label>
-                                                <InputText @bind-Value="editingEvent.Genre" class="form-control" />
-                                            </div>
-                                        </div>
+                            <!-- Date and Time Info -->
+                            <div class="card shadow-sm mb-2">
+                                <div class="card-header text-dark fw-bold">
+                                    ⏰ Event Schedule
+                                </div>
+                                <div class="card-body row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Event Date & Time<span class="text-danger">*</span></label>
+                                        <input type="datetime-local"
+                                               @bind="editingEvent.ShowDate"
+                                               class="form-control"
+                                               min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                                        <ValidationMessage For="@(() => editingEvent.ShowDate)" class="text-danger small" />
                                     </div>
 
-                                    <!-- Date and Time Info -->
-                                    <div class="card shadow-sm mb-2">
-                                        <div class="card-header text-dark fw-bold">
-                                            ⏰ Event Schedule
-                                        </div>
-                                        <div class="card-body row g-3">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Event Date & Time<span class="text-danger">*</span></label>
-                                                <input type="datetime-local"
-                                                       @bind="editingEvent.ShowDate"
-                                                       class="form-control"
-                                                       min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
-                                                <ValidationMessage For="@(() => editingEvent.ShowDate)" class="text-danger small" />
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Duration (HH:MM)<span class="text-danger">*</span></label>
-                                                <InputText @bind-Value="durationInput" class="form-control" placeholder="e.g., 02:30" />
-                                                <ValidationMessage For="@(() => editingEvent.Duration)" />
-                                            </div>
-                                        </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Duration (HH:MM)<span class="text-danger">*</span></label>
+                                        <InputText @bind-Value="durationInput" class="form-control" placeholder="e.g., 02:30" />
+                                        <ValidationMessage For="@(() => editingEvent.Duration)" />
                                     </div>
-
-                                    <!-- Location Info -->
-                                    <div class="card shadow-sm mb-2">
-                                        <div class="card-header  text-dark fw-bold">
-                                            📍 Location Details
-                                        </div>
-                                        <div class="card-body row g-3">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Venue</label>
-                                                <InputSelect @bind-Value="editingEvent.VenueId" class="form-control">
-                                                    <option value="">-- Select Venue --</option>
-                                                    @foreach (var venue in venues)
-                                                    {
-                                                        <option value="@venue.Id">@venue.VenueName</option>
-                                                    }
-                                                </InputSelect>
-                                                <ValidationMessage For="@(() => editingEvent.VenueId)" />
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">City</label>
-                                                <InputSelect @bind-Value="editingEvent.CityId" class="form-control">
-                                                    <option value="">-- Select City --</option>
-                                                    @foreach (var city in citiesList)
-                                                    {
-                                                        <option value="@city.Id">@city.CityName</option>
-                                                    }
-                                                </InputSelect>
-                                                <ValidationMessage For="@(() => editingEvent.CityId)" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Ticket and Image Info -->
-                                    <div class="card shadow-sm mb-2">
-                                        <div class="card-header  text-dark fw-bold">
-                                            💰 Tickets & Image
-                                        </div>
-                                        <div class="card-body row g-3">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Ticket Price (₹)<span class="text-danger">*</span></label>
-                                                <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
-                                                <ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Event Image</label>
-                                                <InputFile OnChange="HandleImageSelected" class="form-control" />
-                                                @if (!string.IsNullOrEmpty(editingEvent.ImageUrl))
-                                                {
-                                                    <img src="@editingEvent.ImageUrl" alt="Preview" class="mt-2 rounded shadow-sm border" width="120" />
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Description -->
-                                    <div class="card shadow-sm mb-2">
-                                        <div class="card-header  text-dark fw-bold">
-                                            📝 Description
-                                        </div>
-                                        <div class="card-body">
-                                            <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="3" placeholder="Write a short description..." />
-                                        </div>
-                                    </div>
-
-                                    <!-- Footer -->
-                                    <div class="modal-footer shadow-lg bg-white border-0 d-flex justify-content-end">
-                                        <button class="btn btn-outline-secondary" @onclick="() => showEventModal = false">Cancel</button>
-                                        <button class="btn btn-danger">Save</button>
-                                    </div>
-
-                                </EditForm>
+                                </div>
                             </div>
-                        </div>
+
+                            <!-- Location Info -->
+                            <div class="card shadow-sm mb-2">
+                                <div class="card-header  text-dark fw-bold">
+                                    📍 Location Details
+                                </div>
+                                <div class="card-body row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Venue</label>
+                                        <InputSelect @bind-Value="editingEvent.VenueId" class="form-control">
+                                            <option value="">-- Select Venue --</option>
+                                            @foreach (var venue in venues)
+                                            {
+                                                <option value="@venue.Id">@venue.VenueName</option>
+                                            }
+                                        </InputSelect>
+                                        <ValidationMessage For="@(() => editingEvent.VenueId)" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">City</label>
+                                        <InputSelect @bind-Value="editingEvent.CityId" class="form-control">
+                                            <option value="">-- Select City --</option>
+                                            @foreach (var city in citiesList)
+                                            {
+                                                <option value="@city.Id">@city.CityName</option>
+                                            }
+                                        </InputSelect>
+                                        <ValidationMessage For="@(() => editingEvent.CityId)" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ticket and Image Info -->
+                            <div class="card shadow-sm mb-2">
+                                <div class="card-header  text-dark fw-bold">
+                                    💰 Tickets & Image
+                                </div>
+                                <div class="card-body row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Ticket Price (₹)<span class="text-danger">*</span></label>
+                                        <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
+                                        <ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Event Image</label>
+                                        <InputFile OnChange="HandleImageSelected" class="form-control" />
+                                        @if (!string.IsNullOrEmpty(editingEvent.ImageUrl))
+                                        {
+                                            <img src="@editingEvent.ImageUrl" alt="Preview" class="mt-2 rounded shadow-sm border" width="120" />
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="card shadow-sm mb-2">
+                                <div class="card-header  text-dark fw-bold">
+                                    📝 Description
+                                </div>
+                                <div class="card-body">
+                                    <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="3" placeholder="Write a short description..." />
+                                </div>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class=" d-flex justify-content-end align-items-center">
+                                <button class="btn btn-outline-secondary m-2 shadow-lg" @onclick="() => showEventModal = false">Cancel</button>
+                                <button class="btn btn-danger m-2 shadow-lg ">Save</button>
+                            </div>
+
+                        </EditForm>
                     </div>
                 </div>
+            @*</div>
+                </div>*@
 
 
             }
