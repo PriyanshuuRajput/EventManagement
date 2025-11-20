@@ -3,60 +3,111 @@
 
 
 
-<PageTitle>EventiGo - Book Your Events</PageTitle>
+<PageTitle>EventiGo-Home</PageTitle>
 
 <style>
-    /* New CSS for Single-Item Carousel */
-    .hero-carousel-item {
-        /* Set a consistent, attractive height for the banner */
-        height: 500px;
-        overflow: hidden;
-    }
+   /* WordPress + BookMyShow Style Carousel */
 
-    .hero-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover; /* Ensures the image covers the area nicely */
-    }
+.hero-carousel-item {
+    height: 400px;
+    overflow: hidden;
+    position: relative;
+}
 
-    /*.carousel-caption {*/
-    /* Optional: Add background to caption for better legibility */
-    /*background-color: rgba(0, 0, 0, 0.4);
-        border-radius: 0.5rem;
-        padding: 1rem 2rem;
-    }*/
-    /* Rest of your existing styles (Category Cards, etc.) */
-    .category-card {
-        transition: transform 0.2s, box-shadow 0.2s;
-        cursor: pointer;
-    }
+/* Smooth fade like WordPress sliders */
+.carousel.slide .carousel-item {
+    transition: opacity 0.8s ease-in-out;
+}
 
-        .category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
-        }
+.hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(80%);
+    transition: transform 0.6s ease;
+}
 
-    .category-img {
-        height: 150px;
-        object-fit: cover;
-    }
+.hero-carousel-item:hover .hero-img {
+    transform: scale(1.05);
+}
 
-    .unique-banner {
-        display: flex; /* Use flexbox for alignment */
-        align-items: center; /* Vertically center items */
-        justify-content: center; /* Horizontally center content */
-        gap: 1rem; /* Space between logo and text */
-        padding: 1.5rem 0; /* More vertical padding */
-    }
 
-        .unique-banner .logo {
-            height: 50px; /* Adjust logo size as needed */
-            width: auto;
-        }
+.hero-carousel-item::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 35%;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    pointer-events: none;
+}
+
+
+.carousel-caption {
+    bottom: 10px;
+    text-align: left;
+    left: 40px;
+}
+
+.carousel-caption h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+}
+
+/* Modern buttons */
+.carousel-caption button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 6px;
+}
+
+/* Indicators (WordPress theme style) */
+.carousel-indicators [data-bs-target] {
+    width: 10px;
+    height: 10px;
+    background-color: rgba(255,255,255,0.6);
+    border-radius: 50%;
+    transition: 0.3s ease;
+}
+
+.carousel-indicators .active {
+    width: 24px;
+    border-radius: 10px;
+    background: #fff;
+}
+
+/* Prev/Next arrows — clean WordPress style */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: drop-shadow(0 0 8px rgba(0,0,0,0.9));
+    width: 45px;
+    height: 45px;
+}
+
+/* Remove the black bg circle */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: transparent !important;
+}
+
+/* Keep your category card CSS intact */
+.category-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 30px rgba(0,0,0,0.15);
+}
+
+
 </style>
 
 <section class="p-0">
-    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
         <div class="carousel-inner">
 
             <div class="carousel-item active hero-carousel-item">
@@ -111,10 +162,8 @@
     </div>
 </section>
 
-<hr class="my-5" />
 
-
-<section class="py-4 bg-secondary text-white text-center shadow-lg unique-banner">
+@*<section class="py-4 bg-secondary text-white text-center shadow-lg unique-banner">
     <div class="container d-flex align-items-center justify-content-center flex-wrap">
         <img src="logo2.PNG" alt="EventiGo Logo" class="logo me-3 mb-2 mb-md-0" />
         <div>
@@ -122,14 +171,12 @@
             <p class="lead mb-0">From local gigs to global spectacles, we've got your tickets ready.</p>
         </div>
     </div>
-</section>
+</section>*@
 
-<div style="height: 50px;"></div>
-
-<section class="py-5">
-    <div class="container">
-        <h2 class="mb-4 text-center fw-bold">Explore Top Categories</h2>
-        <p class="text-center text-muted mb-5">Click on a category to see available events.</p>
+<section>
+    <div class="container" style="margin-top:40px">
+        <h2 class="mt-4 mb-4 fw-bold">The Best Of Live Events</h2>
+        @*<p class="text-center text-muted mb-5">Click on a category to see available events.</p>*@
         <div class="row text-center">
 
             <div class="col-6 col-md-3 mb-4">
@@ -172,14 +219,12 @@
     </div>
 </section>
 
-<hr class="my-5" />
-
-<section class="py-5 bg-light">
+<section class="bg-light">
     <div class="container">
-        <h2 class="mb-4 text-center fw-bold">🔥 Must-See Popular Events</h2>
+        <h2 class="m-4 fw-bold"> Popular Events</h2>
         <div class="row">
 
-            <div class="col-md-4 mb-4">
+            <div class="col-md-3 mb-4">
                 <div class="card h-100 shadow event-card" @onclick="GoToEvent">
                     <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Music</div>
                     <img src="concerts-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Rock Concert">
@@ -193,7 +238,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4 mb-4">
+            <div class="col-md-3 mb-4">
                 <div class="card h-100 shadow event-card" @onclick="GoToEvent">
                     <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Food</div>
                     <img src="movie-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Food Festival">
@@ -207,7 +252,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4 mb-4">
+            <div class="col-md-3 mb-4">
                 <div class="card h-100 shadow event-card" @onclick="GoToEvent">
                     <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Art</div>
                     <img src="movie-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Art Exhibition">
@@ -220,6 +265,20 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow event-card" @onclick="GoToEvent">
+                    <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Food</div>
+                    <img src="movie-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Food Festival">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold">International Food Fair</h5>
+                        <p class="card-text text-muted">Taste delicacies from around the world.</p>
+                        <button class="mt-auto btn btn-outline-danger" @onclick:stopPropagation="true" @onclick="GoToLogin">
+                            Get Tickets Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
