@@ -9,6 +9,7 @@ namespace Applications.Interfaces.IRepository
         Task<Manager> CreateManager(Manager manager);
         Task<Manager?> GetManagerByIdAsync(int id);
         Task<Manager?> GetManagerWithUserAsync(int id);
+        Task<Manager?> GetManagerWithUserByUserIdAsync(int userId);
         Task<List<Manager>> GetPendingManagersAsync();
         void DeleteManager(Manager manager);
         Task SaveChangesAsync();

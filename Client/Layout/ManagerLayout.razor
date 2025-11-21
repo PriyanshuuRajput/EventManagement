@@ -1,0 +1,36 @@
+﻿@inherits LayoutComponentBase
+@layout MainLayout
+
+<style>
+    /* Disable full navbar during onboarding */
+    .nav-disabled {
+        pointer-events: none;
+        opacity: 0.45;
+        filter: blur(0.8px);
+        transition: opacity .25s ease, filter .25s ease;
+    }
+
+    /* Banner shown during onboarding */
+    .onboarding-banner {
+        background: #ffe3e3;
+        padding: 10px;
+        text-align: center;
+        font-weight: 600;
+        color: #b71c1c;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #ffc1c1;
+        animation: fadeDown .3s ease;
+    }
+
+    @@keyframes fadeDown {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+
+<div class="page-center onboarding-container">
+    <div class="wrapper">
+        @Body
+    </div>
+</div>

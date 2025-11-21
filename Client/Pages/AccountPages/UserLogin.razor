@@ -1,4 +1,6 @@
-﻿
+﻿@page "/login"
+@page "/login/{email}"
+
 @inject Blazored.SessionStorage.ISessionStorageService SessionStorage
 @using Applications.Dto.AccountDto
 @inherits LoginBase
@@ -55,9 +57,18 @@
 </EditForm>
 
 @code {
-        [Parameter] public EventCallback OnSuccess { get; set; }
-        [Parameter] public EventCallback OnCancel { get; set; }
-        [Parameter] public EventCallback OnSwitchToSignup { get; set; }
+    [Parameter] public EventCallback OnSuccess { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnSwitchToSignup { get; set; }
+    [Parameter] public string? email { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(email))
+        {
+            loginModel.Identifier = email;
+        }
+    }
 
 
     private async Task HandleLoginForm()
@@ -85,7 +96,7 @@
             await SessionStorage.SetItemAsync("authToken", result.Token);
 
             // redirect to change-password
-            Navigation.NavigateTo("/change-password", true);
+            Navigation.NavigateTo("/manager-profile-change-password", true);
 
             return;
         }

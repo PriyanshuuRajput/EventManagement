@@ -20,6 +20,7 @@ namespace EventBooking_TicketManagement_API.Controllers
         private readonly IPasswordHasher _passwordHasher;
         private readonly IEmailService _emailService;
 
+
         public AccountController(IJwtTokenService jwt, AppDbContext db, IPasswordHasher passwordHasher, IEmailService emailService)
         {
             _jwt = jwt;
@@ -249,6 +250,7 @@ namespace EventBooking_TicketManagement_API.Controllers
 
             return Ok(new { message = "Password changed successfully." });
         }
+
 
         // Logout
         [HttpPost("logout")]

@@ -34,5 +34,6 @@ namespace Domains.Entities
         public bool ChangePassword { get; set; } = true;
         public ICollection<Event>? Events { get; set; }
         public Manager? Manager { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

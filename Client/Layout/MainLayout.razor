@@ -142,8 +142,15 @@
         var uri = new Uri(Navigation.Uri);
         var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
-        var managerSignup = queryParams["managerSignup"];
-        if (managerSignup == "true")
+
+        if (queryParams["login"] == "true")
+        {
+            IsLoginVisible = true;
+            IsSignupVisible = false;
+        }
+
+
+        if (queryParams["managerSignup"] == "true")
         {
             IsSignupVisible = true;
         }

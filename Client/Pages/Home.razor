@@ -6,7 +6,6 @@
 <PageTitle>EventiGo-Home</PageTitle>
 
 <style>
-   /* WordPress + BookMyShow Style Carousel */
 
 .hero-carousel-item {
     height: 400px;
@@ -14,7 +13,7 @@
     position: relative;
 }
 
-/* Smooth fade like WordPress sliders */
+
 .carousel.slide .carousel-item {
     transition: opacity 0.8s ease-in-out;
 }
@@ -63,22 +62,24 @@
     border-radius: 6px;
 }
 
-/* Indicators (WordPress theme style) */
+/* Indicators  */
 .carousel-indicators [data-bs-target] {
     width: 10px;
     height: 10px;
     background-color: rgba(255,255,255,0.6);
     border-radius: 50%;
     transition: 0.3s ease;
+    border-bottom:0px;
+    border-top:0px;
 }
 
 .carousel-indicators .active {
-    width: 24px;
-    border-radius: 10px;
+    width: 16px;
+    border-radius: 8px;
     background: #fff;
 }
 
-/* Prev/Next arrows — clean WordPress style */
+/* Prev/Next arrows */
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
     filter: drop-shadow(0 0 8px rgba(0,0,0,0.9));
@@ -92,7 +93,7 @@
     background-color: transparent !important;
 }
 
-/* Keep your category card CSS intact */
+
 .category-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;

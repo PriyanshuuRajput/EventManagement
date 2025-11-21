@@ -11,5 +11,8 @@ namespace Applications.Interfaces.IService
 
         Task RejectManagerAsync(int managerId);
 
+        Task<string> ManagerProfileChangePassword(int userId, ManagerProfileDto dto);
+
+
     }
 }
