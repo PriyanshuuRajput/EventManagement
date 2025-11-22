@@ -6,17 +6,22 @@
 
 @using Applications.Dto.OrganizerDto
 @using System.Net.Http.Headers
+@using System.ComponentModel.DataAnnotations
+
 
 <style>
 
-  
+    /*    html, body {
+        overflow: hidden !important;
+    }*/
+
 
     .modern-stepper {
         display: flex;
         justify-content: space-between;
         position: relative;
-        margin-bottom: 40px;
-        padding: 10px 0;
+        margin-bottom: 20px;
+        padding: 5px 0;
     }
 
     .stepper-line {
@@ -35,7 +40,7 @@
         top: 22px;
         left: 0;
         height: 3px;
-        background: #f44a5a; 
+        background: #f44a5a;
         z-index: 2;
         transition: width .35s ease;
         border-radius: 3px;
@@ -76,7 +81,64 @@
         color: #3b3a3f;
     }
 
-    
+    .step-section {
+        height: calc(100vh - 170px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden !important;
+        padding: 0;
+    }
+
+    .form-card {
+        width: 580px;
+        background: #ffffff;
+        padding: 26px 30px;
+        box-shadow: 0px 8px 20px rgba(0,0,0,0.06);
+        margin: auto;
+        /*        max-height: 85vh;
+        overflow-y: auto;
+        border-radius: 14px;*/
+    }
+
+        .form-card .mb-3 {
+            margin-bottom: 12px !important;
+        }
+
+        .form-card .section-title {
+            margin: 12px 0 8px !important;
+        }
+
+
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+
+    .pretty-input {
+        width: 100%;
+        height: 44px;
+        border: 1px solid #dcdcdc;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        transition: 0.2s ease-in-out;
+    }
+
+        .pretty-input:focus {
+            border-color: #ff4d4f;
+            box-shadow: 0 0 0 3px rgba(255,77,79,0.15);
+            outline: none;
+        }
+
+    .section-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+
+
+
 
     .bms-input {
         height: 38px;
@@ -133,94 +195,100 @@
 
 
 
-    <div class="modern-stepper">
+<div class="modern-stepper">
 
-        <div class="stepper-line"></div>
-        <div class="stepper-line-active" style="width:@GetLineWidth()"></div>
+    <div class="stepper-line"></div>
+    <div class="stepper-line-active" style="width:@GetLineWidth()"></div>
 
-        <div class="stepper-item">
-            <div class="step-dot @(currentStep == 1 ? "active" : "")">1</div>
-            <div class="step-label">Basic Information</div>
-        </div>
-
-        <div class="stepper-item">
-            <div class="step-dot @(currentStep == 2 ? "active" : "")">2</div>
-            <div class="step-label">Manager Profile</div>
-        </div>
-
-        <div class="stepper-item">
-            <div class="step-dot @(currentStep == 3 ? "active" : "")">3</div>
-            <div class="step-label">Terms & Condition</div>
-        </div>
-
+    <div class="stepper-item">
+        <div class="step-dot @(currentStep == 1 ? "active" : "")">1</div>
+        <div class="step-label">Basic Information</div>
     </div>
 
+    <div class="stepper-item">
+        <div class="step-dot @(currentStep == 2 ? "active" : "")">2</div>
+        <div class="step-label">Manager Profile</div>
+    </div>
+
+    <div class="stepper-item">
+        <div class="step-dot @(currentStep == 3 ? "active" : "")">3</div>
+        <div class="step-label">Terms & Condition</div>
+    </div>
+
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+
+}
 
 
-    <EditForm Model="@model" OnValidSubmit="Submit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
 
-        @if (currentStep == 1)
-        {
-            <div class="step-section">
+<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
 
-                @*<div class="d-flex align-items-start mb-3">
-                        <div class="step-circle">1</div>
-                        <div class="ms-2">
-                            <h6 class="step-title">Set up your manager account</h6>
-                            <p class="step-subtitle">Fill basic details and update your password.</p>
-                        </div>
-                    </div>*@
+    @if (currentStep == 1)
+    {
+        <div class="step-section d-flex justify-content-center">
+            <div class="form-card">
 
                 <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">First Name <span class="text-danger">*</span></label>
+                        <InputText class="pretty-input" @bind-Value="model.FirstName" />
+                        <ValidationMessage For="@(()=>model.FirstName)" />
+                    </div>
 
-                    <div class="col-12 mb-3">
-                        <label class="bms-label">Full name <span class="text-danger">*</span></label>
-                        <InputText class="form-control bms-input" @bind-Value="model.ManagerName" />
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Last Name</label>
+                        <InputText class="pretty-input" @bind-Value="model.LastName" />
+                        @*<ValidationMessage For="@(()=>model.LastName)" />*@
                     </div>
 
                     <div class="col-12 mb-3">
-                        <label class="bms-label">Mobile number <span class="text-danger">*</span></label>
-                        <InputText class="form-control bms-input" @bind-Value="model.Mobile" />
+                        <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                        <InputText class="pretty-input" maxlength="10" @bind-Value="model.Mobile" />
+                        <ValidationMessage For="@(()=>model.Mobile)" />
                     </div>
-
-                    @*<div class="col-12 mb-3">
-                            <label class="bms-label">Email</label>
-                            <InputText class="form-control bms-input disabled-input"
-                                       @bind-Value="model.Email"
-                                       readonly />
-                        </div>*@
-
-                    <div class="col-12 mb-3">
-                        <label class="bms-label">Old password <span class="text-danger">*</span></label>
-                        <InputText type="password" class="form-control bms-input" @bind-Value="model.OldPassword" />
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label class="bms-label">New password <span class="text-danger">*</span></label>
-                        <InputText type="password" class="form-control bms-input" @bind-Value="model.NewPassword" />
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label class="bms-label">Confirm password <span class="text-danger">*</span></label>
-                        <InputText type="password" class="form-control bms-input" @bind-Value="model.ConfirmPassword" />
-                    </div>
-
                 </div>
 
-                <div class="d-flex justify-content-between mt-4">
-                    <span class="help-text">Need help? <a href="#" class="help-link">Contact us</a></span>
-                    <button class="btn btn-outline-danger" @onclick="NextStep">Next</button>
+                <div class="section-title mt-2 text-secondary">Update Password</div>
+
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Old Password <span class="text-danger">*</span></label>
+                        <InputText type="password" class="pretty-input" @bind-Value="model.OldPassword" />
+                        <ValidationMessage For="@(()=>model.OldPassword)" />
+
+                    </div>
+
+                    <div class="col-6 mb-3">
+                        <label class="form-label">New Password <span class="text-danger">*</span></label>
+                        <InputText type="password" class="pretty-input" @bind-Value="model.NewPassword" />
+                        <ValidationMessage For="@(()=>model.NewPassword)" />
+                    </div>
+
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                        <InputText type="password" class="pretty-input" @bind-Value="model.ConfirmPassword" />
+                        <ValidationMessage For="@(()=>model.ConfirmPassword)" />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-2">
+                    <button class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>
                 </div>
 
             </div>
-        }
+        </div>
+    }
 
-        @if (currentStep == 2)
-        {
-            <div class="step-section">
 
+    @if (currentStep == 2)
+    {
+        <div class="step-section d-flex justify-content-center">
+            <div class="form-card">
                 <div class="row">
 
                     <!-- LEFT COLUMN -->
@@ -228,39 +296,27 @@
 
                         <!-- Organization Name -->
                         <div class="mb-3">
-                            <label class="bms-label">Organization name</label>
-                            <InputText class="form-control bms-input" @bind-Value="model.OrganizationName" />
+                            <label class="form-label">Organization Name</label>
+                            <InputText class="pretty-input" @bind-Value="model.OrganizationName" />
                         </div>
 
                         <!-- PAN -->
                         <div class="mb-3">
-                            <label class="bms-label">Pan number</label>
-                            <InputText class="form-control bms-input" @bind-Value="model.PAN" />
+                            <label class="form-label">Pan number</label>
+                            <InputText class="pretty-input" @bind-Value="model.PAN" />
+                            <ValidationMessage For="@(()=>model.PAN)" />
                         </div>
 
                         <!-- Alternate Email -->
                         <div class="mb-3">
-                            <label class="bms-label">Alternate email</label>
-                            <InputText class="form-control bms-input" @bind-Value="model.AlternateEmail" />
+                            <label class="form-label">Alternate email</label>
+                            <InputText class="pretty-input" @bind-Value="model.AlternateEmail" />
+                            @*<ValidationMessage For="@(() => model.AlternateEmail)" />*@
                         </div>
 
-                        <!-- Address -->
+                        <!-- Profile Image -->
                         <div class="mb-3">
-                            <label class="bms-label">Address <span class="text-danger">*</span></label>
-                            <InputText class="form-control bms-input" @bind-Value="model.Address" />
-                        </div>
-
-                    </div>
-
-
-                    <!-- RIGHT COLUMN -->
-                    <div class="col-md-6">
-
-                        <!-- Profile Image Upload -->
-                        <div class="mb-3">
-                            <label class="bms-label">Profile Image (optional)</label>
-
-                            <InputFile OnChange="HandleImageUpload" class="form-control" />
+                            <label class="form-label">Profile Image (optional)</label>
 
                             @if (!string.IsNullOrEmpty(model.Image))
                             {
@@ -271,34 +327,49 @@
                             }
                         </div>
 
-                        <!-- City -->
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="col-md-6">
+
+                        <!-- Country -->
                         <div class="mb-3">
-                            <label class="bms-label">City <span class="text-danger">*</span></label>
-                            <select class="form-control bms-input" @bind="model.CityId">
-                                <option value="">-- Select City --</option>
-                                @foreach (var c in cities)
+                            <label class="form-label">Country <span class="text-danger">*</span></label>
+                            <select class="form-control bms-input"
+                                    @onchange="LoadStates">
+                                <option value="">-- Select Country --</option>
+                                @foreach (var c in countries)
                                 {
-                                    <option value="@c.Id">@c.CityName</option>
+                                    <option value="@c.Id">@c.Name</option>
                                 }
                             </select>
+                            <ValidationMessage For="@(()=>model.CountryId)" />
                         </div>
 
                         <!-- State -->
                         <div class="mb-3">
-                            <label class="bms-label">State <span class="text-danger">*</span></label>
-                            <select class="form-control bms-input" @bind="model.StateId">
+                            <label class="form-label">State <span class="text-danger">*</span></label>
+                            <select class="form-control bms-input"
+                                    @bind="model.StateId">
                                 <option value="">-- Select State --</option>
                                 @foreach (var s in states)
                                 {
                                     <option value="@s.Id">@s.Name</option>
                                 }
                             </select>
+                            <ValidationMessage For="@(()=>model.StateId)" />
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-3">
+                            <label class="form-label">Address <span class="text-danger">*</span></label>
+                            <InputText class="pretty-input" @bind-Value="model.Address" />
+                            <ValidationMessage For="@(()=>model.Address)" />
                         </div>
 
                     </div>
 
                 </div>
-
 
                 <div class="d-flex justify-content-between mt-4">
                     <button class="btn btn-secondary" @onclick="PrevStep">Back</button>
@@ -306,18 +377,21 @@
                 </div>
 
             </div>
-        }
+        </div>
+    }
 
 
 
-        @if (currentStep == 3)
-        {
-            <div class="step-section">
+
+    @if (currentStep == 3)
+    {
+        <div class="step-section d-flex justify-content-center">
+            <div class="form-card">
 
                 @*<div class="d-flex align-items-start mb-3">
                         <div class="step-circle">3</div>
                         <div class="ms-2">
-                            <h6 class="step-title">Review and accept terms</h6>
+                            <h6 class="step-title">Review and accept terms</h6>   b
                             <p class="step-subtitle">Check your details before submitting.</p>
                         </div>
                     </div>*@
@@ -362,14 +436,13 @@
                 </div>
 
             </div>
-        }
-
-    </EditForm>
-
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="alert alert-danger mt-3">@errorMessage</div>
+        </div>
     }
+
+</EditForm>
+
+
+
 @code {
     ManagerProfileDto model = new();
     string? errorMessage;
@@ -377,11 +450,9 @@
 
     int currentStep = 1;
 
-    List<CityDto> cities = new();
+    //List<CityDto> cities = new();
     List<StateDto> states = new();
-
     List<CountryDto> countries = new();
-    Guid selectedCountryId = Guid.Empty;
 
     private string GetLineWidth()
     {
@@ -394,50 +465,131 @@
         };
     }
 
-
     protected override async Task OnInitializedAsync()
     {
         email = await JS.InvokeAsync<string>("localStorage.getItem", "email");
         model.Email = email;
 
         countries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
-
-        if (countries != null && countries.Any())
-        {
-            selectedCountryId = countries.First().Id; // GUID
-        }
-
-        cities = await Http.GetFromJsonAsync<List<CityDto>>("api/cities");
-
-
-        if (selectedCountryId != Guid.Empty)
-        {
-            states = await Http.GetFromJsonAsync<List<StateDto>>(
-                $"api/state/by-country/{selectedCountryId}"
-            );
-        }
+        // cities = await Http.GetFromJsonAsync<List<CityDto>>("api/cities");
     }
 
-    private async Task HandleImageUpload(InputFileChangeEventArgs e)
+    private async Task LoadStates(ChangeEventArgs e)
     {
-        var file = e.File;
+        model.CountryId = Guid.Parse(e.Value.ToString());
 
-        if (file != null)
+        states = await Http.GetFromJsonAsync<List<StateDto>>(
+            $"api/State/by-country/{model.CountryId}"
+        );
+
+        // cities.Clear();
+        model.StateId = Guid.Empty;
+        model.CityId = 0;
+
+        StateHasChanged(); // IMPORTANT
+    }
+
+    //private async Task LoadCities(ChangeEventArgs e)
+    //{
+    //    model.StateId = Guid.Parse(e.Value.ToString());
+
+    //    cities = cities
+    //    .Where(c => c.StateId == model.StateId)
+    //    .ToList();
+
+
+    //    model.CityId = 0;
+
+    //    StateHasChanged();
+    //}
+
+    private bool ValidateStep1()
+    {
+        var results = new List<ValidationResult>();
+        var context = new ValidationContext(model);
+
+        string[] props =
         {
-            // Convert image to Base64
-            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024); // 5MB
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var bytes = ms.ToArray();
+        nameof(model.FirstName),
+        nameof(model.Mobile),
+        nameof(model.OldPassword),
+        nameof(model.NewPassword),
+        nameof(model.ConfirmPassword)
+    };
 
-            model.Image = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
+        bool valid = ValidateProperties(props, context, results);
+
+        if (model.NewPassword == model.OldPassword)
+        {
+            errorMessage = "New password cannot be the same as old password.";
+            valid = false;
         }
+
+        return valid;
     }
 
 
+    private bool ValidateStep2()
+    {
+        var results = new List<ValidationResult>();
+        var context = new ValidationContext(model);
+
+        string[] props = {
+            nameof(model.CountryId),
+            nameof(model.StateId),
+            //nameof(model.CityId),
+            nameof(model.Address)
+        };
+
+        return ValidateProperties(props, context, results);
+    }
+
+    private bool ValidateProperties(string[] properties, ValidationContext context, List<ValidationResult> results)
+    {
+        bool valid = true;
+
+        foreach (var prop in properties)
+        {
+            context.MemberName = prop;
+            var value = model.GetType().GetProperty(prop)?.GetValue(model);
+
+            if (!Validator.TryValidateProperty(value, context, results))
+            {
+                valid = false;
+            }
+        }
+
+        return valid;
+    }
 
     private Task NextStep()
     {
+        bool isValid = currentStep switch
+        {
+            1 => ValidateStep1(),
+            2 => ValidateStep2(),
+            _ => true
+        };
+
+        if (!isValid)
+        {
+            StateHasChanged();
+            return Task.CompletedTask;
+        }
+
+        if (currentStep == 1)
+        {
+            model.ManagerName = $"{model.FirstName} {model.LastName}";
+        }
+
+        if (currentStep == 2)
+        {
+            var selectedState = states.FirstOrDefault(s => s.Id == model.StateId)?.Name;
+            var selectedCountry = countries.FirstOrDefault(c => c.Id == model.CountryId)?.Name;
+
+            model.Address = $"{model.Address}, {selectedState}, {selectedCountry}";
+        }
+
         currentStep++;
         return Task.CompletedTask;
     }
@@ -458,9 +610,10 @@
             Http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
 
-            // Submit DTO
             var response = await Http.PostAsJsonAsync(
-                "api/account/manager-changepassword-profilesetup", model);
+                "api/account/manager-changepassword-profilesetup",
+                model
+            );
 
             if (response.IsSuccessStatusCode)
             {
@@ -476,5 +629,4 @@
             errorMessage = ex.Message;
         }
     }
-
 }
