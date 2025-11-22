@@ -38,5 +38,6 @@ namespace Domains.Entities
         public DateTime? UpdatedAt { get; set; }
 
         public ICollection<Event>? Events { get; set; }
+        public bool IsProfileCompleted { get; set; }
     }
 }

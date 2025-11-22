@@ -1,4 +1,5 @@
 ﻿using Applications.Dto;
+using Applications.Dto.OrganizerDto;
 using Applications.Interfaces;
 using Applications.Interfaces.IService;
 using Domains.Entities;
@@ -18,18 +19,20 @@ namespace EventBooking_TicketManagement_API.Controllers
     public class ManagerEventController : ControllerBase
     {
         private readonly IEventService _eventService;
+        private readonly IManagerService _managerService;
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly AppDbContext _db;
         private readonly IPasswordHasher _passwordHasher;
 
 
 
-        public ManagerEventController(IEventService eventService, IWebHostEnvironment hostEnvironment, AppDbContext db, IPasswordHasher password)
+        public ManagerEventController(IEventService eventService, IWebHostEnvironment hostEnvironment, AppDbContext db, IPasswordHasher password, IManagerService managerService)
         {
             _eventService = eventService;
             _hostEnvironment = hostEnvironment;
             _db = db;
             _passwordHasher = password;
+            _managerService = managerService;
         }
         private async Task<Manager?> GetLoggedManager()
         {
@@ -39,6 +42,21 @@ namespace EventBooking_TicketManagement_API.Controllers
             return await _db.Managers
                 .Include(m => m.User)
                 .FirstOrDefaultAsync(m => m.UserId == userId);
+        }
+
+        [Authorize]
+        [HttpPost("manager-changepassword-profilesetup")]
+
+        public async Task<IActionResult> MangerProfileUpdate([FromBody] ManagerProfileDto dto)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var result = await _managerService.ManagerProfileChangePassword(userId, dto);
+
+            if (result != "Success")
+                return BadRequest(new { message = result });
+
+            return Ok(new { message = "Profile Completed successfully!" });
         }
 
         [HttpPost("create")]

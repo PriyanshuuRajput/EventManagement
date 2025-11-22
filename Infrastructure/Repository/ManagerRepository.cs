@@ -49,6 +49,13 @@ namespace Infrastructure.Repository
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
+        public async Task<Manager?> GetManagerWithUserByUserIdAsync(int userId)
+        {
+            return await _db.Managers
+                .Include(m => m.User)
+                .FirstOrDefaultAsync(m => m.UserId == userId);
+        }
+
         //  Corrected method name
         public Task SaveChangesAsync()
         {

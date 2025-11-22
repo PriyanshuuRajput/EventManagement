@@ -1,432 +1,632 @@
-﻿@page "/manager-profile"
-@inject NavigationManager Nav
+﻿@page "/manager-profile-change-password"
+@layout ManagerLayout
 @inject HttpClient Http
-@using Domains.Entities
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@using Applications.Dto.OrganizerDto
+@using System.Net.Http.Headers
+@using System.ComponentModel.DataAnnotations
 
 
 <style>
-    .suggestion-box {
-        max-height: 250px;
-        overflow-y: auto;
-        z-index: 20;
+
+    /*    html, body {
+        overflow: hidden !important;
+    }*/
+
+
+    .modern-stepper {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin-bottom: 20px;
+        padding: 5px 0;
     }
 
-        .suggestion-box::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .suggestion-box::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 10px;
-        }
-
-    .truncate-text {
-        max-width: 200px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    .stepper-line {
+        position: absolute;
+        top: 22px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #c5aaad;
+        z-index: 1;
+        border-radius: 3px;
     }
 
-    /* ====== FOOTER BANNER ====== */
-    .promo-banner {
-        background: linear-gradient(to right, #fff, #f8f9fa);
-        border-radius: 12px;
-        border: 1px solid #dee2e6;
-        padding: 30px;
+    .stepper-line-active {
+        position: absolute;
+        top: 22px;
+        left: 0;
+        height: 3px;
+        background: #f44a5a;
+        z-index: 2;
+        transition: width .35s ease;
+        border-radius: 3px;
+    }
+
+    .stepper-item {
+        width: 33%;
         text-align: center;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        z-index: 3;
     }
-    .banner {
-        padding: 22px;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(220, 53, 69, 0.2);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+    .step-dot {
+        height: 42px;
+        width: 42px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 3px solid #d9d5e7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #DC3545;
+        margin: auto;
+        transition: all .3s ease;
     }
+
+        .step-dot.active {
+            background: #DC3545;
+            border-color: #DC3545;
+            color: #fff;
+        }
+
+    .step-label {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #3b3a3f;
+    }
+
+    .step-section {
+        height: calc(100vh - 170px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden !important;
+        padding: 0;
+    }
+
+    .form-card {
+        width: 580px;
+        background: #ffffff;
+        padding: 26px 30px;
+        box-shadow: 0px 8px 20px rgba(0,0,0,0.06);
+        margin: auto;
+        /*        max-height: 85vh;
+        overflow-y: auto;
+        border-radius: 14px;*/
+    }
+
+        .form-card .mb-3 {
+            margin-bottom: 12px !important;
+        }
+
+        .form-card .section-title {
+            margin: 12px 0 8px !important;
+        }
+
+
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+
+    .pretty-input {
+        width: 100%;
+        height: 44px;
+        border: 1px solid #dcdcdc;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        transition: 0.2s ease-in-out;
+    }
+
+        .pretty-input:focus {
+            border-color: #ff4d4f;
+            box-shadow: 0 0 0 3px rgba(255,77,79,0.15);
+            outline: none;
+        }
+
+    .section-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+
+
+
+
+    .bms-input {
+        height: 38px;
+        border-radius: 6px;
+        font-size: 0.88rem;
+        border: 1px solid #e2e4e7;
+        background: #fff;
+        transition: border-color .12s ease, box-shadow .12s ease;
+    }
+
+        .bms-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+    .disabled-input {
+        background: #f8f9fa !important;
+        color: #6b7280 !important;
+    }
+
+
+    .btn-next {
+        background: #1f2937;
+        color: white;
+        padding: 6px 22px;
+        border-radius: 6px;
+        border: none;
+        font-weight: 500;
+        transition: background .15s ease;
+    }
+
+        .next-btn:hover,
+        .btn-next:hover {
+            background: #1f2937;
+        }
+
+    .help-text {
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    .help-link {
+        color: #2563eb;
+        text-decoration: none;
+    }
+
+        .help-link:hover {
+            text-decoration: underline;
+        }
 </style>
 
-<div class="container py-4">
 
-    <!-- HEADER -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div class="mb-2">
-            <h2 class="fw-bold text-dark">My Events</h2>
-            <p class="text-muted m-0">Manage, update, and track performance of your events.</p>
-        </div>
 
-        <button class="btn btn-outline-danger  shadow rounded-3 px-3"
-                @onclick="CreateEvent">
-            <i class="bi bi-plus-lg me-1"></i> Manage Event
-        </button>
+
+
+<div class="modern-stepper">
+
+    <div class="stepper-line"></div>
+    <div class="stepper-line-active" style="width:@GetLineWidth()"></div>
+
+    <div class="stepper-item">
+        <div class="step-dot @(currentStep == 1 ? "active" : "")">1</div>
+        <div class="step-label">Basic Information</div>
     </div>
 
-    <!-- SUMMARY CARDS -->
-    <div class="row g-4 mb-4">
-
-        <div class="col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-4 bg-danger bg-opacity-10 p-3">
-                        <i class="bi bi-calendar-event text-danger fs-2"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted m-0">Total Events</p>
-                        <h3 class="fw-bold m-0">@managerEvents.Count()</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-4 bg-success bg-opacity-10 p-3">
-                        <i class="bi bi-ticket-perforated text-success fs-2"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted m-0">Tickets Sold</p>
-                        <h3 class="fw-bold m-0">@managerEvents.Sum(e => e.SoldTickets)</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-4 bg-warning bg-opacity-10 p-3">
-                        <i class="bi bi-currency-rupee text-warning fs-2"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted m-0">Revenue</p>
-                        <h3 class="fw-bold m-0">₹@managerEvents.Sum(e => e.TicketPrice * e.SoldTickets)</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="stepper-item">
+        <div class="step-dot @(currentStep == 2 ? "active" : "")">2</div>
+        <div class="step-label">Manager Profile</div>
     </div>
 
-    <!-- Filters & Search -->
-
-
-    <div class="position-relative w-50">
-        <div class="input-group shadow-sm">
-            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-            <input class="form-control"
-                   placeholder="Search movies, shows, venues, address..."
-                   @bind="searchText"
-                   @bind:event="oninput"
-                   @onfocus="() => showSuggestions = true"
-                   @onblur="HideSuggestionsDelayed" />
-        </div>
-
-        @if (showSuggestions && Suggestions.Any())
-        {
-            <ul class="list-group position-absolute w-100 shadow rounded-3 suggestion-box">
-                @foreach (var s in Suggestions)
-                {
-                    <li class="list-group-item list-group-item-action"
-                        @onclick="() => SelectSuggestion(s)">
-                        <strong>@s.Title</strong>
-                        <div class="small text-muted">
-                            @s.EventType • @s.VenueName • @s.Address
-                        </div>
-                    </li>
-                }
-            </ul>
-        }
+    <div class="stepper-item">
+        <div class="step-dot @(currentStep == 3 ? "active" : "")">3</div>
+        <div class="step-label">Terms & Condition</div>
     </div>
 
-    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between">
-        <div class="d-flex gap-3 flex-wrap p-2 m-2">
-            <button class="btn btn-sm @(activeStatusFilter == null ? "btn-danger" : "btn-outline-secondary") rounded-3"
-                    @onclick="() => SetStatusFilter(null)">
-                All
-            </button>
-            <button class="btn btn-sm @(activeStatusFilter == EventStatus.Pending ? "btn-warning" : "btn-outline-secondary") rounded-3"
-                    @onclick="() => SetStatusFilter(EventStatus.Pending)">
-                Pending
-            </button>
-            <button class="btn btn-sm @(activeStatusFilter == EventStatus.AdminApproved ? "btn-info text-white" : "btn-outline-secondary") rounded-3"
-                    @onclick="() => SetStatusFilter(EventStatus.AdminApproved)">
-                Approved
-            </button>
-            <button class="btn btn-sm @(activeStatusFilter == EventStatus.PaymentConfirmed ? "btn-success" : "btn-outline-secondary") rounded-3"
-                    @onclick="() => SetStatusFilter(EventStatus.PaymentConfirmed)">
-                Published
-            </button>
-            <button class="btn btn-sm @(activeStatusFilter == EventStatus.Rejected ? "btn-danger" : "btn-outline-secondary") rounded-3"
-                    @onclick="() => SetStatusFilter(EventStatus.Rejected)">
-                Rejected
-            </button>
-        </div>
-    </div>
-
-    <!--Event Table-->
-    <div class="table-responsive shadow-lg rounded-3">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th style="width:120px;">Image</th>
-                    <th style="width:160px">Event</th>
-                    <th>Description</th>
-                    <th style="width:150px;">Show Date</th>
-                    <th style="width:150px;">Location</th>
-                    <th style="width:100px">Tickets</th>
-                    <th style="width:100px">Revenue</th>
-                    <th style="width:100px">Amount</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @foreach (var ev in PagedItems)
-                {
-                    <tr @onclick="()=> GoToEvent(ev.Id)" style="cursor:pointer;">
-
-                        <!-- Image -->
-                        <td>
-                            <img src="@ev.ImageUrl"
-                                 class="rounded-3 border"
-                                 style="width:85px; height:55px; object-fit:cover;"
-                                 alt="No Img" />
-                        </td>
-
-                        <!-- Event Info -->
-                        <td>
-                            <div class="fw-semibold">@ev.Title</div>
-                            <div class="small text-muted ">@ev.EventType </div>
-                            <div class="small text-muted ">@ev.Language</div>
-                        </td>
-
-                        <td class=" truncate-text small text-muted" data-bs-toggle="tooltip" data-placement="top" title="@ev.Description">@ev.Description</td>
-
-                        <!-- Date -->
-                        <td>
-                            <div><i class="bi bi-calendar me-1"></i> @ev.ShowDate.ToString("dd MMM yyyy")</div>
-                            <div class="small text-muted">
-                                <i class="bi bi-clock me-2"></i> @ev.Duration.Hours hr @ev.Duration.Minutes min
-                            </div>
-                        </td>
-
-                        <!-- Location -->
-                        <td>
-                            <div><i class="bi bi-building text-danger me-1"></i>@ev.VenueName</div>
-                            <div class="small text-muted">@ev.Address</div>
-                        </td>
-
-                        <!-- Tickets -->
-                        <td>
-                            <span class="fw-bold">@ev.SoldTickets</span> /
-                            <span class="text-muted">@ev.TotalTickets</span>
-                        </td>
-
-                        <!-- Revenue -->
-                        <td>₹@(ev.SoldTickets * ev.TicketPrice)</td>
-
-                        <td><span class="badge rounded-3 bg-light text-dark p-2 shadow-sm">₹@ev.EventAmount</span></td>
-
-                        <!-- Status -->
-                        <td>
-                            @if (ev.Status == EventStatus.Pending)
-                            {
-                                <span class="badge p-2 rounded-2 text-dark"
-                                      style="background:#fff3cd;">
-                                    <i class="bi bi-hourglass-split"></i> Pending
-                                </span>
-                            }
-                            else if (ev.Status == EventStatus.AdminApproved)
-                            {
-                                <span class="badge p-2 rounded-2 text-white bg-info">
-                                    <i class="bi bi-credit-card"></i> Payment Pending
-                                </span>
-                            }
-                            else if (ev.Status == EventStatus.PaymentConfirmed)
-                            {
-                                <span class="badge px-2 rounded-2 text-white"
-                                      style="background: #30b075; ">
-                                    <i class="bi bi-check-circle-fill"></i> Published
-                                </span>
-                            }
-                            else if (ev.Status == EventStatus.Rejected)
-                            {
-                                <span class="badge p-2 rounded-2 text-white"
-                                      style="background:#dc3545;">
-                                    <i class="bi bi-x-circle"></i> Rejected 
-                                </span>
-                            }
-                        </td>
-
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="d-flex justify-content-between align-items-center mt-3">
-        <div class="small text-muted">Showing @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, FilteredItems.Count())) of @FilteredItems.Count() events</div>
-
-        <nav>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <button class="page-link btn me-1 " @onclick="PrevPage">Previous</button>
-                </li>
-                @for (int i = 1; i <= TotalPages; i++)
-                {
-                    <li class="page-item @(currentPage == i ? "active" : "")">
-                        <button class="page-link btn" @onclick="() => GoToPage(i)">@i</button>
-                    </li>
-                }
-                <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
-                    <button class="page-link btn ms-1  " @onclick="NextPage">Next</button>
-                </li>
-            </ul>
-        </nav>
-    </div>
-
-    <div class="promo-banner banner mt-4 text-center">
-        <h4 class="fw-bold text-dark mb-1">
-            <i class="bi bi-collection-play text-danger me-2"></i>
-            Streamline Your Events
-        </h4>
-
-        <p class="text-muted small m-0">
-            Manage bookings, venues, and cities with ease.
-        </p>
-    </div>
 </div>
 
-@code {
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
 
-    private List<ManagerEventDto> managerEvents = new();
+}
 
-    private string _searchText = "";
 
-    private string searchText
+
+<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+
+    @if (currentStep == 1)
     {
-        get => _searchText;
-        set
-        {
-            _searchText = value;
-            UpdateSuggestions();
-            currentPage = 1;
-        }
+        <div class="step-section d-flex justify-content-center">
+            <div class="form-card">
+
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">First Name <span class="text-danger">*</span></label>
+                        <InputText class="pretty-input" @bind-Value="model.FirstName" />
+                        <ValidationMessage For="@(()=>model.FirstName)" />
+                    </div>
+
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Last Name</label>
+                        <InputText class="pretty-input" @bind-Value="model.LastName" />
+                        @*<ValidationMessage For="@(()=>model.LastName)" />*@
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                        <InputText class="pretty-input" maxlength="10" @bind-Value="model.Mobile" />
+                        <ValidationMessage For="@(()=>model.Mobile)" />
+                    </div>
+                </div>
+
+                <div class="section-title mt-2 text-secondary">Update Password</div>
+
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Old Password <span class="text-danger">*</span></label>
+                        <InputText type="password" class="pretty-input" @bind-Value="model.OldPassword" />
+                        <ValidationMessage For="@(()=>model.OldPassword)" />
+
+                    </div>
+
+                    <div class="col-6 mb-3">
+                        <label class="form-label">New Password <span class="text-danger">*</span></label>
+                        <InputText type="password" class="pretty-input" @bind-Value="model.NewPassword" />
+                        <ValidationMessage For="@(()=>model.NewPassword)" />
+                    </div>
+
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                        <InputText type="password" class="pretty-input" @bind-Value="model.ConfirmPassword" />
+                        <ValidationMessage For="@(()=>model.ConfirmPassword)" />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-2">
+                    <button class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>
+                </div>
+
+            </div>
+        </div>
     }
 
-    private EventStatus? activeStatusFilter = null;
-    private bool showSuggestions = false;
-    private List<ManagerEventDto> Suggestions = new();
+
+    @if (currentStep == 2)
+    {
+        <div class="step-section d-flex justify-content-center">
+            <div class="form-card">
+                <div class="row">
+
+                    <!-- LEFT COLUMN -->
+                    <div class="col-md-6">
+
+                        <!-- Organization Name -->
+                        <div class="mb-3">
+                            <label class="form-label">Organization Name</label>
+                            <InputText class="pretty-input" @bind-Value="model.OrganizationName" />
+                        </div>
+
+                        <!-- PAN -->
+                        <div class="mb-3">
+                            <label class="form-label">Pan number</label>
+                            <InputText class="pretty-input" @bind-Value="model.PAN" />
+                            <ValidationMessage For="@(()=>model.PAN)" />
+                        </div>
+
+                        <!-- Alternate Email -->
+                        <div class="mb-3">
+                            <label class="form-label">Alternate email</label>
+                            <InputText class="pretty-input" @bind-Value="model.AlternateEmail" />
+                            @*<ValidationMessage For="@(() => model.AlternateEmail)" />*@
+                        </div>
+
+                        <!-- Profile Image -->
+                        <div class="mb-3">
+                            <label class="form-label">Profile Image (optional)</label>
+
+                            @if (!string.IsNullOrEmpty(model.Image))
+                            {
+                                <div class="mt-2">
+                                    <img src="@model.Image" alt="Profile Image"
+                                         style="height:120px;width:120px;object-fit:cover;border-radius:10px;border:1px solid #ddd;" />
+                                </div>
+                            }
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="col-md-6">
+
+                        <!-- Country -->
+                        <div class="mb-3">
+                            <label class="form-label">Country <span class="text-danger">*</span></label>
+                            <select class="form-control bms-input"
+                                    @onchange="LoadStates">
+                                <option value="">-- Select Country --</option>
+                                @foreach (var c in countries)
+                                {
+                                    <option value="@c.Id">@c.Name</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(()=>model.CountryId)" />
+                        </div>
+
+                        <!-- State -->
+                        <div class="mb-3">
+                            <label class="form-label">State <span class="text-danger">*</span></label>
+                            <select class="form-control bms-input"
+                                    @bind="model.StateId">
+                                <option value="">-- Select State --</option>
+                                @foreach (var s in states)
+                                {
+                                    <option value="@s.Id">@s.Name</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(()=>model.StateId)" />
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-3">
+                            <label class="form-label">Address <span class="text-danger">*</span></label>
+                            <InputText class="pretty-input" @bind-Value="model.Address" />
+                            <ValidationMessage For="@(()=>model.Address)" />
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-secondary" @onclick="PrevStep">Back</button>
+                    <button class="btn btn-outline-danger" @onclick="NextStep">Next</button>
+                </div>
+
+            </div>
+        </div>
+    }
 
 
-    private int currentPage = 1;
-    private int pageSize = 10;
-    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
+
+
+    @if (currentStep == 3)
+    {
+        <div class="step-section d-flex justify-content-center">
+            <div class="form-card">
+
+                @*<div class="d-flex align-items-start mb-3">
+                        <div class="step-circle">3</div>
+                        <div class="ms-2">
+                            <h6 class="step-title">Review and accept terms</h6>   b
+                            <p class="step-subtitle">Check your details before submitting.</p>
+                        </div>
+                    </div>*@
+
+                <div class="list-group mb-3 ">
+                    <div class="list-group-item"><span class="fw-semibold">Name:</span> @model.ManagerName</div>
+                    <div class="list-group-item"><span class="fw-semibold">Mobile number:</span> @model.Mobile</div>
+                    <div class="list-group-item"><span class="fw-semibold">Alternate email: </span>@model.AlternateEmail</div>
+                    @*<div class="list-group-item"><span class="fw-semibold">Email:</span> @email</div>*@
+                    <div class="list-group-item"><span class="fw-semibold">Pan number:</span> @model.PAN</div>
+                    <div class="list-group-item"><span class="fw-semibold">Organization name:</span> @model.OrganizationName</div>
+                    <div class="list-group-item"><span class="fw-semibold">Address: </span>@model.Address</div>
+                    @*<div class="list-group-item"><b>State Name</b></div>
+                        <select class="form-control bms-input" @bind="model.CityId">
+                            <option value="">-- Select City --</option>
+                            @foreach (var c in cities)
+                            {
+                                <option value="@c.Id">@c.CityName</option>
+                            }
+                        </select>
+                        <select class="form-control bms-input" @bind="model.StateId">
+                            <option value="">-- Select State --</option>
+                            @foreach (var s in states)
+                            {
+                                <option value="@s.Id">@s.Name</option>
+                            }
+                        </select>*@
+
+                </div>
+
+
+                <div class="form-check mb-4">
+                    @*<InputCheckbox class="form-check-input" @bind-Value="model.AcceptTerms" />*@
+                    <label class="form-check-label">
+                        I agree to the <a href="#" class="help-link">Terms & Conditions</a>.
+                    </label>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-secondary" @onclick="PrevStep">Back</button>
+                    <button class="btn btn-danger w-3" type="submit">Submit</button>
+                </div>
+
+            </div>
+        </div>
+    }
+
+</EditForm>
+
+
+
+@code {
+    ManagerProfileDto model = new();
+    string? errorMessage;
+    string? email;
+
+    int currentStep = 1;
+
+    //List<CityDto> cities = new();
+    List<StateDto> states = new();
+    List<CountryDto> countries = new();
+
+    private string GetLineWidth()
+    {
+        return currentStep switch
+        {
+            1 => "0%",
+            2 => "50%",
+            3 => "100%",
+            _ => "0%"
+        };
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        email = await JS.InvokeAsync<string>("localStorage.getItem", "email");
+        model.Email = email;
+
+        countries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
+        // cities = await Http.GetFromJsonAsync<List<CityDto>>("api/cities");
+    }
+
+    private async Task LoadStates(ChangeEventArgs e)
+    {
+        model.CountryId = Guid.Parse(e.Value.ToString());
+
+        states = await Http.GetFromJsonAsync<List<StateDto>>(
+            $"api/State/by-country/{model.CountryId}"
+        );
+
+        // cities.Clear();
+        model.StateId = Guid.Empty;
+        model.CityId = 0;
+
+        StateHasChanged(); // IMPORTANT
+    }
+
+    //private async Task LoadCities(ChangeEventArgs e)
+    //{
+    //    model.StateId = Guid.Parse(e.Value.ToString());
+
+    //    cities = cities
+    //    .Where(c => c.StateId == model.StateId)
+    //    .ToList();
+
+
+    //    model.CityId = 0;
+
+    //    StateHasChanged();
+    //}
+
+    private bool ValidateStep1()
+    {
+        var results = new List<ValidationResult>();
+        var context = new ValidationContext(model);
+
+        string[] props =
+        {
+        nameof(model.FirstName),
+        nameof(model.Mobile),
+        nameof(model.OldPassword),
+        nameof(model.NewPassword),
+        nameof(model.ConfirmPassword)
+    };
+
+        bool valid = ValidateProperties(props, context, results);
+
+        if (model.NewPassword == model.OldPassword)
+        {
+            errorMessage = "New password cannot be the same as old password.";
+            valid = false;
+        }
+
+        return valid;
+    }
+
+
+    private bool ValidateStep2()
+    {
+        var results = new List<ValidationResult>();
+        var context = new ValidationContext(model);
+
+        string[] props = {
+            nameof(model.CountryId),
+            nameof(model.StateId),
+            //nameof(model.CityId),
+            nameof(model.Address)
+        };
+
+        return ValidateProperties(props, context, results);
+    }
+
+    private bool ValidateProperties(string[] properties, ValidationContext context, List<ValidationResult> results)
+    {
+        bool valid = true;
+
+        foreach (var prop in properties)
+        {
+            context.MemberName = prop;
+            var value = model.GetType().GetProperty(prop)?.GetValue(model);
+
+            if (!Validator.TryValidateProperty(value, context, results))
+            {
+                valid = false;
+            }
+        }
+
+        return valid;
+    }
+
+    private Task NextStep()
+    {
+        bool isValid = currentStep switch
+        {
+            1 => ValidateStep1(),
+            2 => ValidateStep2(),
+            _ => true
+        };
+
+        if (!isValid)
+        {
+            StateHasChanged();
+            return Task.CompletedTask;
+        }
+
+        if (currentStep == 1)
+        {
+            model.ManagerName = $"{model.FirstName} {model.LastName}";
+        }
+
+        if (currentStep == 2)
+        {
+            var selectedState = states.FirstOrDefault(s => s.Id == model.StateId)?.Name;
+            var selectedCountry = countries.FirstOrDefault(c => c.Id == model.CountryId)?.Name;
+
+            model.Address = $"{model.Address}, {selectedState}, {selectedCountry}";
+        }
+
+        currentStep++;
+        return Task.CompletedTask;
+    }
+
+    private Task PrevStep()
+    {
+        currentStep--;
+        return Task.CompletedTask;
+    }
+
+    private async Task Submit()
+    {
+        errorMessage = null;
+
         try
         {
-            managerEvents = await Http.GetFromJsonAsync<List<ManagerEventDto>>("api/ManagerEvent/my-events");
+            string token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            Http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.PostAsJsonAsync(
+                "api/account/manager-changepassword-profilesetup",
+                model
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                Nav.NavigateTo("/manager-dashboard");
+            }
+            else
+            {
+                errorMessage = await response.Content.ReadAsStringAsync();
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            managerEvents = new();
-        }
-
-    }
-
-
-    private void UpdateSuggestions()
-    {
-        if (string.IsNullOrWhiteSpace(searchText))
-        {
-            Suggestions.Clear();
-            return;
-        }
-
-        string q = searchText.ToLower();
-
-        Suggestions = managerEvents
-            .Where(e =>
-                (e.Title?.ToLower().Contains(q) ?? false) ||
-                (e.EventType?.ToLower().Contains(q) ?? false) ||
-                (e.VenueName?.ToLower().Contains(q) ?? false) ||
-                (e.Address?.ToLower().Contains(q) ?? false) ||
-                (e.Language?.ToLower().Contains(q) ?? false)
-            )
-            .Take(7)
-            .ToList();
-
-        showSuggestions = Suggestions.Any();
-    }
-    private void SelectSuggestion(ManagerEventDto e)
-    {
-        searchText = e.Title;
-        showSuggestions = false;
-    }
-    private async Task HideSuggestionsDelayed()
-    {
-        await Task.Delay(150);
-        showSuggestions = false;
-        StateHasChanged();
-    }
-
-
-
-    private IEnumerable<ManagerEventDto> FilteredItems =>
-managerEvents
-.Where(e =>
-   (activeStatusFilter == null || e.Status == activeStatusFilter) &&
-   (string.IsNullOrWhiteSpace(searchText) ||
-       e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-       (e.VenueName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-       (e.Address ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-       (e.EventType ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
-).OrderByDescending(e => e.CreatedAt);
-
-
-    private IEnumerable<ManagerEventDto> PagedItems =>
-        FilteredItems.Skip((currentPage - 1) * pageSize).Take(pageSize);
-
-
-    private void SetStatusFilter(EventStatus? s)
-    {
-        activeStatusFilter = s;
-        currentPage = 1;
-    }
-
-
-    private void PageSizeChanged(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString() ?? "10", out var sz))
-        {
-            pageSize = sz;
-            currentPage = 1;
+            errorMessage = ex.Message;
         }
     }
-
-    private void PrevPage()
-    {
-        if (currentPage > 1) currentPage--;
-    }
-
-    private void NextPage()
-    {
-        if (currentPage < TotalPages) currentPage++;
-    }
-
-    private void GoToEvent(int id)
-    {
-        Nav.NavigateTo($"/manager-event-details/{id}");
-    }
-    private void GoToPage(int i)
-    {
-        currentPage = i;
-         StateHasChanged();
-    }
-
-
-    private void CreateEvent() => Nav.NavigateTo("/manage-events");
 }
