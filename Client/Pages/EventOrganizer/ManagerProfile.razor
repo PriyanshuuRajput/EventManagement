@@ -3,6 +3,8 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject Blazored.SessionStorage.ISessionStorageService SessionStorage
+
 
 @using Applications.Dto.OrganizerDto
 @using System.Net.Http.Headers
@@ -20,7 +22,7 @@
         display: flex;
         justify-content: space-between;
         position: relative;
-        margin-bottom: 20px;
+        /*        margin-bottom: 20px;*/
         padding: 5px 0;
     }
 
@@ -75,14 +77,14 @@
         }
 
     .step-label {
-        margin-top: 10px;
+        /*        margin-top: 10px;*/
         font-size: 0.85rem;
         font-weight: 600;
         color: #3b3a3f;
     }
 
     .step-section {
-        height: calc(100vh - 170px);
+        /*        height: calc(100vh - 100px);*/
         display: flex;
         justify-content: center;
         align-items: center;
@@ -135,6 +137,20 @@
         font-weight: 600;
         font-size: 1.1rem;
         margin-bottom: 10px;
+    }
+
+    .dropdown-container {
+        position: relative;
+    }
+
+    .dropdown-arrow {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        font-size: 1rem;
+        color: #555;
     }
 
 
@@ -212,14 +228,14 @@
 
     <div class="stepper-item">
         <div class="step-dot @(currentStep == 3 ? "active" : "")">3</div>
-        <div class="step-label">Terms & Condition</div>
+        <div class="step-label">Review</div>
     </div>
 
 </div>
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div class="alert alert-danger mt-3">@errorMessage</div>
+    <div class="alert alert-danger">@errorMessage</div>
 
 }
 
@@ -314,15 +330,27 @@
                             @*<ValidationMessage For="@(() => model.AlternateEmail)" />*@
                         </div>
 
-                        <!-- Profile Image -->
+                        <!-- Profile Image-->
                         <div class="mb-3">
                             <label class="form-label">Profile Image (optional)</label>
+                            <InputFile OnChange="HandleImageUpload" class="form-control" />
+
+                            @if (!string.IsNullOrWhiteSpace(uploadError))
+                            {
+                                <div class="text-danger mt-1">@uploadError</div>
+                            }
 
                             @if (!string.IsNullOrEmpty(model.Image))
                             {
                                 <div class="mt-2">
                                     <img src="@model.Image" alt="Profile Image"
-                                         style="height:120px;width:120px;object-fit:cover;border-radius:10px;border:1px solid #ddd;" />
+                                         style="height:100px;width:100px;object-fit:cover;border-radius:0;border:2px solid #ddd;" />
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger mt-2" style=" margin-left: 30px"
+                                            @onclick="RemoveImage">
+                                        Remove Image
+                                    </button>
                                 </div>
                             }
                         </div>
@@ -333,47 +361,75 @@
                     <div class="col-md-6">
 
                         <!-- Country -->
-                        <div class="mb-3">
+                        <div class="mb-3 position-relative">
                             <label class="form-label">Country <span class="text-danger">*</span></label>
-                            <select class="form-control bms-input"
-                                    @onchange="LoadStates">
-                                <option value="">-- Select Country --</option>
-                                @foreach (var c in countries)
-                                {
-                                    <option value="@c.Id">@c.Name</option>
-                                }
-                            </select>
-                            <ValidationMessage For="@(()=>model.CountryId)" />
+                            <div class="dropdown-container">
+                                <select class="form-control bms-input"
+                                        @onclick="ToggleCountryDropdown"
+                                        @onblur="CloseCountryDropdown"
+                                        @onchange="OnCountryChanged">
+
+                                    <option value="@Guid.Empty">-- Select Country --</option>
+                                    @foreach (var c in countries)
+                                    {
+                                        <option value="@c.Id">@c.Name</option>
+                                    }
+                                </select>
+
+                                <span class="dropdown-arrow">
+                                    <i class="bi @(isCountryOpen ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                                </span>
+
+                                <ValidationMessage For="@(() => model.CountryId)" />
+
+                            </div>
                         </div>
 
+
+
+
+
                         <!-- State -->
-                        <div class="mb-3">
+                        <div class="mb-3 position-relative">
                             <label class="form-label">State <span class="text-danger">*</span></label>
-                            <select class="form-control bms-input"
-                                    @bind="model.StateId">
-                                <option value="">-- Select State --</option>
-                                @foreach (var s in states)
-                                {
-                                    <option value="@s.Id">@s.Name</option>
-                                }
-                            </select>
-                            <ValidationMessage For="@(()=>model.StateId)" />
+                            <div class="dropdown-container">
+                                <select class="form-control bms-input"
+                                        @onclick="ToggleStateDropdown"
+                                        @onblur="CloseStateDropdown"
+                                        @bind="model.StateId">
+
+                                    <option value="@Guid.Empty">-- Select State --</option>
+                                    @foreach (var s in states)
+                                    {
+                                        <option value="@s.Id">@s.Name</option>
+                                    }
+                                </select>
+
+                                <span class="dropdown-arrow">
+                                    <i class="bi @(isStateOpen ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                                </span>
+                            </div>
+
+                            <ValidationMessage For="@(() => model.StateId)" />
+
+
                         </div>
+
 
                         <!-- Address -->
                         <div class="mb-3">
                             <label class="form-label">Address <span class="text-danger">*</span></label>
                             <InputText class="pretty-input" @bind-Value="model.Address" />
-                            <ValidationMessage For="@(()=>model.Address)" />
-                        </div>
+                            <ValidationMessage For="@(() => model.Address)" />
 
+                        </div>
                     </div>
 
                 </div>
 
                 <div class="d-flex justify-content-between mt-4">
                     <button class="btn btn-secondary" @onclick="PrevStep">Back</button>
-                    <button class="btn btn-outline-danger" @onclick="NextStep">Next</button>
+                    <button class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>
                 </div>
 
             </div>
@@ -424,15 +480,21 @@
 
 
                 <div class="form-check mb-4">
-                    @*<InputCheckbox class="form-check-input" @bind-Value="model.AcceptTerms" />*@
-                    <label class="form-check-label">
-                        I agree to the <a href="#" class="help-link">Terms & Conditions</a>.
+                    <InputCheckbox class="form-check-input" @bind-Value="model.AcceptTerms" />
+                    <label class="form-check-label ms-2">
+                        I have reviewed all information.
                     </label>
                 </div>
 
+
                 <div class="d-flex justify-content-between">
                     <button class="btn btn-secondary" @onclick="PrevStep">Back</button>
-                    <button class="btn btn-danger w-3" type="submit">Submit</button>
+                    <button class="btn btn-danger px-4"
+                            @onclick="Submit"
+                            disabled="@(model.AcceptTerms == false)">
+                        Submit
+                    </button>
+
                 </div>
 
             </div>
@@ -445,14 +507,25 @@
 
 @code {
     ManagerProfileDto model = new();
+
+
     string? errorMessage;
     string? email;
+    string? uploadError;
+
 
     int currentStep = 1;
 
-    //List<CityDto> cities = new();
+    bool isCountryOpen = false;
+    bool isStateOpen = false;
+    bool show = false;
+    public bool AcceptTerms { get; set; }
+
+
     List<StateDto> states = new();
     List<CountryDto> countries = new();
+
+
 
     private string GetLineWidth()
     {
@@ -465,84 +538,97 @@
         };
     }
 
+
+
     protected override async Task OnInitializedAsync()
     {
         email = await JS.InvokeAsync<string>("localStorage.getItem", "email");
-        model.Email = email;
-
         countries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
-        // cities = await Http.GetFromJsonAsync<List<CityDto>>("api/cities");
-    }
 
-    private async Task LoadStates(ChangeEventArgs e)
+    }
+    void ToggleCountryDropdown()
     {
-        model.CountryId = Guid.Parse(e.Value.ToString());
-
-        states = await Http.GetFromJsonAsync<List<StateDto>>(
-            $"api/State/by-country/{model.CountryId}"
-        );
-
-        // cities.Clear();
-        model.StateId = Guid.Empty;
-        model.CityId = 0;
-
-        StateHasChanged(); // IMPORTANT
+        isCountryOpen = !isCountryOpen;
     }
 
-    //private async Task LoadCities(ChangeEventArgs e)
-    //{
-    //    model.StateId = Guid.Parse(e.Value.ToString());
+    void CloseCountryDropdown()
+    {
+        isCountryOpen = false;
+    }
 
-    //    cities = cities
-    //    .Where(c => c.StateId == model.StateId)
-    //    .ToList();
+    void ToggleStateDropdown()
+    {
+        isStateOpen = !isStateOpen;
+    }
+
+    void CloseStateDropdown()
+    {
+        isStateOpen = false;
+    }
+
+    private async Task OnCountryChanged(ChangeEventArgs e)
+    {
+
+        if (Guid.TryParse(e?.Value?.ToString(), out var gid))
+        {
+            model.CountryId = gid;
+        }
+        else
+        {
+            model.CountryId = Guid.Empty;
+        }
+
+        // load states for this country
+        states = await Http.GetFromJsonAsync<List<StateDto>>($"api/State/by-country/{model.CountryId}");
+
+        // reset state selection
+        model.StateId = Guid.Empty;
+
+        // ensure validation UI updates (clear country/state messages)
+        var countryField = new FieldIdentifier(model, nameof(model.CountryId));
+        var stateField = new FieldIdentifier(model, nameof(model.StateId));
+
+    }
 
 
-    //    model.CityId = 0;
-
-    //    StateHasChanged();
-    //}
 
     private bool ValidateStep1()
     {
-        var results = new List<ValidationResult>();
-        var context = new ValidationContext(model);
+        errorMessage = null;
 
-        string[] props =
+
+        if (string.IsNullOrWhiteSpace(model.FirstName) ||
+            string.IsNullOrWhiteSpace(model.Mobile) ||
+            string.IsNullOrWhiteSpace(model.OldPassword) ||
+            string.IsNullOrWhiteSpace(model.NewPassword) ||
+            string.IsNullOrWhiteSpace(model.ConfirmPassword))
         {
-        nameof(model.FirstName),
-        nameof(model.Mobile),
-        nameof(model.OldPassword),
-        nameof(model.NewPassword),
-        nameof(model.ConfirmPassword)
-    };
-
-        bool valid = ValidateProperties(props, context, results);
-
-        if (model.NewPassword == model.OldPassword)
-        {
-            errorMessage = "New password cannot be the same as old password.";
-            valid = false;
+            errorMessage = "All required fields must be filled.";
+            return false;
         }
 
-        return valid;
+        if (model.NewPassword.Length < 6)
+        {
+            errorMessage = "New password must be at least 6 characters long.";
+            return false;
+        }
+
+        if (model.NewPassword != model.ConfirmPassword)
+        {
+            errorMessage = "New and confirm passwords do not match.";
+            return false;
+        }
+
+
+        return true;
     }
-
-
     private bool ValidateStep2()
     {
-        var results = new List<ValidationResult>();
-        var context = new ValidationContext(model);
-
-        string[] props = {
-            nameof(model.CountryId),
-            nameof(model.StateId),
-            //nameof(model.CityId),
-            nameof(model.Address)
-        };
-
-        return ValidateProperties(props, context, results);
+        return model.CountryId != Guid.Empty &&
+               model.StateId != Guid.Empty &&
+               !string.IsNullOrWhiteSpace(model.Address);
     }
+
 
     private bool ValidateProperties(string[] properties, ValidationContext context, List<ValidationResult> results)
     {
@@ -562,43 +648,77 @@
         return valid;
     }
 
-    private Task NextStep()
+
+    private async Task NextStep()
     {
-        bool isValid = currentStep switch
+        bool valid = currentStep switch
         {
             1 => ValidateStep1(),
             2 => ValidateStep2(),
             _ => true
         };
 
-        if (!isValid)
-        {
-            StateHasChanged();
-            return Task.CompletedTask;
-        }
+        if (!valid) return;
 
         if (currentStep == 1)
-        {
             model.ManagerName = $"{model.FirstName} {model.LastName}";
-        }
 
         if (currentStep == 2)
         {
-            var selectedState = states.FirstOrDefault(s => s.Id == model.StateId)?.Name;
-            var selectedCountry = countries.FirstOrDefault(c => c.Id == model.CountryId)?.Name;
-
-            model.Address = $"{model.Address}, {selectedState}, {selectedCountry}";
+            var st = states.FirstOrDefault(s => s.Id == model.StateId)?.Name;
+            var cn = countries.FirstOrDefault(c => c.Id == model.CountryId)?.Name;
+            model.Address = $"{model.Address} {st} {cn}";
         }
 
         currentStep++;
-        return Task.CompletedTask;
+        await Task.CompletedTask;
     }
+
 
     private Task PrevStep()
     {
         currentStep--;
         return Task.CompletedTask;
     }
+
+    private async Task HandleImageUpload(InputFileChangeEventArgs e)
+    {
+        uploadError = null;
+        var file = e.File;
+
+        var allowedFormats = new[] { "image/jpeg", "image/png", "image/jpeg" };
+
+        if (!allowedFormats.Contains(file.ContentType))
+        {
+            uploadError = "Only Jpeg or Png images are allowed.";
+
+            return;
+        }
+
+        long maxSize = 2 * 1024 * 1024;
+        if (file.Size > maxSize)
+        {
+            uploadError = "Image size must be less than 2 Mb.";
+        }
+
+        using var stream = file.OpenReadStream(maxAllowedSize: maxSize);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        var bytes = ms.ToArray();
+
+        model.Image = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
+
+
+
+    }
+    private void RemoveImage()
+    {
+        model.Image = null;
+    }
+
+
+
 
     private async Task Submit()
     {
@@ -607,17 +727,24 @@
         try
         {
             string token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                token = await SessionStorage.GetItemAsync<string>("authToken");
+            }
+
+
             Http.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", token);
+            new AuthenticationHeaderValue("Bearer", token);
 
             var response = await Http.PostAsJsonAsync(
-                "api/account/manager-changepassword-profilesetup",
+                "api/ManagerEvent/manager-changepassword-profilesetup",
                 model
             );
 
             if (response.IsSuccessStatusCode)
             {
-                Nav.NavigateTo("/manager-dashboard");
+                Nav.NavigateTo("/manager-profile", true);
             }
             else
             {
@@ -629,4 +756,6 @@
             errorMessage = ex.Message;
         }
     }
+
+
 }

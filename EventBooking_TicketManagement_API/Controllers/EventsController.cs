@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class EventsController : ControllerBase

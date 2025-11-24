@@ -82,13 +82,13 @@
             else
             {
                 <div class="dropdown">
-                    <button class="btn btn-outline-danger rounded-circle p-2 d-flex align-items-center justify-content-center"
+                    <button class="btn btn-danger d-flex align-items-center justify-content-center me-1"
                             type="button"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
-                            style="width: 42px; height: 42px;"
+                            style="width: 48px; height: 30px;"
                             aria-label="Profile">
-                        <i class="bi bi-person-circle fs-5"></i>
+                        <i class="bi bi-person-circle "></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><h6 class="dropdown-header">@userName</h6></li>
@@ -151,7 +151,7 @@
             }
             @if (userRole == "Organizer")
             {
-                <li class="nav-item"><NavLink class="nav-link" href="/organizer-dashboard">Organizer Panel</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="/manager-dashboard">Manager Panel</NavLink></li>
             }
         </ul>
     </div>
@@ -185,9 +185,13 @@
         }
         else
         {
-            <div class="p-3 text-center">
-                <a href="/login" class="btn btn-danger w-100">Sign In</a>
-            </div>
+    <div class="p-3 text-center">
+        <a href="javascript:void(0)" class="btn btn-danger w-100"
+           @onclick="() => MainLayout.Instance?.ShowLoginOverlay()">
+            Sign In
+        </a>
+
+    </div>
         }
     </div>
 </div>

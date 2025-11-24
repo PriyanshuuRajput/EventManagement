@@ -15,7 +15,7 @@ namespace Applications.Dto.OrganizerDto
         public string NewPassword { get; set; } = "";
 
         [Required(ErrorMessage = "Confirm password is required")]
-        [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
+        [Compare("NewPassword", ErrorMessage = "Password do not match")]
         public string ConfirmPassword { get; set; } = "";
 
         [Required(ErrorMessage = "First name is required")]
@@ -33,13 +33,15 @@ namespace Applications.Dto.OrganizerDto
         [StringLength(10, MinimumLength = 10, ErrorMessage = "Mobile number must be 10 digits")]
         [RegularExpression("^[0-9]*$", ErrorMessage = "Only digits allowed")]
         public string Mobile { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; } = string.Empty;
         public string OrganizationName { get; set; } = string.Empty;
 
         [RegularExpression(@"^[A-Z]{5}[0-9]{4}[A-Z]{1}$", ErrorMessage = "Invalid PAN format")]
         public string PAN { get; set; } = string.Empty;
 
-        public string Email { get; set; }
+        //public string Email { get; set; }
 
         //[EmailAddress]
         public string AlternateEmail { get; set; } = string.Empty;
@@ -47,10 +49,11 @@ namespace Applications.Dto.OrganizerDto
         [Required(ErrorMessage = "City is required.")]
         public int CityId { get; set; }
         [Required(ErrorMessage = "State is required")]
-        public Guid StateId { get; set; }
-        [Required(ErrorMessage = "country is required")]
-        public Guid CountryId { get; set; }
+        public Guid? StateId { get; set; }
+        [Required(ErrorMessage = "Country is required")]
+        public Guid? CountryId { get; set; }
 
         // public DateTime? UpdatedAt { get; set; }
+        public bool AcceptTerms { get; set; }
     }
 }
