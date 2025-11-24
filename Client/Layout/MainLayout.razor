@@ -164,12 +164,12 @@
         Instance = this;
 
         var uri = new Uri(Navigation.Uri);
-        var segments = uri.AbsolutePath.Split("/", StringSplitOptions.RemoveEmptyEntries);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
-        // Detect /login/{encodedEmail}
-        if (segments.Length == 2 && segments[0].Equals("login", StringComparison.OrdinalIgnoreCase))
+        // Detect ?loginEmail=encodedString
+        if (query["loginEmail"] != null)
         {
-            var encodedEmail = segments[1];
+            var encodedEmail = query["loginEmail"];
 
             try
             {
@@ -181,21 +181,15 @@
                 email = encodedEmail;
             }
 
-            // Show login popup
             IsLoginVisible = true;
             IsSignupVisible = false;
-        }
-
-        // existing query param checks
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        if (query["login"] == "true")
-        {
-            IsLoginVisible = true;
+            return;
         }
     }
 
 
-    private void ShowLoginOverlay()
+
+    public void ShowLoginOverlay()
     {
         IsSignupVisible = false;
         IsLoginVisible = true;

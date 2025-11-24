@@ -151,7 +151,7 @@
             }
             @if (userRole == "Organizer")
             {
-                <li class="nav-item"><NavLink class="nav-link" href="/organizer-dashboard">Organizer Panel</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="/manager-dashboard">Manager Panel</NavLink></li>
             }
         </ul>
     </div>
@@ -185,9 +185,13 @@
         }
         else
         {
-            <div class="p-3 text-center">
-                <a href="/login" class="btn btn-danger w-100">Sign In</a>
-            </div>
+    <div class="p-3 text-center">
+        <a href="javascript:void(0)" class="btn btn-danger w-100"
+           @onclick="() => MainLayout.Instance?.ShowLoginOverlay()">
+            Sign In
+        </a>
+
+    </div>
         }
     </div>
 </div>

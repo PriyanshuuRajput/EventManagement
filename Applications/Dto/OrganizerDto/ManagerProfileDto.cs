@@ -50,7 +50,7 @@ namespace Applications.Dto.OrganizerDto
         public int CityId { get; set; }
         [Required(ErrorMessage = "State is required")]
         public Guid? StateId { get; set; }
-        [Required(ErrorMessage = "country is required")]
+        [Required(ErrorMessage = "Country is required")]
         public Guid? CountryId { get; set; }
 
         // public DateTime? UpdatedAt { get; set; }

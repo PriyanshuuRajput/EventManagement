@@ -86,7 +86,8 @@ namespace EventBooking_TicketManagement_API.Services
 
             // Send Email
 
-            string loginUrl = $"https://localhost:7117/login/{encodedEmail}";
+            string loginUrl = $"https://localhost:7117/?loginEmail={encodedEmail}";
+
 
             string emailBody = $@"
 <div style='font-family:Arial, sans-serif; background:#f5f7fa; padding:20px;'>
