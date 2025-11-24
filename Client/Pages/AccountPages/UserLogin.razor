@@ -1,7 +1,7 @@
 ﻿@page "/login"
 @page "/login/{email}"
 
-@inject Blazored.SessionStorage.ISessionStorageService SessionStorage
+@using System.Text;
 @using Applications.Dto.AccountDto
 @inherits LoginBase
 
@@ -57,16 +57,28 @@
 </EditForm>
 
 @code {
-    [Parameter] public EventCallback OnSuccess { get; set; }
-    [Parameter] public EventCallback OnCancel { get; set; }
-    [Parameter] public EventCallback OnSwitchToSignup { get; set; }
-    [Parameter] public string? email { get; set; }
+        [Parameter] public EventCallback OnSuccess { get; set; }
+        [Parameter] public EventCallback OnCancel { get; set; }
+        [Parameter] public EventCallback OnSwitchToSignup { get; set; }
+        [Parameter] public string? email { get; set; }
 
     protected override void OnInitialized()
     {
         if (!string.IsNullOrEmpty(email))
         {
-            loginModel.Identifier = email;
+
+            try
+            {
+                var decodeBytes = Convert.FromBase64String(email);
+                var decodeEmail = Encoding.UTF8.GetString(decodeBytes);
+
+                loginModel.Identifier = decodeEmail;
+            }
+            catch
+            {
+
+                loginModel.Identifier = email;
+            }
         }
     }
 
@@ -93,7 +105,8 @@
         }
         if (result.ChangePassword == true)
         {
-            await SessionStorage.SetItemAsync("authToken", result.Token);
+            await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+
 
             // redirect to change-password
             Navigation.NavigateTo("/manager-profile-change-password", true);
@@ -101,7 +114,8 @@
             return;
         }
 
-        await SessionStorage.SetItemAsync("authToken", result.Token);
+        await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+
 
         // CASE 2 → NORMAL MANAGER LOGIN (AFTER PASSWORD CHANGE)
         if (result.Role == "Manager")

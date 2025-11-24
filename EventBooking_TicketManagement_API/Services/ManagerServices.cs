@@ -3,6 +3,7 @@ using Applications.Interfaces;
 using Applications.Interfaces.IRepository;
 using Applications.Interfaces.IService;
 using Domains.Entities;
+using System.Text;
 
 namespace EventBooking_TicketManagement_API.Services
 {
@@ -80,9 +81,12 @@ namespace EventBooking_TicketManagement_API.Services
 
             await _managerRepo.SaveChangesAsync();
 
+            //Use Base64 To encode the email 
+            string encodedEmail = Convert.ToBase64String(Encoding.UTF8.GetBytes(manager.User.Email));
+
             // Send Email
 
-            string loginUrl = "https://localhost:7117/?login=true";
+            string loginUrl = $"https://localhost:7117/login/{encodedEmail}";
 
             string emailBody = $@"
 <div style='font-family:Arial, sans-serif; background:#f5f7fa; padding:20px;'>
@@ -161,26 +165,37 @@ namespace EventBooking_TicketManagement_API.Services
             var user = manager.User;
             if (user == null) return "User account not found";
 
-            if (!_passwordHasher.VerifyPassword(dto.OldPassword, user.PasswordHash))
+            bool isOldPasswordCorrect = _passwordHasher.VerifyPassword(dto.OldPassword, user.PasswordHash);
+            if (!isOldPasswordCorrect)
                 return "Temporary password is incorrect!";
+
+            if (dto.OldPassword == dto.NewPassword)
+                return "New password cannot be the same as temporary password.";
 
             if (dto.NewPassword != dto.ConfirmPassword)
                 return "New password and confirm password do not match.";
 
-            if (!string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length > 6)
+            if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
                 return "New password must be at least 6 characters.";
+
+            if (dto.NewPassword != dto.ConfirmPassword)
+                return "New password and confirm password do not match.";
+
 
             user.PasswordHash = _passwordHasher.HashPassword(dto.NewPassword);
             user.ChangePassword = false;
 
 
             manager.ManagerName = dto.ManagerName;
+            //manager.Email = dto.Email;
             manager.Mobile = dto.Mobile;
             manager.Address = dto.Address;
+            manager.Image = dto.Image;
             manager.IsProfileCompleted = true;
 
             manager.UpdatedAt = DateTime.UtcNow;
             user.UpdatedAt = DateTime.UtcNow;
+            user.PhoneNumber = dto.Mobile;
 
             await _managerRepo.SaveChangesAsync();
 

@@ -13,7 +13,7 @@ using System.Security.Claims;
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Manager")]
     [ApiController]
     [Route("api/[controller]")]
     public class ManagerEventController : ControllerBase
@@ -44,7 +44,7 @@ namespace EventBooking_TicketManagement_API.Controllers
                 .FirstOrDefaultAsync(m => m.UserId == userId);
         }
 
-        [Authorize]
+
         [HttpPost("manager-changepassword-profilesetup")]
 
         public async Task<IActionResult> MangerProfileUpdate([FromBody] ManagerProfileDto dto)
@@ -185,7 +185,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             }
             else
             {
-                dto.ImageUrl = existingEvent.ImageUrl; // keep old image
+                dto.ImageUrl = existingEvent.ImageUrl;
             }
 
             await _eventService.UpdateEventAsync(id, new EventDto

@@ -2,6 +2,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@using System.Text
 @using EventBooking.Client.Pages.AccountPages
 
 
@@ -107,7 +108,8 @@
                 <p class="text-center text-muted mb-4">Login to continue</p>
 
                 <!-- Reusable Login Component -->
-                <UserLogin OnSuccess="CloseOverlay"
+                <UserLogin email="@email"
+                           OnSuccess="CloseOverlay"
                            OnCancel="CloseOverlay"
                            OnSwitchToSignup="ShowUserSignup" />
             }
@@ -135,27 +137,63 @@
     private string SignupMode = "User";
 
     public static MainLayout Instance { get; private set; }
+    private string? email;
 
+    //protected override void OnInitialized()
+    //{
+    //    Instance = this;
+    //    var uri = new Uri(Navigation.Uri);
+    //    var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+
+    //    if (queryParams["login"] == "true")
+    //    {
+    //        IsLoginVisible = true;
+    //        IsSignupVisible = false;
+    //    }
+
+
+    //    if (queryParams["managerSignup"] == "true")
+    //    {
+    //        IsSignupVisible = true;
+    //    }
+
+    //}
     protected override void OnInitialized()
     {
         Instance = this;
+
         var uri = new Uri(Navigation.Uri);
-        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var segments = uri.AbsolutePath.Split("/", StringSplitOptions.RemoveEmptyEntries);
 
-
-        if (queryParams["login"] == "true")
+        // Detect /login/{encodedEmail}
+        if (segments.Length == 2 && segments[0].Equals("login", StringComparison.OrdinalIgnoreCase))
         {
+            var encodedEmail = segments[1];
+
+            try
+            {
+                var decodedBytes = Convert.FromBase64String(Uri.UnescapeDataString(encodedEmail));
+                email = Encoding.UTF8.GetString(decodedBytes);
+            }
+            catch
+            {
+                email = encodedEmail;
+            }
+
+            // Show login popup
             IsLoginVisible = true;
             IsSignupVisible = false;
         }
 
-
-        if (queryParams["managerSignup"] == "true")
+        // existing query param checks
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        if (query["login"] == "true")
         {
-            IsSignupVisible = true;
+            IsLoginVisible = true;
         }
-
     }
+
 
     private void ShowLoginOverlay()
     {
