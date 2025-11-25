@@ -17,13 +17,16 @@ namespace Applications.Dto
         [StringLength(20, ErrorMessage = "Event type must be 20 characters.")]
         public string EventType { get; set; } = string.Empty;
 
-        [StringLength(100, ErrorMessage = "Description cannot exceed 100 characters.")]
+        [StringLength(1000, ErrorMessage = "Description cannot exceed 100 characters.")]
         public string Description { get; set; } = string.Empty;
 
         [StringLength(50)]
+        [Required(ErrorMessage = "Genre is required.")]
+
         public string Genre { get; set; } = string.Empty;
 
         [StringLength(50)]
+        [Required(ErrorMessage = "Language is required.")]
         public string Language { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Event duration is required.")]

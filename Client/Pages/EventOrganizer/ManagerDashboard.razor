@@ -164,7 +164,7 @@
     </div>
 
     <!--Event Table-->
-    <div class="table-responsive shadow-lg rounded-3">
+    <div class="table-responsive rounded-0">
         <table class="table table-hover align-middle">
             <thead class="table-light">
                 <tr>
@@ -195,12 +195,12 @@
 
                         <!-- Event Info -->
                         <td>
-                            <div class="fw-semibold">@ev.Title</div>
+                            <div class="fw-semibold" data-bs-toggle="tooltip"data-placement="top" title="@ev.Title">@ev.Title</div>
                             <div class="small text-muted ">@ev.EventType </div>
                             <div class="small text-muted ">@ev.Language</div>
                         </td>
 
-                        <td class=" truncate-text small text-muted" data-bs-toggle="tooltip" data-placement="top" title="@ev.Description">@ev.Description</td>
+                        <td class=" truncate-text small  fw-semibold text-muted" data-bs-toggle="tooltip" data-placement="top" title="@ev.Description">@ev.Description</td>
 
                         <!-- Date -->
                         <td>
@@ -265,7 +265,7 @@
     </div>
 
     <!-- Pagination -->
-    <div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="d-flex justify-content-between align-items-center ">
         <div class="small text-muted">Showing @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, FilteredItems.Count())) of @FilteredItems.Count() events</div>
 
         <nav>
@@ -275,7 +275,7 @@
                 </li>
                 @for (int i = 1; i <= TotalPages; i++)
                 {
-                    <li class="page-item @(currentPage == i ? "active" : "")">
+                    <li class="page-item @(currentPage == i ? "active disabled" : "")">
                         <button class="page-link btn" @onclick="() => GoToPage(i)">@i</button>
                     </li>
                 }
@@ -421,10 +421,15 @@ managerEvents
     {
         Nav.NavigateTo($"/manager-event-details/{id}");
     }
-    private void GoToPage(int i)
+    private void GoToPage(int page)
     {
-        currentPage = i;
-         StateHasChanged();
+        if (page == currentPage)
+        {
+            StateHasChanged();
+            return;
+        }
+        currentPage = page;
+        StateHasChanged();
     }
 
 

@@ -20,7 +20,8 @@ namespace Infrastructures.Repository
             return await _context.Cities
                 .Include(c => c.State)           // Include related State
                 .ThenInclude(s => s.Country)     // Include related Country (if you have navigation)
-                .Include(c => c.Venues)          // Include related Venues
+                .Include(c => c.Venues)
+                .ThenInclude(v => v.Events)
                 .ToListAsync();
         }
 

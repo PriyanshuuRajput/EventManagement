@@ -1,11 +1,9 @@
 ﻿@page "/manager-profile-change-password"
-@layout ManagerLayout
+@layout MainLayout
 @inject HttpClient Http
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject Blazored.SessionStorage.ISessionStorageService SessionStorage
-
-
 @using Applications.Dto.OrganizerDto
 @using System.Net.Http.Headers
 @using System.ComponentModel.DataAnnotations
@@ -13,9 +11,9 @@
 
 <style>
 
-    /*    html, body {
+        html, body {
         overflow: hidden !important;
-    }*/
+    }
 
 
     .modern-stepper {
@@ -23,7 +21,7 @@
         justify-content: space-between;
         position: relative;
         /*        margin-bottom: 20px;*/
-        padding: 5px 0;
+/*        padding: 5px 0;*/
     }
 
     .stepper-line {
@@ -88,7 +86,8 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        overflow: hidden !important;
+/*        overflow: hidden !important;*/
+        overflow-y:auto;
         padding: 0;
     }
 
@@ -240,9 +239,9 @@
 }
 
 
-
 <EditForm Model="@model" OnValidSubmit="Submit">
     <DataAnnotationsValidator />
+
 
     @if (currentStep == 1)
     {
@@ -294,6 +293,8 @@
 
                 <div class="d-flex justify-content-end mt-2">
                     <button class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>
+                    @*<button type="button" class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>*@
+
                 </div>
 
             </div>
@@ -386,9 +387,6 @@
                         </div>
 
 
-
-
-
                         <!-- State -->
                         <div class="mb-3 position-relative">
                             <label class="form-label">State <span class="text-danger">*</span></label>
@@ -429,7 +427,11 @@
 
                 <div class="d-flex justify-content-between mt-4">
                     <button class="btn btn-secondary" @onclick="PrevStep">Back</button>
-                    <button class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>
+        <button class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>
+
+                    @*<button type="button" class="btn btn-secondary" @onclick="PrevStep">Back</button>
+                    <button type="button" class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>*@
+
                 </div>
 
             </div>
@@ -443,15 +445,6 @@
     {
         <div class="step-section d-flex justify-content-center">
             <div class="form-card">
-
-                @*<div class="d-flex align-items-start mb-3">
-                        <div class="step-circle">3</div>
-                        <div class="ms-2">
-                            <h6 class="step-title">Review and accept terms</h6>   b
-                            <p class="step-subtitle">Check your details before submitting.</p>
-                        </div>
-                    </div>*@
-
                 <div class="list-group mb-3 ">
                     <div class="list-group-item"><span class="fw-semibold">Name:</span> @model.ManagerName</div>
                     <div class="list-group-item"><span class="fw-semibold">Mobile number:</span> @model.Mobile</div>
@@ -460,24 +453,7 @@
                     <div class="list-group-item"><span class="fw-semibold">Pan number:</span> @model.PAN</div>
                     <div class="list-group-item"><span class="fw-semibold">Organization name:</span> @model.OrganizationName</div>
                     <div class="list-group-item"><span class="fw-semibold">Address: </span>@model.Address</div>
-                    @*<div class="list-group-item"><b>State Name</b></div>
-                        <select class="form-control bms-input" @bind="model.CityId">
-                            <option value="">-- Select City --</option>
-                            @foreach (var c in cities)
-                            {
-                                <option value="@c.Id">@c.CityName</option>
-                            }
-                        </select>
-                        <select class="form-control bms-input" @bind="model.StateId">
-                            <option value="">-- Select State --</option>
-                            @foreach (var s in states)
-                            {
-                                <option value="@s.Id">@s.Name</option>
-                            }
-                        </select>*@
-
                 </div>
-
 
                 <div class="form-check mb-4">
                     <InputCheckbox class="form-check-input" @bind-Value="model.AcceptTerms" />
@@ -486,9 +462,10 @@
                     </label>
                 </div>
 
-
                 <div class="d-flex justify-content-between">
                     <button class="btn btn-secondary" @onclick="PrevStep">Back</button>
+                    @*<button type="button" class="btn btn-secondary" @onclick="PrevStep">Back</button>*@
+
                     <button class="btn btn-danger px-4"
                             @onclick="Submit"
                             disabled="@(model.AcceptTerms == false)">
@@ -506,7 +483,10 @@
 
 
 @code {
-    ManagerProfileDto model = new();
+    private ManagerProfileDto model = new();
+    //private EditContext editContext;
+    //private ValidationMessageStore messageStore;
+
 
 
     string? errorMessage;
@@ -524,6 +504,9 @@
 
     List<StateDto> states = new();
     List<CountryDto> countries = new();
+    [CascadingParameter] public MainLayout? Layout { get; set; }
+
+
 
 
 
@@ -542,10 +525,22 @@
 
     protected override async Task OnInitializedAsync()
     {
+
         email = await JS.InvokeAsync<string>("localStorage.getItem", "email");
         countries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
 
     }
+    //protected override async Task OnInitializedAsync()
+    //{
+
+    //    model = new ManagerProfileDto();
+    //    editContext = new EditContext(model);
+    //    messageStore = new ValidationMessageStore(editContext);
+
+    //    email = await JS.InvokeAsync<string>("localStorage.getItem", "email");
+    //    countries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
+    //}
+
     void ToggleCountryDropdown()
     {
         isCountryOpen = !isCountryOpen;
@@ -622,12 +617,49 @@
 
         return true;
     }
+
+    //private bool ValidateStep1()
+    //{
+    //    messageStore.Clear();
+    //    bool isValid = editContext.Validate();
+
+    //    if (!isValid)
+    //        return false;
+
+    //    if (model.NewPassword != model.ConfirmPassword)
+    //    {
+    //        messageStore.Add(() => model.ConfirmPassword, "Passwords do not match.");
+    //        editContext.NotifyValidationStateChanged();
+    //        return false;
+    //    }
+
+    //    return true;
+    //}
+
     private bool ValidateStep2()
     {
-        return model.CountryId != Guid.Empty &&
-               model.StateId != Guid.Empty &&
-               !string.IsNullOrWhiteSpace(model.Address);
+        errorMessage = null;
+
+        if (model.CountryId == Guid.Empty ||
+            model.StateId == Guid.Empty ||
+            string.IsNullOrWhiteSpace(model.Address))
+        {
+            errorMessage = "All required fields must be filled.";
+            return false;
+        }
+
+        // Alternate email cannot match login email
+        if (!string.IsNullOrWhiteSpace(model.AlternateEmail) &&
+            !string.IsNullOrWhiteSpace(email) &&
+            model.AlternateEmail.Trim().ToLower() == email.Trim().ToLower())
+        {
+            errorMessage = "Alternate email cannot be the same as your login email.";
+            return false;
+        }
+
+        return true;
     }
+
 
 
     private bool ValidateProperties(string[] properties, ValidationContext context, List<ValidationResult> results)
@@ -647,6 +679,34 @@
 
         return valid;
     }
+
+    //private bool ValidateStep2()
+    //{
+    //    messageStore.Clear();
+
+    //    bool valid = true;
+
+    //    if (model.CountryId == Guid.Empty)
+    //    {
+    //        messageStore.Add(() => model.CountryId, "Country is required.");
+    //        valid = false;
+    //    }
+
+    //    if (model.StateId == Guid.Empty)
+    //    {
+    //        messageStore.Add(() => model.StateId, "State is required.");
+    //        valid = false;
+    //    }
+
+    //    if (string.IsNullOrWhiteSpace(model.Address))
+    //    {
+    //        messageStore.Add(() => model.Address, "Address is required.");
+    //        valid = false;
+    //    }
+
+    //    editContext.NotifyValidationStateChanged();
+    //    return valid;
+    //}
 
 
     private async Task NextStep()
@@ -673,6 +733,32 @@
         currentStep++;
         await Task.CompletedTask;
     }
+
+    //private async Task NextStep()
+    //{
+    //    bool valid = currentStep switch
+    //    {
+    //        1 => ValidateStep1(),
+    //        2 => ValidateStep2(),
+    //        _ => true
+    //    };
+
+    //    if (!valid)
+    //        return;
+
+    //    if (currentStep == 1)
+    //        model.ManagerName = $"{model.FirstName} {model.LastName}";
+
+    //    if (currentStep == 2)
+    //    {
+    //        var st = states.FirstOrDefault(s => s.Id == model.StateId)?.Name;
+    //        var cn = countries.FirstOrDefault(c => c.Id == model.CountryId)?.Name;
+    //        model.Address = $"{model.Address} {st} {cn}";
+    //    }
+
+    //    currentStep++;
+    //}
+
 
 
     private Task PrevStep()
@@ -744,18 +830,24 @@
 
             if (response.IsSuccessStatusCode)
             {
+                await JS.InvokeVoidAsync("localStorage.setItem", "IsProfileComplete", "true");
                 Nav.NavigateTo("/manager-profile", true);
             }
             else
             {
                 errorMessage = await response.Content.ReadAsStringAsync();
             }
+
+
+
         }
         catch (Exception ex)
         {
             errorMessage = ex.Message;
         }
     }
+
+
 
 
 }
