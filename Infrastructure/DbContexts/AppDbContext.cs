@@ -96,6 +96,14 @@ namespace Infrastructures.DbContexts
                 .WithOne(v => v.City)
                 .HasForeignKey(v => v.CityId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // Venue → Events (One-to-Many)
+            modelBuilder.Entity<Venue>()
+                .HasMany(v => v.Events)
+                .WithOne(e => e.Venue)
+                .HasForeignKey(e => e.VenueId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
         }
     }
 }

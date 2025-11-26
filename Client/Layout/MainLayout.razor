@@ -8,6 +8,13 @@
 
 
 <style>
+    .navbar-blurred {
+        filter: blur(6px);
+        opacity: 0.6;
+        pointer-events: none;
+        transition: 0.2s ease;
+    }
+
     .blur-overlay {
         position: fixed;
         inset: 0;
@@ -63,7 +70,7 @@
 
 
     <!-- Page content -->
-    <main class="flex-grow-1 container my-2">
+    <main class="flex-grow-1 container-fluid px-4">
         @Body
     </main>
 
@@ -117,14 +124,14 @@
             {
                 @if (SignupMode == "User")
                 {
-                <SignUp OnCancel="CloseOverlay" 
-                OnSwitchToLogin ="ShowLoginOverlay"/>
+                    <SignUp OnCancel="CloseOverlay"
+                            OnSwitchToLogin="ShowLoginOverlay" />
                 }
-                else if(SignupMode=="Manager")
-                    {
-                        <ManagerSignUp OnCancel="CloseOverlay"/>
-                    }
+                else if (SignupMode == "Manager")
+                {
+                    <ManagerSignUp OnCancel="CloseOverlay" />
                 }
+            }
 
         </div>
     </div>
@@ -138,27 +145,6 @@
 
     public static MainLayout Instance { get; private set; }
     private string? email;
-
-    //protected override void OnInitialized()
-    //{
-    //    Instance = this;
-    //    var uri = new Uri(Navigation.Uri);
-    //    var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
-
-
-    //    if (queryParams["login"] == "true")
-    //    {
-    //        IsLoginVisible = true;
-    //        IsSignupVisible = false;
-    //    }
-
-
-    //    if (queryParams["managerSignup"] == "true")
-    //    {
-    //        IsSignupVisible = true;
-    //    }
-
-    //}
     protected override void OnInitialized()
     {
         Instance = this;

@@ -10,5 +10,7 @@
         // 🔗 Foreign key to City
         public int CityId { get; set; }
         public City City { get; set; } = null!;
+
+        public ICollection<Event> Events { get; set; } = new List<Event>();
     }
 }

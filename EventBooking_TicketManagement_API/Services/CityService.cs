@@ -23,8 +23,16 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Id = c.Id,
                 CityName = c.CityName,
+                StateId = c.StateId,
                 StateName = c.State?.Name,
-                CountryName = c.State?.Country?.Name
+                CountryId = c.State?.CountryId,
+                CountryName = c.State?.Country?.Name,
+
+                VenueCount = c.Venues.Count,
+
+                EventCount = c.Venues
+            .SelectMany(v => v.Events)
+            .Count()
             });
         }
 

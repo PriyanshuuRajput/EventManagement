@@ -24,7 +24,7 @@ namespace EventBooking_TicketManagement_API.Controllers
         }
 
         // GET: api/venues/{id}
-        [HttpGet("{id:Guid}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetVenueById(int id)
         {
             var venue = await _venueService.GetVenueByIdAsync(id);
@@ -53,7 +53,7 @@ namespace EventBooking_TicketManagement_API.Controllers
         }
 
         // PUT: api/venues/{id}
-        [HttpPut("{id:guid}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateVenue(int id, [FromBody] VenueDto dto)
         {
             if (!ModelState.IsValid)
@@ -71,7 +71,7 @@ namespace EventBooking_TicketManagement_API.Controllers
         }
 
         // DELETE: api/venues/{id}
-        [HttpDelete("{id:guid}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteVenue(int id)
         {
             await _venueService.DeleteVenueAsync(id);

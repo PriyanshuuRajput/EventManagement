@@ -8,7 +8,7 @@
 @using Blazored.Typeahead
 
 <style>
-    /* ====== GLOBAL STYLING ====== */
+   
     body {
         background-color: #f8f9fa;
         font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -100,6 +100,32 @@
 
     .fade-in {
         animation: fadeIn 0.3s ease-in-out;
+    }         
+
+    /* ====== MAKE ALL EVENT CARDS EQUAL HEIGHT ====== */
+
+    .event-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+        /*.event-card .card-body {
+            flex: 1;*/ 
+/*            display: flex;*/
+/*            flex-direction: column;*/
+        /*}*/
+
+    .event-title {
+        min-height: 48px; 
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .card-actions {
+        margin-top: 10px;
     }
 
     .event-card {
@@ -115,6 +141,7 @@
 
         .event-card .price-box {
             transition: all 0.3s ease;
+            
         }
 
         .event-card:hover .price-box {
@@ -260,7 +287,7 @@
 <div class="container-fluid px-4">
 
     <!-- ====== NAV TABS ====== -->
-    <ul class="nav nav-pills m-2" id="adminTabs">
+    <ul class="nav nav-pills mt-4 mb-3 gap-3" id="adminTabs">
         <li class="nav-item">
             <button class="nav-link @(activeTab == "events" ? "active" : "")"
                     @onclick='() => activeTab = "events"'>
@@ -370,95 +397,95 @@
                                 var soldPercentage = evt.TotalTickets > 0
                                             ? (int)((double)evt.SoldTickets / evt.TotalTickets * 100)
                                             : 0;
-                                <div class="col-md-4 col-lg-3">
-                                    <div class="card shadow-sm event-card border-0 fade-in">
-                                        <div class="card-body">
+                                <div class="col-md-4 col-lg-3 d-flex">
+                                   <div class="card shadow-sm event-card border-0 fade-in flex-fill">
+                                       <div class="card-body">
 
-                                            <!-- TITLE -->
-                                            <h5 class="fw-bold text-dark mb-1">
-                                                @evt.Title
-                                            </h5>
-                                            <p class="text-muted small">@evt.EventType</p>
+                                           <!-- TITLE -->
+                                           <h5 class="fw-bold text-dark mb-1 event-title" data-bs-toggle="tooltip"data-placement="top" title="@evt.Title">
+                                               @evt.Title
+                                           </h5>
+                                           <p class="text-muted small">@evt.EventType</p>
 
-                                            <!-- DATE & TIME -->
-                                            <div class="d-flex justify-content-between text-center mb-3 gap-3">
-                                                <div class="flex-fill p-2 border rounded bg-light">
-                                                    <p class="text-muted m-0 small">Date</p>
-                                                    <h6 class="fw-semibold">@evt.ShowDate.ToString("dd-MMM")</h6>
-                                                </div>
-                                                <div class="flex-fill p-2 border rounded bg-light">
-                                                    <p class="text-muted m-0 small">Time</p>
-                                                    <h6 class="fw-semibold">@evt.ShowDate.ToString("hh:mm tt")</h6>
-                                                </div>
-                                            </div>
+                                           <!-- DATE & TIME -->
+                                           <div class="d-flex justify-content-between text-center mb-3 gap-3">
+                                               <div class="flex-fill p-2 border rounded bg-light">
+                                                   <p class="text-muted m-0 small">Date</p>
+                                                   <h6 class="fw-semibold">@evt.ShowDate.ToString("dd-MMM")</h6>
+                                               </div>
+                                               <div class="flex-fill p-2 border rounded bg-light">
+                                                   <p class="text-muted m-0 small">Time</p>
+                                                   <h6 class="fw-semibold">@evt.ShowDate.ToString("hh:mm tt")</h6>
+                                               </div>
+                                           </div>
 
-                                            <hr style="height:10px" />
+                                           <hr style="height:10px" />
 
-                                            <!-- VENUE -->
-                                            <p class="small fw-bold text-muted mb-2" style="font-size:15px">
-                                                <i class="bi bi-geo-alt-fill text-danger me-2"></i>@evt.VenueName
-                                                <span class="small text-muted m-4">@evt.Address</span>
-                                            </p>
+                                           <!-- VENUE -->
+                                           <p class="small fw-bold text-muted mb-2" style="font-size:15px">
+                                               <i class="bi bi-geo-alt-fill text-danger me-2"></i>@evt.VenueName
+                                               <span class="small text-muted m-4">@evt.Address</span>
+                                           </p>
 
-                                            <!-- DURATION -->
-                                            <p class="small text-muted mb-1">
-                                                <i class="bi bi-clock me-1 text-danger"></i>
-                                                @($"{evt.Duration.Hours}h {evt.Duration.Minutes}m")
-                                            </p>
+                                           <!-- DURATION -->
+                                           <p class="small text-muted mb-1">
+                                               <i class="bi bi-clock me-1 text-danger"></i>
+                                               @(evt.Duration.ToString(@"hh\h\ mm\m"))
+                                           </p>
 
-                                            <!-- LANGUAGE -->
-                                            <p class="small text-muted mb-2">
-                                                <i class="bi bi-translate me-1 text-danger"></i>@evt.Language
-                                            </p>
+                                           <!-- LANGUAGE -->
+                                           <p class="small text-muted mb-2">
+                                               <i class="bi bi-translate me-1 text-danger"></i>@evt.Language
+                                           </p>
 
-                                            <!-- PRICE - Gets highlighted on hover -->
-                                            <h5 class="fw-bold mt-3 mb-3 ms-2 price-box text-dark">
-                                                ₹@evt.TicketPrice.ToString("N2")
-                                            </h5>
+                                           <!-- PRICE - Gets highlighted on hover -->
+                                           <h5 class="fw-bold mt-3 mb-3 ms-2 price-box text-dark">
+                                               ₹@evt.TicketPrice.ToString("N2")
+                                           </h5>
 
-                                            <!-- BUTTONS -->
+                                           <!-- BUTTONS -->
 
-                                            @if (isAdmin)
-                                            {
-                                                <!--Admin -Full Control-->
+                                           @if (isAdmin)
+                                           {
+                                               <!--Admin -Full Control-->
 
-                                                <button class="btn btn-light me-2 ms-2 mt-3" style="width:62%"
-                                                        @onclick="() => ShowEditEventModal(evt)">
-                                                    <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
-                                                </button>
-                                                <button class="btn btn-outline-danger m-1 mt-3" style="width:22%"
-                                                        @onclick="() => DeleteEvent(evt.Id)">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            }
-                                            else if (isManager)
-                                            {
-                                                @if (evt.Status == EventStatus.Pending)
-                                                {
-                                                    <!-- Manager: Editable only before approval -->
-                                                    <button class="btn btn-light me-2 ms-2 mt-3" style="width:65%"
-                                                            @onclick="() => ShowEditEventModal(evt)">
-                                                        <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
-                                                    </button>
+                                               <button class="btn btn-light me-2 ms-2 mt-3" style="width:62%"
+                                                       @onclick="() => ShowEditEventModal(evt)">
+                                                   <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
+                                               </button>
+                                               <button class="btn btn-outline-danger m-1 mt-3" style="width:22%"
+                                                       @onclick="() => DeleteEvent(evt.Id)">
+                                                   <i class="bi bi-trash"></i>
+                                               </button>
+                                           }
+                                           else if (isManager)
+                                           {
+                                               @if (evt.Status == EventStatus.Pending)
+                                               {
+                                                   <!-- Manager: Editable only before approval -->
+                                                   <button class="btn btn-light me-2 ms-2 mt-3" style="width:65%"
+                                                           @onclick="() => ShowEditEventModal(evt)">
+                                                       <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
+                                                   </button>
 
-                                                    <button class="btn btn-outline-danger m-1 mt-3" style="width:21%"
-                                                            @onclick="() => DeleteEvent(evt.Id)">
-                                                        <i class="bi bi-trash me-2"></i>
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <!-- After Approved / Published -->
-                                                    <button class="btn btn-outline-warning  me-2 ms-2 mt-3" style="width:62%" disabled>
-                                                        <i class=" me-2 text-secondary  bi bi-lock"></i>Edit
-                                                    </button>
-                                                    <button class="btn btn-outline-secondary m-1 mt-3" style="width:22%" disabled>
-                                                        <i class="bi bi-lock"></i>
-                                                    </button>
-                                                }
-                                            }
-                                        </div>
-                                    </div>
+                                                   <button class="btn btn-outline-danger m-1 mt-3" style="width:21%"
+                                                           @onclick="() => DeleteEvent(evt.Id)">
+                                                       <i class="bi bi-trash me-2"></i>
+                                                   </button>
+                                               }
+                                               else
+                                               {
+                                                   <!-- After Approved / Published -->
+                                                   <button class="btn btn-outline-warning  me-2 ms-2 mt-3" style="width:62%" disabled>
+                                                       <i class=" me-2 text-secondary  bi bi-lock"></i>Edit
+                                                   </button>
+                                                   <button class="btn btn-outline-secondary m-1 mt-3" style="width:22%" disabled>
+                                                       <i class="bi bi-lock"></i>
+                                                   </button>
+                                               }
+                                           }
+                                       </div>
+                                   </div>
                                 </div>
 
 
@@ -638,13 +665,13 @@
 
                     <div class="drawer-body">
                         <EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">
-                            <ValidationSummary />
+                            
                             <DataAnnotationsValidator />
 
                             <!-- General Info -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
-                                    🎫 General Information
+                                     General Information
                                 </div>
                                 <div class="card-body row g-3">
                                     <div class="col-md-6">
@@ -661,13 +688,15 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">Language</label>
+                                        <label class="form-label fw-bold">Language<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Language" class="form-control" />
+                                        <ValidationMessage For="@(()=>editingEvent.Language)" class ="text-danger small"/>
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">Genre</label>
+                                        <label class="form-label fw-bold">Genre<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Genre" class="form-control" />
+                                        <ValidationMessage For="@(()=>editingEvent.Genre)" class ="text-danger small"/>
                                     </div>
                                 </div>
                             </div>
@@ -675,7 +704,7 @@
                             <!-- Date and Time Info -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header text-dark fw-bold">
-                                    ⏰ Event Schedule
+                                     Event Schedule
                                 </div>
                                 <div class="card-body row g-3">
                                     <div class="col-md-6">
@@ -698,7 +727,7 @@
                             <!-- Location Info -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
-                                    📍 Location Details
+                                     Location Details
                                 </div>
                                 <div class="card-body row g-3">
                                     <div class="col-md-6">
@@ -730,7 +759,7 @@
                             <!-- Ticket and Image Info -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
-                                    💰 Tickets & Image
+                                     Tickets & Image
                                 </div>
                                 <div class="card-body row g-3">
                                     <div class="col-md-6">
@@ -753,7 +782,7 @@
                             <!-- Description -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
-                                    📝 Description
+                                     Description
                                 </div>
                                 <div class="card-body">
                                     <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="3" placeholder="Write a short description..." />
@@ -835,15 +864,21 @@
                                 <EditForm Model="editingCity" OnValidSubmit="async () => await SaveCity(editingCity)">
                                     <DataAnnotationsValidator />
 
-                                    <div class="mb-2">
-                                        <label class="form-label fw-semibold text-secondary">City Name</label>
-                                        <InputText @bind-Value="editingCity.CityName" class="form-control rounded-3 shadow-sm p-2" />
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary">Country<span class="text-danger">*</span></label>
+                                        <select value="@editingCity.CountryId" @onchange="OnCountryChanged" class="form-select rounded-3 shadow-sm p-2">
+                                            <option value="">--Select a country--</option>
+                                            @foreach (var country in _allCountries)
+                                            {
+                                                <option value="@country.Id">@country.Name</option>
+                                            }
+                                        </select>
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold text-secondary">State</label>
-                                        <select @bind="editingCity.StateId" class="form-control rounded-3 shadow-sm p-2" disabled="@(!filteredStates.Any())">
-                                            <option value="">🏷️ Select a state...</option>
+                                        <label class="form-label fw-semibold text-secondary">State <span class="text-danger">*</span></label>
+                                        <select @bind="editingCity.StateId" class="form-select rounded-3 shadow-sm p-2" disabled="@(!filteredStates.Any())">
+                                            <option value="">--Select a state--</option>
                                             @foreach (var state in filteredStates)
                                             {
                                                 <option value="@state.Id">@state.Name</option>
@@ -851,15 +886,10 @@
                                         </select>
                                     </div>
 
+
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold text-secondary">Country</label>
-                                        <select value="@editingCity.CountryId" @onchange="OnCountryChanged" class="form-control rounded-3 shadow-sm p-2">
-                                            <option value="">🌍 Select a country...</option>
-                                            @foreach (var country in _allCountries)
-                                            {
-                                                <option value="@country.Id">@country.Name</option>
-                                            }
-                                        </select>
+                                        <label class="form-label fw-semibold text-secondary">City Name <span class="text-danger">*</span></label>
+                                        <InputText @bind-Value="editingCity.CityName" class="form-control rounded-3 shadow-sm p-2" />
                                     </div>
 
                                 </EditForm>
@@ -872,7 +902,7 @@
                                         disabled="@(string.IsNullOrWhiteSpace(editingCity.CityName) ||
                     editingCity.CountryId == Guid.Empty ||
                     editingCity.StateId == Guid.Empty)">
-                                    💾 Save
+                                     Save
                                 </button>
 
                             </div>
@@ -1017,6 +1047,15 @@
 
         showEventModal = true;
     }
+    private bool ConvertDuration()
+    {
+        if (TimeSpan.TryParse(durationInput, out var ts))
+        {
+            editingEvent.Duration = ts;
+            return true;
+        }
+        return false;
+    }
 
     private async Task SaveEvent(EventDto evt)
     {
@@ -1058,7 +1097,6 @@
 
             content.Add(new StringContent(evt.TicketPrice.ToString(
                 System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
-
             // =================== IMAGE UPLOAD ===================
             if (selectedImageFile != null)
             {
@@ -1112,6 +1150,11 @@
                 if (!response.IsSuccessStatusCode)
                 {
                     toastService.ShowError(body);
+                    return;
+                }
+                if(!ConvertDuration())
+                {
+                    toastService.ShowError("Invalid duration format. Use HH:MM (e.g., 01:30)");
                     return;
                 }
 
@@ -1430,16 +1473,14 @@
         foreach (var city in citiesList)
         {
             city.VenueCount = venues.Count(v => v.CityId == city.Id);
-            city.EventCount = Events.Count(e => e.CityName.Equals(city.CityName, StringComparison.OrdinalIgnoreCase));
+            city.EventCount = Events.Count(e => e.CityId == city.Id);
         }
     }
     private void CalculateVenueEventCounts()
     {
         foreach (var venue in venues)
         {
-            // Count events that belong to this venue
-            venue.EventCount = Events.Count(e =>
-    e.CityName.Equals(venue.CityName, StringComparison.OrdinalIgnoreCase));
+            venue.EventCount = Events.Count(e => e.VenueId == venue.Id);
 
         }
     }

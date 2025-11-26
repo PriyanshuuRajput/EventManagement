@@ -4,14 +4,14 @@ namespace Applications.Dto
 {
     public class CityDto
     {
-        public int Id { get; set; }  // ✅ matches entity
+        public int Id { get; set; }
 
         [Required]
         [StringLength(100)]
         public string CityName { get; set; } = string.Empty;
 
         [Required]
-        public Guid StateId { get; set; }  // ✅ matches entity
+        public Guid StateId { get; set; }
 
         public string? StateName { get; set; }
         public Guid? CountryId { get; set; }
