@@ -1,4 +1,5 @@
 ﻿using Applications.Dto;
+using Applications.Dto.OrganizerDto;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
@@ -23,6 +24,14 @@ namespace EventBooking.Client.Services
             var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
             _httpClient.DefaultRequestHeaders.Authorization =
                 !string.IsNullOrEmpty(token) ? new AuthenticationHeaderValue("Bearer", token) : null;
+        }
+
+
+        //------------------Managers----------------------//
+
+        public async Task<List<ManagerProfileDto>> GetAllManagersAsync()
+        {
+            return await _httpClient.GetFromJsonAsync<List<ManagerProfileDto>>("api/Admin/managers") ?? new();
         }
 
         // -------------------- EVENTS -------------------- //

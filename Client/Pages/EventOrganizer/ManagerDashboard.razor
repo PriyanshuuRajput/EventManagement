@@ -51,14 +51,14 @@
     <!-- HEADER -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div class="mb-2">
-            <h2 class="fw-bold text-dark">My Events</h2>
+            <h2 class="fw-bold text-dark">Dashboard</h2>
             <p class="text-muted m-0">Manage, update, and track performance of your events.</p>
         </div>
 
-        <button class="btn btn-outline-danger  shadow rounded-3 px-3"
+        @*<button class="btn btn-outline-danger  shadow rounded-3 px-3"
                 @onclick="CreateEvent">
             <i class="bi bi-plus-lg me-1"></i> Manage Event
-        </button>
+        </button>*@
     </div>
 
     <!-- SUMMARY CARDS -->
@@ -166,7 +166,7 @@
     <!--Event Table-->
     <div class="table-responsive rounded-0">
         <table class="table table-hover align-middle">
-            <thead class="table-light">
+            <thead class="table-secondary">
                 <tr>
                     <th style="width:120px;">Image</th>
                     <th style="width:160px">Event</th>
@@ -433,5 +433,5 @@ managerEvents
     }
 
 
-    private void CreateEvent() => Nav.NavigateTo("/manage-events");
+    //private void CreateEvent() => Nav.NavigateTo("/manage-events");
 }

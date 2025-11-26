@@ -47,7 +47,7 @@ namespace Domains.Entities
         [ForeignKey(nameof(Manager))]
         public int ManagerId { get; set; }
 
-        public Manager? Manager { get; set; }
+        public Manager? Managers { get; set; }
 
         public EventStatus Status { get; set; } = EventStatus.Pending;
 

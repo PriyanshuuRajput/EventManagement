@@ -62,6 +62,14 @@ namespace Infrastructure.Repository
             return _db.SaveChangesAsync();
         }
 
+        public async Task<List<Manager>> GetAllManagersAsync()
+        {
+            return await _db.Managers
+                .Include(m => m.User)
+                .ToListAsync();
+
+        }
+
         public async Task<List<Manager>> GetPendingManagersAsync()
         {
             return await _db.Managers

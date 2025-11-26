@@ -1,0 +1,601 @@
+﻿@page "/managers"
+
+
+@inject HttpClient Http
+@inject Blazored.Toast.Services.IToastService toast
+@*@using Blazored.Toast
+@using Blazored.Toast.Configuration*@
+
+
+
+<style>
+
+    /* ---FOOTER BANNER ---*/
+    .promo-banner {
+        background: linear-gradient(to right, #fff, #f8f9fa);
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .banner {
+        padding: 22px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+</style>
+
+
+<div class="container py-4">
+
+
+    @*<BlazoredToast ToastId="mainToast" Settings="ToastSettings" />*@
+
+
+
+    <h3 class="fw-bold mt-3" style="font-size:32px">Managers</h3>
+    <p class="text-muted mt-0">Review new manager signups and manage existing managers</p>
+
+    <div class="row mb-3 align-items-center">
+
+        <!-- LEFT SIDE (SEARCH BAR) -->
+        <div class="col-md-6 mb-3 mb-md-0 mt-2">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input class="form-control"
+                       placeholder="Search by name or email..."
+                       @bind="SearchText"
+                       @bind:event="oninput" />
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE (CREATE BUTTON) -->
+        <div class="col-md-6 text-md-end mt-2">
+            <button class="btn btn-outline-danger px-4" @onclick="OpenAddModal">
+                + Add Manager
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- FILTER BUTTONS (Always Below) -->
+    <div class="d-flex gap-3 flex-wrap py-2 mb-2">
+
+        <!-- ALL -->
+        <button class="btn btn-sm @(SelectedStatus == "" ? "btn-danger" : "btn-outline-secondary") rounded-3"
+                @onclick="@( () => SetStatus(""))">
+            All
+        </button>
+
+        <!-- PENDING -->
+        <button class="btn btn-sm @(SelectedStatus == "Pending" ? "btn-warning" : "btn-outline-secondary") rounded-3"
+                @onclick="@( () => SetStatus("Pending") )">
+            Pending
+        </button>
+
+        <!-- APPROVED -->
+        <button class="btn btn-sm @(SelectedStatus == "Approved" ? "btn-success" : "btn-outline-secondary") rounded-3"
+                @onclick="@( () => SetStatus("Approved"))">
+            Approved
+        </button>
+
+        <!-- REJECTED -->
+        <button class="btn btn-sm @(SelectedStatus == "Rejected" ? "btn-danger" : "btn-outline-secondary") rounded-3"
+                @onclick="@( () => SetStatus("Rejected"))">
+            Rejected
+        </button>
+
+    </div>
+
+
+
+    <!-- TABLE CARD -->
+
+    <div class="table-responsive rounded-0">
+        <table class="table table-hover align-middle">
+            <thead class="table-secondary">
+                <tr>
+                    @*<th></th>*@
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Managers == null)
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            Loading...
+                        </td>
+                    </tr>
+                }
+                else if (!Managers.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            No records found
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var m in PagedItems)
+                    {
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(m.Image))
+                                {
+                                    <img src="@m.Image" class="rounded-square rounded-3" style=" width: 70px; height: 60px; object-fit: cover" />
+                                }
+                                else
+                                {
+                                    <img src="/avtar.png"
+                                         class="rounded-square rounded-3" style=" width: 70px; height: 60px; object-fit: cover;" />
+                                }
+                            </td>
+
+                            <td>
+                                @((MarkupString)(string.IsNullOrWhiteSpace(m.ManagerName)
+                                ? "<span class='text-muted'>—</span>"
+                                : m.ManagerName))
+                            </td>
+
+                            <td>
+                                @((MarkupString)(string.IsNullOrWhiteSpace(m.Email)
+                                ? "<span class='text-muted'>—</span>"
+                                : m.Email))
+                            </td>
+
+                            <td>
+                                @((MarkupString)(string.IsNullOrWhiteSpace(m.Mobile)
+                                ? "<span class='text-muted'>—</span>"
+                                : m.Mobile))
+                            </td>
+                            <td>
+                                @((MarkupString)(string.IsNullOrWhiteSpace(m.Address)
+                                ? "<span class='text-muted'>—</span>"
+                                : m.Address))
+                            </td>
+
+                            <td>
+                                @if (m.Status == "Pending")
+                                {
+                                    <button class="badge bg-warning text-dark"
+                                            style="cursor:pointer"
+                                            @onclick="(() => OpenApproveModal(m))">
+                                        Pending
+                                    </button>
+                                }
+                                else if (m.Status == "Approved")
+                                {
+                                    <span class="badge bg-success">Approved</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Rejected</span>
+                                }
+                            </td>
+
+                            <td class="text-center">
+
+                                <div class="  btn-group btn-group-sm ">
+
+                                    <!-- VIEW -->
+                                    <button class="btn btn-sm btn-outline-primary" title="View"
+                                            @onclick="(() => ViewManager(m))">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                    <!-- EDIT -->
+                                    <!--<button class="btn btn-sm btn-outline-secondary me-1" title="Edit"
+                                            @onclick="(() => EditManager(m.Id))">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>-->
+                                    <!-- DELETE -->
+                                    <button class="btn btn-sm btn-outline-danger" title="Delete"
+                                            @onclick="(() => ConfirmDelete(m.Id))">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center ">
+        <div class="small text-muted">Showing @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, FilteredItems.Count())) of @FilteredItems.Count() events</div>
+
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <button class="page-link btn me-1 " @onclick="PrevPage">Previous</button>
+                </li>
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    <li class="page-item @(currentPage == i ? "active disabled" : "")">
+                        <button class="page-link btn" @onclick="() => GoToPage(i)">@i</button>
+                    </li>
+                }
+                <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
+                    <button class="page-link btn ms-1  " @onclick="NextPage">Next</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="promo-banner banner mt-4 text-center">
+        <h4 class="fw-bold text-dark mb-1">
+            <i class="bi bi-collection-play text-danger me-2"></i>
+            Streamline Your Events
+        </h4>
+
+        <p class="text-muted small m-0">
+            Manage bookings, venues, and cities with ease.
+        </p>
+    </div>
+</div>
+
+<!--Add Modal-->
+
+@if (ShowAddModal)
+{
+    <div class="modal fade show d-block" style="background:rgba(0,0,0,0.6);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Manager</h5>
+                </div>
+
+                <div class="modal-body">
+
+                    <EditForm Model="NewManager" OnValidSubmit="AddManagerAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary/>
+
+                        <div class="mb-3">
+                            <label class="form-label">Manager Email (Gmail only)</label>
+                            <InputText class="form-control" placeholder="Enter the email" @bind-Value="NewManager.Email" />
+                            <ValidationMessage For="@(() => NewManager.Email)" />
+
+
+                            @if (!string.IsNullOrEmpty(emailError))
+                            {
+                                <div class="text-danger mt-1">@emailError</div>
+                            }
+                        </div>
+
+                    </EditForm>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseAddModal">Cancel</button>
+                    <button class="btn btn-danger px-4"
+                            @onclick="AddManagerAsync">
+                        Add
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+<!--Approval Modal-->
+@if (SelectedManagers != null)
+{
+    <div class=" modal fade show d-block " style="background:rgba(0,0,0,0.6);">
+        <div class=" modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class=" modal-header">
+                    <h5 class=" modal-title">Manager Approval Request ! </h5>
+                    <button class="btn-close" @onclick="CloseModal"></button>
+                </div>
+
+                <div class="modal-body">
+                    @*<p><b>Name:</b>@SelectedManagers.ManagerName</p>*@
+                    <p><b>Email:</b>@SelectedManagers.Email</p>
+                    @*<p><b>Mobile:</b>@SelectedManagers.Mobile</p>
+                        <p><b>Address:</b>@SelectedManagers.Address</p>*@
+                    <p>
+                        <b>Status:</b>
+                        @if (SelectedManagers.Status == "Approved")
+                        {<span class="badge bg-success">Approved</span> }
+                        else if (SelectedManagers.Status == "Rejected")
+                        { <span class="badge bg-danger">Rejected</span> }
+                        else
+                        { <span class="badge bg-warning text-dark">Pending</span>}
+                    </p>
+                </div>
+                <div class="modal-footer">
+
+                    @if (SelectedManagers.Status == "Pending")
+                    {
+                        <button class="btn btn-success" @onclick="() => Approve(SelectedManagers.Id)">Approve</button>
+                        <button class="btn btn-danger" @onclick="() => Reject(SelectedManagers.Id)">Reject</button>
+                    }
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+<!--Delete Modal-->
+
+@if (ShowDeleteConfirm)
+{
+    <div class="modal fade show d-block" style="background:rgba(0,0,0,0.6);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Manager?</h5>
+                </div>
+
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this manager permanently?</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDeleteConfirm">Cancel</button>
+                    <button class="btn btn-danger" @onclick="DeleteManager">Delete</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+
+
+
+@code
+{
+    private string SearchText { get; set; } = "";
+    private string SelectedStatus { get; set; } = "";
+
+    private List<ManagerProfileDto>? Managers { get; set; }
+    private ManagerProfileDto? SelectedManagers { get; set; }
+    ManagerSignUpDto NewManager = new ManagerSignUpDto();
+
+
+    private string? emailError;
+
+
+    bool ShowAddModal = false;
+    bool ShowDeleteConfirm = false;
+    int DeleteId = 0;
+
+
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
+
+
+    //    private ToastSettings ToastSettings = new ToastSettings(
+    //    additionalClasses: "" ,
+    //    iconType: null,
+    //    //heading: "",
+    //    //showIcon: true,
+    //    //showProgressBar: true,
+    //    //onClick: null,
+    //    timeout: 4000
+    //    //requireInteraction: false,
+    //    //disableTimeout: false,
+    //    //maximumOpacity: 100,
+    //    //position: ToastPosition.TopRight
+    //);
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Managers = await Http.GetFromJsonAsync<List<ManagerProfileDto>>("api/admin/managers");
+
+    }
+
+
+    private void SelectManager(ManagerProfileDto m) => SelectedManagers = m;
+    private void OpenApproveModal(ManagerProfileDto m) => SelectedManagers = m;
+    private void CloseModal() => SelectedManagers = null;
+
+    private void SetStatus(string status)
+    {
+        SelectedStatus = status;
+        currentPage = 1;
+    }
+
+
+    void OpenAddModal()
+    {
+        NewManager = new ManagerSignUpDto();
+        emailError = null;
+        ShowAddModal = true;
+
+    }
+
+    void CloseAddModal()
+    {
+        ShowAddModal = false;
+        NewManager = new ManagerSignUpDto();
+        emailError = null;
+
+    }
+
+    private async Task AddManagerAsync()
+    {
+
+        emailError = null;
+        var response = await Http.PostAsJsonAsync($"api/Account/manager-signup/", NewManager);
+        if (response.IsSuccessStatusCode)
+        {
+            toast.ShowSuccess("Manager added successfully!");
+            await Reload();
+            CloseAddModal();
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            toast.ShowError(error);
+            emailError = await response.Content.ReadAsStringAsync();
+        }
+
+    }
+
+
+
+    private async Task Approve(int id)
+    {
+        var response = await Http.PostAsync($"api/admin/approve-manager/{id}", null);
+
+        if (response.IsSuccessStatusCode)
+        {
+            toast.ShowSuccess("Manager approved!");
+        }
+        else
+        {
+            toast.ShowError("Error approving manager");
+        }
+
+        await Reload();
+        CloseModal();
+    }
+
+
+    //private async Task Reject(int id)
+    //{
+    //    var response = await Http.PostAsync($"api/admin/reject-manager/{id}", null);
+
+    //    if (response.IsSuccessStatusCode)
+    //    {
+    //        toast.ShowInfo("Manager rejected.");
+    //    }
+    //    else
+    //    {
+    //        toast.ShowError("Unable to reject manager.");
+    //    }
+
+    //    await Reload();
+    //    CloseModal();
+
+    //}
+
+    private async Task Reject(int id)
+    {
+        Console.WriteLine($"Reject called with ID: {id}");
+
+        var response = await Http.PostAsync($"api/admin/reject-manager/{id}", null);
+
+        Console.WriteLine($"Reject API Status: {response.StatusCode}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            toast.ShowInfo("Manager rejected.");
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            toast.ShowError($"Reject failed: {error}");
+        }
+
+        await Reload();
+        CloseModal();
+    }
+
+
+    private void ViewManager(ManagerProfileDto manager)
+    {
+        // navigate or open modal
+    }
+
+    private void ConfirmDelete(int id)
+    {
+        DeleteId = id;
+        ShowDeleteConfirm = true;
+    }
+
+    private void CloseDeleteConfirm()
+    {
+        ShowDeleteConfirm = false;
+    }
+
+
+    private async Task DeleteManager()
+    {
+        var response = await Http.DeleteAsync($"api/admin/delete-manager/{DeleteId}");
+        if (response.IsSuccessStatusCode)
+        {
+            toast.ShowSuccess("Manager delete successfully!");
+            await Reload();
+
+        }
+        else
+        {
+            toast.ShowError("Failed to delete manager!");
+
+        }
+        ShowDeleteConfirm = false;
+    }
+
+    private async Task Reload()
+    {
+        Managers = await Http.GetFromJsonAsync<List<ManagerProfileDto>>("api/admin/managers");
+    }
+
+    private IEnumerable<ManagerProfileDto> FilteredItems =>
+                Managers?
+                    .Where(m =>
+                        (string.IsNullOrWhiteSpace(SearchText) ||
+                        (m.ManagerName ?? "").Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                        (m.Email ?? "").Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                            &&
+                        (string.IsNullOrWhiteSpace(SelectedStatus) || m.Status == SelectedStatus)
+                    )
+                     ?? Enumerable.Empty<ManagerProfileDto>();
+
+
+    private IEnumerable<ManagerProfileDto> PagedItems =>
+                    FilteredItems
+                    .Skip((currentPage - 1) * pageSize)
+                    .Take(pageSize);
+
+    private void PrevPage()
+    {
+        if (currentPage > 1)
+            currentPage--;
+    }
+
+    private void NextPage()
+    {
+        if (currentPage < TotalPages)
+            currentPage++;
+    }
+
+    private void GoToPage(int page)
+    {
+        currentPage = page;
+    }
+
+}

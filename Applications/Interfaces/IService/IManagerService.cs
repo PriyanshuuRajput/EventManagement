@@ -7,12 +7,12 @@ namespace Applications.Interfaces.IService
         Task<string> SignUpManagerAsync(ManagerSignUpDto dto);
 
         Task<string> ApproveManagerAsync(int managerId);
-        Task<List<object>> GetPendingManagersAsync();
+        Task<List<ManagerProfileDto>> GetPendingManagersAsync();
+        Task<List<ManagerProfileDto>> GetAllManagersAsync();
 
-        Task RejectManagerAsync(int managerId);
+        Task RejectManagerAsync(int managerId, string reason);
 
         Task<string> ManagerProfileChangePassword(int userId, ManagerProfileDto dto);
-
-
+        Task<bool> DeleteManagerAsync(int managerId);
     }
 }

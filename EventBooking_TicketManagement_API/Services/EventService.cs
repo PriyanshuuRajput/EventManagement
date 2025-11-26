@@ -36,7 +36,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
                 ManagerId = ev.ManagerId,
-                //ManagerName = ev.Manager?.Username!,
+                ManagerName = ev.Managers?.ManagerName ?? "",
                 EventAmount = ev.EventAmount,
                 OfferedEventAmount = ev.OfferedEventAmount,
                 CreatedAt = ev.CreatedAt,

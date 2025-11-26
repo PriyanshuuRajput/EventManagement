@@ -46,7 +46,7 @@ namespace Infrastructures.DbContexts
             // ===========================
             modelBuilder.Entity<Manager>()
                .HasMany(m => m.Events)
-               .WithOne(e => e.Manager)
+               .WithOne(e => e.Managers)
                .HasForeignKey(e => e.ManagerId)
                .OnDelete(DeleteBehavior.Restrict);
 
