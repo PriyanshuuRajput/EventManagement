@@ -205,30 +205,80 @@ namespace EventBooking_TicketManagement_API.Services
 
         }
 
-        public async Task<List<object>> GetPendingManagersAsync()
+        public async Task<List<ManagerProfileDto>> GetAllManagersAsync()
+        {
+            var managers = await _managerRepo.GetAllManagersAsync();
+
+            return managers.Select(m => new ManagerProfileDto
+            {
+                Id = m.Id,
+                ManagerName = m.ManagerName,
+                Email = m.User?.Email ?? "",
+                Mobile = m.Mobile,
+                Address = m.Address,
+                Image = m.Image,
+                CreatedAt = m.CreatedAt,
+                Status = m.IsApproved == false ? "Pending"
+                                                : m.IsApproved == true
+                                                ? "Approved"
+                                                : "Rejected"
+            }).ToList();
+        }
+
+        public async Task<List<ManagerProfileDto>> GetPendingManagersAsync()
         {
             var pending = await _managerRepo.GetPendingManagersAsync();
 
-            return pending.Select(m => new
+            return pending.Select(m => new ManagerProfileDto
             {
-                m.Id,
+                Id = m.Id,
+                ManagerName = m.ManagerName,
                 Email = m.User.Email,
-                Phone = m.User.PhoneNumber,
-                m.CreatedAt
+                Mobile = m.User.PhoneNumber,
+                Address = m.Address,
+                Image = m.Image,
+                CreatedAt = m.CreatedAt,
+                Status = !m.IsApproved
+                            ? "Pending" : m.IsApproved == true
+                            ? "Approved"
+                            : "Rejected"
 
-            }).ToList<object>();
+            }).ToList();
         }
 
-        public async Task RejectManagerAsync(int managerId)
+        public async Task RejectManagerAsync(int managerId, string reason)
         {
-            var manager = await _managerRepo.GetManagerByIdAsync(managerId);
+            var manager = await _managerRepo.GetManagerWithUserAsync(managerId);
 
             if (manager == null)
                 throw new Exception("Manager not found.");
 
+            string email = manager.User!.Email;
+
             _managerRepo.DeleteManager(manager);
 
             await _managerRepo.SaveChangesAsync();
+
+            string message = $@"<p> Dear Applicant,</p>
+                                <p> YOur manager account request has been <b>rejected</b>.</p>
+                                <p><b>Reason:</b>{reason}</p>
+                                <p>If you believe this was a mistake, kindly re-apply.</p>
+                                <p>Regards,<br/>EventiGo Team</p>";
+
+            await _emailService.SendEmailAsync(email, "Manager Request Rejected", message);
+        }
+
+        public async Task<bool> DeleteManagerAsync(int managerId)
+        {
+            var manager = await _managerRepo.GetManagerWithUserAsync(managerId);
+
+            if (manager == null)
+                return false;
+
+            _managerRepo.DeleteManager(manager);
+            await _managerRepo.SaveChangesAsync();
+
+            return true;
         }
     }
 

@@ -5,7 +5,7 @@ namespace Applications.Dto.OrganizerDto
     public class ManagerSignUpDto
     {
         //public string ManagerName { get; set; } = string.Empty;
-        [Required]
+        [Required(ErrorMessage = "Email is required")]
         [RegularExpression(
       @"^[A-Za-z0-9._%+-]+@gmail\.com$",
       ErrorMessage = "Enter a valid Gmail address.")]

@@ -5,7 +5,7 @@ namespace Applications.Dto.OrganizerDto
     public class ManagerProfileDto
     {
 
-        // public int UserId { get; set; }
+        public int Id { get; set; }
 
         [Required(ErrorMessage = "Old password is required")]
         public string OldPassword { get; set; } = "";
@@ -41,7 +41,7 @@ namespace Applications.Dto.OrganizerDto
         [RegularExpression(@"^[A-Z]{5}[0-9]{4}[A-Z]{1}$", ErrorMessage = "Invalid PAN format")]
         public string PAN { get; set; } = string.Empty;
 
-        //public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         //[EmailAddress]
         public string AlternateEmail { get; set; } = string.Empty;
@@ -54,6 +54,9 @@ namespace Applications.Dto.OrganizerDto
         public Guid? CountryId { get; set; }
 
         // public DateTime? UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+
+        public string Status { get; set; } = string.Empty;
         public bool AcceptTerms { get; set; }
     }
 }

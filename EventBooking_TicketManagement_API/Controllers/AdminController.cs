@@ -18,6 +18,14 @@ namespace EventBooking_TicketManagement_API.Controllers
             _managerService = managerService;
         }
 
+        [HttpGet("managers")]
+        public async Task<IActionResult> GetAllManagers()
+        {
+            var result = await _managerService.GetAllManagersAsync();
+            return Ok(result);
+        }
+
+
         [HttpGet("pending-managers")]
         public async Task<IActionResult> GetPendingManagers()
         {
@@ -37,10 +45,23 @@ namespace EventBooking_TicketManagement_API.Controllers
         }
 
         [HttpPost("reject-manager/{id}")]
-        public async Task<IActionResult> RejectManager(int id)
+        public async Task<IActionResult> RejectManager(int id, [FromBody] EventRejectDto dto)
         {
-            await _managerService.RejectManagerAsync(id);
+            await _managerService.RejectManagerAsync(id, dto.Reason);
             return Ok(new { message = "Manager request rejected." });
+        }
+        //Delete Managers
+
+        [HttpDelete("delete-manager/{id}")]
+        public async Task<IActionResult> DeleteManager(int id)
+        {
+            var result = await _managerService.DeleteManagerAsync(id);
+            if (!result)
+            {
+                return NotFound(new { message = "Manager not found!" });
+            }
+            return Ok(new { message = "Manager delete successfully!" });
+
         }
 
         //  Get all pending events
@@ -66,14 +87,6 @@ namespace EventBooking_TicketManagement_API.Controllers
             await _eventService.RejectEventAsync(id, dto);
             return Ok(new { Message = "Event rejected successfully." });
         }
-
-        // View rejected events
-        //[HttpGet("rejected")]
-        //public async Task<IActionResult> GetRejectedEvents()
-        //{
-        //    var events = await _eventService.RejectEventAsync();
-        //    return Ok(events);
-        //}
 
 
         [HttpPost("accept-offer/{id}")]

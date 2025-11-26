@@ -21,6 +21,8 @@ namespace Infrastructures.Repository
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .Include(e => e.Seats)
+                .Include(e => e.Managers)
+                    .ThenInclude(m => m.User)
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -32,6 +34,8 @@ namespace Infrastructures.Repository
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .Include(e => e.Seats)
+                  .Include(e => e.Managers)
+        .ThenInclude(m => m.User)
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
 
@@ -94,6 +98,8 @@ namespace Infrastructures.Repository
                 .Where(e => e.ManagerId == managerId)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
+                      .Include(e => e.Managers)
+        .ThenInclude(m => m.User)
                 .OrderByDescending(e => e.CreatedAt)
                 .ToListAsync();
         }
@@ -117,6 +123,8 @@ namespace Infrastructures.Repository
                         || e.Status == EventStatus.PaymentConfirmed)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
+                      .Include(e => e.Managers)
+        .ThenInclude(m => m.User)
                 .OrderByDescending(e => e.ShowDate)
                 .ToListAsync();
         }
