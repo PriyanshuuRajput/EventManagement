@@ -17,8 +17,10 @@ namespace Applications.Dto
         [StringLength(20, ErrorMessage = "Event type must be 20 characters.")]
         public string EventType { get; set; } = string.Empty;
 
-        [StringLength(1000, ErrorMessage = "Description cannot exceed 100 characters.")]
+        [Required(ErrorMessage = "Description is required.")]
+        [StringLength(1000, MinimumLength = 3)]
         public string Description { get; set; } = string.Empty;
+
 
         [StringLength(50)]
         [Required(ErrorMessage = "Genre is required.")]
@@ -53,8 +55,9 @@ namespace Applications.Dto
         public decimal TicketPrice { get; set; }
 
         //[StringLength(500, ErrorMessage = "Image URL cannot exceed 500 characters.")]
-        [DataType(DataType.ImageUrl)]
+        [Required(ErrorMessage = "Event image is required.")]
         public string ImageUrl { get; set; } = string.Empty;
+
 
         public IFormFile? ImageFile { get; set; }
 
@@ -64,11 +67,15 @@ namespace Applications.Dto
         public int ManagerId { get; set; }
         public string ManagerName { get; set; } = string.Empty;
 
+        public string? ManagerEmail { get; set; }
+
         public EventStatus Status { get; set; } = EventStatus.Pending;
         public string? AdminNote { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ApprovedAt { get; set; }
+        public int Capacity { get; set; }
+
 
         public decimal EventAmount { get; set; }
 

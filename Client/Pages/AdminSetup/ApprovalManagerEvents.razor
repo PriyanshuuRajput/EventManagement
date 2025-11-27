@@ -3,6 +3,7 @@
 @*@inject Blazored.Toast.Services.IToastService toastService*@
 @inject NavigationManager Nav
 @using Domains.Entities
+@attribute [Authorize(Roles ="Admin")]
 
 <style>
     .event-banner {
@@ -37,14 +38,14 @@ else
         <div class="row align-items-start g-4">
             <!-- Left: Image & Basic Info -->
             <div class="col-lg-8">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden hover-shadow-sm mb-4">
+                <div class="card border-0 rounded-2 overflow-hidden hover-shadow-sm mb-4">
                     <img src="@eventDetails.ImageUrl"
                          alt="@eventDetails.Title"
                          class="img-fluid w-100 event-banner" />
                     </div>
 
 
-                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <div class="card border-0 p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h3 class="fw-bold text-dark mb-0">@eventDetails.Title</h3>
                             <span class="badge badge-status @(eventDetails.Status == EventStatus.Pending ? "bg-warning text-dark" :
@@ -64,13 +65,13 @@ else
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <p><strong>📅 Date:</strong> @eventDetails.ShowDate.ToString("MMMM dd, yyyy")</p>
-                                <p><strong>⏰ Time:</strong> @eventDetails.ShowDate.ToString("hh:mm tt")</p>
-                                <p><strong>📍 Venue:</strong> @eventDetails.VenueName, @eventDetails.CityName</p>
+                                <p><strong> Date:</strong> @eventDetails.ShowDate.ToString("MMMM dd, yyyy")</p>
+                                <p><strong> Time:</strong> @eventDetails.ShowDate.ToString("hh:mm tt")</p>
+                                <p><strong> Venue:</strong> @eventDetails.VenueName, @eventDetails.CityName</p>
                             </div>
                             <div class="col-md-6">
-                                <p><strong>💰 Language:</strong> @eventDetails.Language</p>
-                                <p><strong>🕒 Duration of Event:</strong> @eventDetails.Duration.Hours hr @eventDetails.Duration.Minutes min</p>
+                                <p><strong> Language:</strong> @eventDetails.Language</p>
+                                <p><strong> Duration of Event:</strong> @eventDetails.Duration.Hours hr @eventDetails.Duration.Minutes min</p>
                                 @*<p><strong>🧾 Created At:</strong> @eventDetails.CreatedAt.ToString("dd MMM yyyy hh:mm tt")</p>*@
                             </div>
                         </div>
@@ -79,32 +80,41 @@ else
 
             <!-- Right: Review Panel -->
             <div class="col-lg-4 "style="height:500px">
-                <div class="card shadow-lg border-0 rounded-4 sticky-top" style="top: 100px;">
+                <div class="card shadow-sm border-0 rounded-4 sticky-top" style="top: 100px;">
                     <div class="card-body">
                         <h5 class="fw-bold text-secondary mb-3"> Submitted By</h5>
                         <div class="p-3 rounded-3 bg-light border mb-4">
                             <div class="fw-semibold text-dark">@eventDetails.ManagerName</div>
-                            @*<div class="text-muted small">manager@example.com</div>*@
+                            @*<div class="text-muted small">@eventDetails.ManagerEmail</div>*@
                         </div>
-                        <h5 class="fw-semibold text-dark mb-3">
-                            <span>Manager Offered Amount:</span>
-                            <span class="text-danger fw-bold">₹ @eventDetails.OfferedEventAmount</span>
-                        </h5>
+
+
+                        <p class="small text-muted mb-3">
+                            Submitted on: <strong>@eventDetails.CreatedAt.ToString("dd MMM yyyy")</strong>
+                        </p>
+
+
+                        <h6 class="fw-semibold mb-2">Ticket Price</h6>
+                        <p class="text-danger fw-bold">₹ @eventDetails.TicketPrice</p>
+
+                        <h6 class="fw-semibold mb-2 mt-3">Venue Capacity</h6>
+                        <p class="fw-bold text-dark">@eventDetails.Capacity seats</p>
+
 
                         <hr />
-                        <div class="alert alert-info small py-2 mb-3">
-                            <i class="bi bi-info-circle me-2"></i>Admin can adjust amount before approval.
-                        </div>
+                        @*<div class="alert alert-info small py-2 mb-3">
+            <i class="bi bi-info-circle me-2"></i>Admin can adjust amount before approval.
+        </div>*@
 
-                        <div class="mb-3">
-                            <label class="fw-semibold">Enter Final Event Amount</label>
-                            <input type="number" class="form-control" @bind="finalAmount" placeholder="Enter amount (₹)">
-                        </div>
+                        @*<div class="mb-3">
+            <label class="fw-semibold">Enter Final Event Amount</label>
+            <input type="number" class="form-control" @bind="finalAmount" placeholder="Enter amount (₹)">
+        </div>*@
 
 
                         @*<div class="alert alert-warning small py-2 mb-3">
-                            <i class="bi bi-info-circle me-2"></i>Pending approval action required.
-                        </div>*@
+            <i class="bi bi-info-circle me-2"></i>Pending approval action required.
+        </div>*@
 
                         <div class="d-grid gap-2">
                             <button class="btn btn-outline-danger fw-semibold py-2"
@@ -176,38 +186,29 @@ else
 
     private async Task ApproveEvent()
     {
-        if (finalAmount == null || finalAmount <= 0)
-        {
-            await JS.InvokeVoidAsync("showToast", "info", "Please enter a valid final amount.");
-            return;
-        }
-
         try
         {
-            var response = await Http.PostAsJsonAsync(
-                $"api/AdminEvent/accept-offer/{eventId}",
-                new { FinalAmount = finalAmount }
-            );
+            var response = await Http.PostAsync(
+                $"api/Admin/approve/{eventId}", null);
 
             if (response.IsSuccessStatusCode)
             {
                 isApproved = true;
-                await JS.InvokeVoidAsync("showToast", "success", "Amount accepted & event approved!");
+                await JS.InvokeVoidAsync("showToast", "success", "Event approved successfully!");
                 await Task.Delay(1000);
-                Nav.NavigateTo("/manage-events", forceLoad: true);
+                Nav.NavigateTo("/admin-dashboard", forceLoad: true);
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("showToast","error","No amount was offered by manager!");
+                await JS.InvokeVoidAsync("showToast", "error", error);
             }
         }
         catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("showToast", $"Error: {ex.Message}");
+            await JS.InvokeVoidAsync("showToast", "error", $"Error: {ex.Message}");
         }
     }
-
 
     private void ShowRejectModal() => showRejectModal = true;
 
@@ -221,11 +222,11 @@ else
 
         try
         {
-            await Http.PostAsJsonAsync($"api/AdminEvent/reject/{eventId}", new { Reason = rejectionReason });
+            await Http.PostAsJsonAsync($"api/Admin/reject/{eventId}", new { Reason = rejectionReason });
             await JS.InvokeVoidAsync("showToast","error","Event rejected successfully!");
             await Task.Delay(1000);
             showRejectModal = false;
-            Nav.NavigateTo("/manage-events" , forceLoad:true);
+            Nav.NavigateTo("/admin-dashboard" , forceLoad:true);
         }
         catch (Exception ex)
         {

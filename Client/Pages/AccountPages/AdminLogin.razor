@@ -1,5 +1,6 @@
 ﻿@inherits LoginBase
-@page "/admin-login"
+@page "/login"
+@using System.Web
 @layout AdminLayout
 
 
@@ -7,7 +8,7 @@
     <div class="card shadow-lg border-0  p-4 p-md-5" style="max-width: 500px; width: 100%;">
         <h3 class="text-center text-danger fw-bold mb-3">EventiGO</h3>
         <h5 class="text-center text-muted mb-4">Welcome back <strong>Admin</strong></h5>
-        
+
 
         <EditForm Model="@loginModel" OnValidSubmit="@HandleAdminLogin">
             <DataAnnotationsValidator />
@@ -61,9 +62,24 @@
 @code {
 
 
+    private string? returnUrl;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        returnUrl = queryParams["returnUrl"];
+    }
+
     private async Task HandleAdminLogin()
     {
-        await LoginAsync("https://localhost:7239/api/Account/login", "/admin-dashboard");
+        string fallbackUrl = "/admin-dashboard";
+
+        if (!string.IsNullOrEmpty(returnUrl))
+            fallbackUrl = returnUrl!;
+
+        await LoginAsync("https://localhost:7239/api/Account/login", fallbackUrl);
     }
 
 
