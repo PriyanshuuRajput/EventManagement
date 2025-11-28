@@ -44,10 +44,20 @@
     .dashboard-icon-bg {
         position: absolute;
         right: -10px;
-        top: 10px;
-        font-size: 70px;
-        opacity: 0.12;
+        top: 0;
+        opacity: 0.40;
         z-index: 0;
+        width: 70px;
+        height: 70px;
+        border-radius: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(45deg, #d53a3a, #f8d7da);
+        color: #fff;
+        font-size: 32px;
+        margin-bottom: 15px;
+        box-shadow: -20px 19px 0px 20px rgba(0,0,0,0.15);
     }
 
     .content {
@@ -57,22 +67,21 @@
 
 
     .number {
-        font-size: 34px;
+        font-size: 50px;
         font-weight: 800;
-        margin-bottom: 4px;
+        margin-bottom: 30px;
     }
 
     
     .title {
-        font-size: 16px;
+        font-size: 24px;
         font-weight: 600;
     }
 
    
     .card-footer {
-        margin-top: 100%;
-        font-size: 14px;
-        opacity: 0.9;
+        margin-top: 100px;
+        font-size: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -97,7 +106,7 @@
 
     .bg-orange {
         background-color: #fd7e14;
-    }
+    } 
 
 
     .notification-list {
@@ -295,7 +304,7 @@
 </style>
 
 
-<div class="container-fluid py-4">
+<div class="container-fluid">
 
     <!--Header-->
     @*<div class="d-flex justify-content-between align-items-center mb-4">
@@ -322,7 +331,7 @@
 
                 @foreach (var card in SummaryCards)
                 {
-                    <div class="dashboard-card " style="background-color: #e2e2e2">
+                    <div class="dashboard-card " style="background-color: #ffefef">
 
                         
                         <i class="@card.Icon dashboard-icon-bg"></i>
@@ -334,7 +343,7 @@
 
                             <div class="card-footer">
                                 <span>Details</span>
-                                <i class="bi bi-arrow-right-circle"></i>
+                                <i class="bi bi-arrow-right"></i>
                             </div>
                         </div>
                     </div>
@@ -346,11 +355,11 @@
 
         <!-- Right Side: Notifications -->
         <div class="col-lg-3 col-md-12 ">
-            <div class="card shadow-lg rounded-2 border-0 ">
-                <div class="card-header fw-semibold rounded-top-2">
+            <div class="card shadow-lg rounded-2 border-0 " style="background-color:#ffefef">
+                <div class="card-header bg-secondary-subtle fw-semibold rounded-top-2" >
                     Notifications
                 </div>
-                <div class="card-body p-3 notification-list">
+                <div class="card-body  p-3 notification-list">
                     @if (!Notifications.Any())
                     {
                         <div class="text-center text-muted py-4 small">
@@ -555,7 +564,7 @@
 
         <!-- Ongoing Events Accordion -->
         <div class="mb-3">
-            <div class="card shadow-sm bg-secondary text-white rounded-4" style="cursor:pointer;" @onclick="ToggleOngoing">
+            <div class="card shadow-sm bg-secondary text-dark border-0 rounded-4" style="cursor: pointer; background-color:#f8d7da" @onclick="ToggleOngoing">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <span class="fw-bold">Ongoing Events (Today)</span>
                     <i class="bi bi-chevron-down" style="transition: transform 0.3s; transform: rotate(@(showOngoing ? 180 : 0)deg)"></i>
@@ -593,7 +602,7 @@
 
         <!-- Upcoming Events Accordion -->
         <div class="mb-3">
-            <div class="card shadow-sm bg-secondary text-white rounded-4" style="cursor:pointer;" @onclick="ToggleUpcoming">
+            <div class="card shadow-sm  text-dark rounded-4 border-0" style="cursor: pointer ; background-color:#f8d7da" @onclick="ToggleUpcoming">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <span class="fw-bold">Upcoming Events (Next 10 Days)</span>
                     <i class="bi bi-chevron-down" style="transition: transform 0.3s; transform: rotate(@(showUpcoming ? 180 : 0)deg)"></i>
@@ -687,7 +696,7 @@
             SummaryCards = new()
 {
     ("Total Events",     "bi bi-calendar-event",    Events.Count,      "bg-blue"),
-    ("Current Events",   "bi bi-calendar2-event",   CurrentEvents,     "bg-green"),
+    ("Live Events",   "bi bi-calendar2-event",   CurrentEvents,     "bg-green"),
     ("Total Bookings",   "bi bi-ticket-detailed",   BookingsCount,     "bg-orange"),
     ("Total Managers",   "bi bi-people-fill",       Managers.Count,    "bg-red")
 };
