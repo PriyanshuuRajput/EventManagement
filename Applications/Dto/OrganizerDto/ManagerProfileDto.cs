@@ -58,5 +58,7 @@ namespace Applications.Dto.OrganizerDto
 
         public string Status { get; set; } = string.Empty;
         public bool AcceptTerms { get; set; }
+        public bool IsApproved { get; set; }
+
     }
 }

@@ -152,10 +152,10 @@
                     @onclick="() => SetStatusFilter(EventStatus.AdminApproved)">
                 Approved
             </button>
-            <button class="btn btn-sm @(activeStatusFilter == EventStatus.PaymentConfirmed ? "btn-success" : "btn-outline-secondary") rounded-3"
+            @*<button class="btn btn-sm @(activeStatusFilter == EventStatus.PaymentConfirmed ? "btn-success" : "btn-outline-secondary") rounded-3"
                     @onclick="() => SetStatusFilter(EventStatus.PaymentConfirmed)">
                 Published
-            </button>
+            </button>*@
             <button class="btn btn-sm @(activeStatusFilter == EventStatus.Rejected ? "btn-danger" : "btn-outline-secondary") rounded-3"
                     @onclick="() => SetStatusFilter(EventStatus.Rejected)">
                 Rejected
@@ -231,24 +231,24 @@
                         <td>
                             @if (ev.Status == EventStatus.Pending)
                             {
-                                <span class="badge p-2 rounded-2 text-dark"
+                                <span class="badge p-2 rounded-2 text-dark bg-warning"
                                       style="background:#fff3cd;">
-                                    <i class="bi bi-hourglass-split"></i> Pending
+                                     Pending
                                 </span>
                             }
                             else if (ev.Status == EventStatus.AdminApproved)
                             {
-                                <span class="badge p-2 rounded-2 text-white bg-info">
-                                    <i class="bi bi-credit-card"></i> Payment Pending
+                                <span class="badge p-2 rounded-2 text-white bg-success">
+                                     Approved & Published
                                 </span>
                             }
-                            else if (ev.Status == EventStatus.PaymentConfirmed)
+                            @*else if (ev.Status == EventStatus.PaymentConfirmed)
                             {
                                 <span class="badge px-2 rounded-2 text-white"
                                       style="background: #30b075; ">
                                     <i class="bi bi-check-circle-fill"></i> Published
                                 </span>
-                            }
+                            }*@
                             else if (ev.Status == EventStatus.Rejected)
                             {
                                 <span class="badge p-2 rounded-2 text-white"

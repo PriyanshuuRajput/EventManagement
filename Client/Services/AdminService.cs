@@ -74,13 +74,13 @@ namespace EventBooking.Client.Services
             content.Add(new StringContent(dto.Genre ?? ""), "Genre");
             content.Add(new StringContent(dto.Language ?? ""), "Language");
 
-            // ✅ Duration must be in correct TimeSpan format ("hh:mm:ss")
+            // Duration must be in correct TimeSpan format ("hh:mm:ss")
             content.Add(new StringContent(dto.Duration.ToString(@"hh\:mm\:ss")), "Duration");
 
-            // ✅ ShowDate should be in "yyyy-MM-ddTHH:mm:ss" ISO format
+            //  ShowDate should be in "yyyy-MM-ddTHH:mm:ss" ISO format
             content.Add(new StringContent(dto.ShowDate.ToString("yyyy-MM-ddTHH:mm:ss")), "ShowDate");
 
-            // ✅ VenueId and CityId are integers
+            //  VenueId and CityId are integers
             content.Add(new StringContent(dto.VenueId.ToString()), "VenueId");
             if (dto.CityId.HasValue)
                 content.Add(new StringContent(dto.CityId.Value.ToString()), "CityId");
@@ -88,7 +88,7 @@ namespace EventBooking.Client.Services
             content.Add(new StringContent(dto.VenueName ?? ""), "VenueName");
             content.Add(new StringContent(dto.CityName ?? ""), "CityName");
 
-            // ✅ Use invariant culture for price
+            // ✅Use invariant culture for price
             content.Add(new StringContent(dto.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
 
             if (file != null)
@@ -98,7 +98,7 @@ namespace EventBooking.Client.Services
                 content.Add(stream, "ImageFile", file.Name);
             }
 
-            var response = await _httpClient.PostAsync("api/events", content);
+            var response = await _httpClient.PostAsync("api/events/create", content);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -140,7 +140,7 @@ namespace EventBooking.Client.Services
                 content.Add(stream, "ImageFile", file.Name);
             }
 
-            var response = await _httpClient.PutAsync($"api/events/{id}", content);
+            var response = await _httpClient.PutAsync($"api/events/update/{id}", content);
 
             // ✅ Print out backend validation errors for debugging
             if (!response.IsSuccessStatusCode)

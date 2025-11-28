@@ -18,8 +18,8 @@
             <span class="input-group-text bg-white">
                 <i class="bi bi-envelope-fill"></i>
             </span>
-            <InputText class="form-control" placeholder="Enter username or Email"
-                       @bind-Value="loginModel.Identifier" />
+            <input class="form-control" placeholder="Enter username or Email"
+                       @bind="loginModel.Identifier" />
         </div>
         <ValidationMessage For="@(() => loginModel.Identifier)" />
     </div>
@@ -30,8 +30,11 @@
             <span class="input-group-text bg-white">
                 <i class="bi bi-lock-fill"></i>
             </span>
-            <InputText type="password" class="form-control" placeholder="Enter password"
-                       @bind-Value="loginModel.Password" />
+            <input class="form-control" type="@PasswordInputType" placeholder="Enter password"
+                       @bind="loginModel.Password" />   
+            <button type="button" class="input-group-text bg-white" @onclick="()=>showPassword =! showPassword">
+                <i class=@EyeIcon></i>
+            </button>
         </div>
         <ValidationMessage For="@(() => loginModel.Password)" />
     </div>
@@ -57,10 +60,14 @@
 </EditForm>
 
 @code {
-        [Parameter] public EventCallback OnSuccess { get; set; }
-        [Parameter] public EventCallback OnCancel { get; set; }
-        [Parameter] public EventCallback OnSwitchToSignup { get; set; }
-        [Parameter] public string? email { get; set; }
+    [Parameter] public EventCallback OnSuccess { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnSwitchToSignup { get; set; }
+    [Parameter] public string? email { get; set; }
+    private bool showPassword = false;
+
+    private string PasswordInputType => showPassword ? "text" : "password";
+    private string EyeIcon => showPassword ? "bi-eye-fill" : "bi-eye-slash-fill";
 
     protected override void OnInitialized()
     {

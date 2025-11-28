@@ -119,8 +119,7 @@ namespace Infrastructures.Repository
         public async Task<IEnumerable<Event>> GetApprovedEventsAsync()
         {
             return await _context.Events
-                .Where(e => e.Status == EventStatus.AdminApproved
-                        || e.Status == EventStatus.PaymentConfirmed)
+                .Where(e => e.Status == EventStatus.AdminApproved)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                       .Include(e => e.Managers)

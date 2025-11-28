@@ -1,13 +1,14 @@
 ﻿@inherits LoginBase
-@page "/admin-login"
+@page "/admin"
+@using System.Web
 @layout AdminLayout
-
+                                     
 
 <div class="container d-flex justify-content-center align-items-center min-vh-100 ">
     <div class="card shadow-lg border-0  p-4 p-md-5" style="max-width: 500px; width: 100%;">
         <h3 class="text-center text-danger fw-bold mb-3">EventiGO</h3>
         <h5 class="text-center text-muted mb-4">Welcome back <strong>Admin</strong></h5>
-        
+
 
         <EditForm Model="@loginModel" OnValidSubmit="@HandleAdminLogin">
             <DataAnnotationsValidator />
@@ -17,20 +18,33 @@
                 <label class="form-label fw-semibold">Username / Email </label>
                 <div class="input-group">
                     <span class="input-group-text bg-white"><i class="bi bi-person-fill"></i></span>
-                    <InputText class="form-control" placeholder="Enter your details " @bind-Value="loginModel.Identifier" />
+                    <input class="form-control" placeholder="Enter your details " @bind="loginModel.Identifier" />
                 </div>
                 <ValidationMessage For="@(() => loginModel.Identifier)" />
             </div>
-
             <!-- Password -->
             <div class="mb-3">
                 <label class="form-label fw-semibold">Password</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-white"><i class="bi bi-lock-fill"></i></span>
-                    <InputText type="password" class="form-control" placeholder="Enter your password" @bind-Value="loginModel.Password" />
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-lock-fill"></i>
+                    </span>
+
+                    <input class="form-control"
+                           type="@PasswordInputType"
+                           placeholder="Enter your password"
+                           @bind="loginModel.Password" />
+
+                    <button type="button"
+                            class="input-group-text bg-white"
+                            @onclick="()=>showPassword = !showPassword">
+                        <i class="@EyeIcon"></i>
+                    </button>
                 </div>
+
                 <ValidationMessage For="@(() => loginModel.Password)" />
             </div>
+
 
             <!-- Login Button -->
             <button type="submit" class="btn btn-outline-danger w-100 fw-semibold py-2 mt-2">
@@ -45,25 +59,43 @@
 
             <!-- Divider -->
             <!--<div class="text-center my-3 position-relative">
-                <hr class="text-muted" />
-                <span class="bg-white px-3 text-muted small position-absolute top-50 start-50 translate-middle">OR</span>
-            </div>-->
+        <hr class="text-muted" />
+        <span class="bg-white px-3 text-muted small position-absolute top-50 start-50 translate-middle">OR</span>
+    </div>-->
             <!-- Signup Redirect -->
             @*<div class="text-center">
-                    <span class="text-muted small">Don't have an account?</span>
-                    <a href="/signup" class="fw-semibold text-decoration-none text-primary"> Sign Up</a>
-                </div>*@
+            <span class="text-muted small">Don't have an account?</span>
+            <a href="/signup" class="fw-semibold text-decoration-none text-primary"> Sign Up</a>
+        </div>*@
         </EditForm>
     </div>
 </div>
 
 
 @code {
+    private bool showPassword = false;
 
+    private string PasswordInputType => showPassword ? "text" : "password";
+    private string EyeIcon => showPassword ? "bi-eye-fill" : "bi-eye-slash-fill";
+
+    private string? returnUrl;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        returnUrl = queryParams["returnUrl"];
+    }
 
     private async Task HandleAdminLogin()
     {
-        await LoginAsync("https://localhost:7239/api/Account/login", "/admin-dashboard");
+        string fallbackUrl = "/admin-dashboard";
+
+        if (!string.IsNullOrEmpty(returnUrl))
+            fallbackUrl = returnUrl!;
+
+        await LoginAsync("https://localhost:7239/api/Account/login", fallbackUrl);
     }
 
 

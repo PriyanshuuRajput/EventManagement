@@ -5,10 +5,10 @@
 @inject AuthenticationStateProvider AuthProvider
 @inject Blazored.Toast.Services.IToastService toastService
 
-@using Blazored.Typeahead
+@*@using Blazored.Typeahead*@
 
 <style>
-   
+
     body {
         background-color: #f8f9fa;
         font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -26,7 +26,7 @@
             box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
         }
 
-    /* ====== SIDEBAR ====== */
+
     .filter-sidebar {
         position: sticky;
         top: 80px;
@@ -52,7 +52,6 @@
         color: #343a40;
     }
 
-    /* ====== BUTTON STYLES ====== */
     .btn-outline-danger.active,
     .btn-outline-danger:hover {
         background-color: #dc3545;
@@ -65,7 +64,6 @@
         color: #dc3545;
     }
 
-    /* ====== TABLE STYLING ====== */
     .table thead {
         background-color: #f1f3f5;
         color: #495057;
@@ -100,9 +98,8 @@
 
     .fade-in {
         animation: fadeIn 0.3s ease-in-out;
-    }         
+    }
 
-    /* ====== MAKE ALL EVENT CARDS EQUAL HEIGHT ====== */
 
     .event-card {
         height: 100%;
@@ -110,14 +107,9 @@
         flex-direction: column;
     }
 
-        /*.event-card .card-body {
-            flex: 1;*/ 
-/*            display: flex;*/
-/*            flex-direction: column;*/
-        /*}*/
-
+ 
     .event-title {
-        min-height: 48px; 
+        min-height: 48px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -141,7 +133,6 @@
 
         .event-card .price-box {
             transition: all 0.3s ease;
-            
         }
 
         .event-card:hover .price-box {
@@ -154,7 +145,7 @@
         color: #343a40 !important;
         border: 1px solid rgba(0,0,0,0.1);
     }
-              /* ===== RIGHT DRAWER PANEL ===== */
+
     .drawer-overlay {
         position: fixed;
         inset: 0;
@@ -175,7 +166,7 @@
         border-radius: 0 0 0 12px;
         display: flex;
         flex-direction: column;
-/*        padding: 20px;
+        /*        padding: 20px;
         overflow-y: auto;*/
         z-index: 2001;
         transform: translateX(100%);
@@ -183,10 +174,15 @@
     }
 
 
-@@keyframes slideIn {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0%); }
-}
+    @@keyframes slideIn {
+        from {
+            transform: translateX(100%);
+        }
+
+        to {
+            transform: translateX(0%);
+        }
+    }
 
     .drawer-header {
         padding: 18px 20px;
@@ -202,17 +198,10 @@
         padding: 20px;
         overflow-y: auto;
     }
-
-        .drawer-body::-webkit-scrollbar {
+    .drawer-body::-webkit-scrollbar 
+        {
             width: 0px;
         }
-
-/*        .drawer-body::-webkit-scrollbar-thumb {
-            background: #ddd;
-            border-radius: 10px;
-        }*/
-
-    /* ===== FOOTER ===== */
     .drawer-footer {
         background: #fff;
         padding-top: 15px;
@@ -263,9 +252,7 @@
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
     }
 
-    /*        .promo-banner span {
-            color: #dc3545;
-        }*/
+  
 
     .banner {
         padding: 22px;
@@ -277,7 +264,6 @@
     }
 
 
-    /* ====== MODAL ====== */
     .modal-header {
         border-bottom: 2px solid #dc3545 !important;
     }
@@ -315,62 +301,119 @@
             <div class="filter-sidebar p-3 shadow-sm bg-white sticky-top" style="top: 80px; border-radius: 12px;">
                 <h5 class="text-danger fw-semibold">Filters</h5>
                 <hr />
+                @if (activeTab == "events")
+                {
 
-                <!-- Date Filter -->
-                <div class="filter-section mb-3">
-                    <h6>Date</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button class="@GetDateButtonClass("today")" @onclick='() => SetDateFilter("today")'>Today</button>
-                        <button class="@GetDateButtonClass("tomorrow")" @onclick='() => SetDateFilter("tomorrow")'>Tomorrow</button>
-                        <button class="@GetDateButtonClass("weekend")" @onclick='() => SetDateFilter("weekend")'>Weekend</button>
-                    </div>
-                </div>
-
-                <!-- Category Filter -->
-                <div class="filter-section mb-3">
-                    <h6>EventType</h6>
-                    @foreach (var category in categories)
-                    {
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="@category" @onchange="e => ToggleCategory(category)">
-                            <label class="form-check-label small" for="@category">@category</label>
+                    <!-- Date Filter -->
+                    <div class="filter-section mb-3">
+                        <h6>Date</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="@GetDateButtonClass("today")" @onclick='() => SetDateFilter("today")'>Today</button>
+                            <button class="@GetDateButtonClass("tomorrow")" @onclick='() => SetDateFilter("tomorrow")'>Tomorrow</button>
+                            <button class="@GetDateButtonClass("weekend")" @onclick='() => SetDateFilter("weekend")'>Weekend</button>
                         </div>
-                    }
-                </div>
-
-                <!-- City Filter -->
-                <div class="filter-section mb-3">
-                    <h6>City</h6>
-                    <select class="form-select form-select-sm" @onchange="FilterCity">
-                        <option value="">All Cities</option>
-                        @foreach (var city in cities)
-                        {
-                            <option value="@city">@city</option>
-                        }
-                    </select>
-                </div>
-
-                <!-- Price Filter -->
-                <div class="filter-section mb-3">
-                    <h6>Ticket Price</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button class="@GetPriceButtonClass(0, 0)" @onclick="() => SetPriceRange(0, 0)">Free</button>
-                        <button class="@GetPriceButtonClass(1, 500)" @onclick="() => SetPriceRange(1, 500)">₹0–500</button>
-                        <button class="@GetPriceButtonClass(501, 2000)" @onclick="() => SetPriceRange(501, 2000)">₹501–2000</button>
-                        <button class="@GetPriceButtonClass(2001, 5000)" @onclick="() => SetPriceRange(2001, 5000)">₹2001–5000</button>
-                        <button class="@GetPriceButtonClass(5001, 100000)" @onclick="() => SetPriceRange(5001, 100000)">Above ₹5000</button>
                     </div>
-                </div>
+
+                    <!-- Category Filter -->
+                    <div class="filter-section mb-3">
+                        <h6>EventType</h6>
+                        @foreach (var category in categories)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="@category" @onchange="e => ToggleCategory(category)">
+                                <label class="form-check-label small" for="@category">@category</label>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- City Filter -->
+                    <div class="filter-section mb-3">
+                        <h6>City</h6>
+                        <select class="form-select form-select-sm" @onchange="FilterCity">
+                            <option value="">All Cities</option>
+                            @foreach (var city in cities)
+                            {
+                                <option value="@city">@city</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Price Filter -->
+                    <div class="filter-section mb-3">
+                        <h6>Ticket Price</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="@GetPriceButtonClass(0, 0)" @onclick="() => SetPriceRange(0, 0)">Free</button>
+                            <button class="@GetPriceButtonClass(1, 500)" @onclick="() => SetPriceRange(1, 500)">₹0–500</button>
+                            <button class="@GetPriceButtonClass(501, 2000)" @onclick="() => SetPriceRange(501, 2000)">₹501–2000</button>
+                            <button class="@GetPriceButtonClass(2001, 5000)" @onclick="() => SetPriceRange(2001, 5000)">₹2001–5000</button>
+                            <button class="@GetPriceButtonClass(5001, 100000)" @onclick="() => SetPriceRange(5001, 100000)">Above ₹5000</button>
+                        </div>
+                    </div>
+                }
+                @if (activeTab == "venues")
+                {
+                    <!-- City Filter -->
+                    <div class="filter-section mb-3">
+                        <h6>City</h6>
+                        <select class="form-select form-select-sm" @onchange="FilterCity">
+                            <option value="">All Cities</option>
+                            @foreach (var city in citiesList.Select(c => c.CityName).Distinct())
+                            {
+                                <option value="@city">@city</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Venue Name Search -->
+                    <div class="filter-section mb-3">
+                        <h6>Search Venue</h6>
+                        <input type="text" class="form-control form-control-sm" placeholder="Search..."
+                               @bind="venueSearch" @oninput="(e) => ApplyFilters()" />
+                    </div>
+                }
+                @if (activeTab == "cities")
+                {
+                    <!-- Country Filter -->
+                    <div class="filter-section mb-3">
+                        <h6>Country</h6>
+                        <select class="form-select form-select-sm" @onchange="FilterCountry">
+                            <option value="">All Countries</option>
+                            @foreach (var country in _allCountries)
+                            {
+                                <option value="@country.Id">@country.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- State Filter -->
+                    @*<div class="filter-section mb-3">
+                        <h6>State</h6>
+                        <select class="form-select form-select-sm" @onchange="FilterState">
+                            <option value="">All States</option>
+                            @foreach (var state in filteredStates)
+                            {
+                                <option value="@state.Id">@state.Name</option>
+                            }
+                        </select>
+                    </div>*@
+
+                    <!-- City Search -->
+                    <div class="filter-section mb-3">
+                        <h6>City Name</h6>
+                        <input class="form-control form-control-sm" placeholder="Search city..."
+                               @bind="citySearch" @oninput="(e) => ApplyFilters()" />
+                    </div>
+                }
 
                 <hr />
                 <div class="d-flex justify-content-between">
                     <button class="btn btn-outline-secondary" @onclick="ClearAllFilters">Clear</button>
                     <button class="btn btn-outline-danger" @onclick="ApplyFilters">Apply</button>
                 </div>
-            </div>
+
+            </div>  
         </div>
-
-
+              
 
         <div class="col-lg-9">
             @if (activeTab == "events")
@@ -378,7 +421,7 @@
                 <div class="fade-in">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="fw-semibold text-dark"><i class="bi bi-calendar-event me-2"></i>Manage Events</h4>
-                        <button class="btn btn-outline-danger" @onclick="ShowAddEventModal">
+                        <button class="btn btn-outline-danger me-4" @onclick="ShowAddEventModal">
                             <i class="bi bi-plus-circle me-1"></i>Add Event
                         </button>
                     </div>
@@ -398,94 +441,95 @@
                                             ? (int)((double)evt.SoldTickets / evt.TotalTickets * 100)
                                             : 0;
                                 <div class="col-md-4 col-lg-3 d-flex">
-                                   <div class="card shadow-sm event-card border-0 fade-in flex-fill">
-                                       <div class="card-body">
+                                    <div class="card shadow-sm event-card border-0 fade-in flex-fill">
+                                        <div class="card-body">
 
-                                           <!-- TITLE -->
-                                           <h5 class="fw-bold text-dark mb-1 event-title" data-bs-toggle="tooltip"data-placement="top" title="@evt.Title">
-                                               @evt.Title
-                                           </h5>
-                                           <p class="text-muted small">@evt.EventType</p>
+                                            <!-- TITLE -->
+                                            <h5 class="fw-bold text-dark mb-1 event-title" data-bs-toggle="tooltip" data-placement="top" title="@evt.Title">
+                                                @evt.Title
+                                            </h5>
+                                            <p class="text-muted small">@evt.EventType</p>
 
-                                           <!-- DATE & TIME -->
-                                           <div class="d-flex justify-content-between text-center mb-3 gap-3">
-                                               <div class="flex-fill p-2 border rounded bg-light">
-                                                   <p class="text-muted m-0 small">Date</p>
-                                                   <h6 class="fw-semibold">@evt.ShowDate.ToString("dd-MMM")</h6>
-                                               </div>
-                                               <div class="flex-fill p-2 border rounded bg-light">
-                                                   <p class="text-muted m-0 small">Time</p>
-                                                   <h6 class="fw-semibold">@evt.ShowDate.ToString("hh:mm tt")</h6>
-                                               </div>
-                                           </div>
+                                            <!-- DATE & TIME -->
+                                            <div class="d-flex justify-content-between text-center mb-3 gap-3">
+                                                <div class="flex-fill p-2 border rounded bg-light">
+                                                    <p class="text-muted m-0 small">Date</p>
+                                                    <h6 class="fw-semibold">@evt.ShowDate.ToString("dd-MMM")</h6>
+                                                </div>
+                                                <div class="flex-fill p-2 border rounded bg-light">
+                                                    <p class="text-muted m-0 small">Time</p>
+                                                    <h6 class="fw-semibold">@evt.ShowDate.ToString("hh:mm tt")</h6>
+                                                </div>
+                                            </div>
 
-                                           <hr style="height:10px" />
+                                            <hr style="height:10px" />
 
-                                           <!-- VENUE -->
-                                           <p class="small fw-bold text-muted mb-2" style="font-size:15px">
-                                               <i class="bi bi-geo-alt-fill text-danger me-2"></i>@evt.VenueName
-                                               <span class="small text-muted m-4">@evt.Address</span>
-                                           </p>
+                                            <!-- VENUE -->
+                                            <p class="small fw-bold text-muted mb-2" style="font-size:15px">
+                                                <i class="bi bi-geo-alt-fill text-danger me-2"></i>@evt.VenueName
+                                                <span class="small text-muted m-4">@evt.Address</span>
+                                                <span class="small text-muted m-4">@evt.CityName</span>
+                                            </p>
 
-                                           <!-- DURATION -->
-                                           <p class="small text-muted mb-1">
-                                               <i class="bi bi-clock me-1 text-danger"></i>
-                                               @(evt.Duration.ToString(@"hh\h\ mm\m"))
-                                           </p>
+                                            <!-- DURATION -->
+                                            <p class="small text-muted mb-1">
+                                                <i class="bi bi-clock me-1 text-danger"></i>
+                                                @(evt.Duration.ToString(@"hh\h\ mm\m"))
+                                            </p>
 
-                                           <!-- LANGUAGE -->
-                                           <p class="small text-muted mb-2">
-                                               <i class="bi bi-translate me-1 text-danger"></i>@evt.Language
-                                           </p>
+                                            <!-- LANGUAGE -->
+                                            <p class="small text-muted mb-2">
+                                                <i class="bi bi-translate me-1 text-danger"></i>@evt.Language
+                                            </p>
 
-                                           <!-- PRICE - Gets highlighted on hover -->
-                                           <h5 class="fw-bold mt-3 mb-3 ms-2 price-box text-dark">
-                                               ₹@evt.TicketPrice.ToString("N2")
-                                           </h5>
+                                            <!-- PRICE - Gets highlighted on hover -->
+                                            <h5 class="fw-bold mt-3 mb-3 ms-2 price-box text-dark">
+                                                ₹@evt.TicketPrice.ToString("N2")
+                                            </h5>
 
-                                           <!-- BUTTONS -->
+                                            <!-- BUTTONS -->
 
-                                           @if (isAdmin)
-                                           {
-                                               <!--Admin -Full Control-->
+                                            @if (isAdmin)
+                                            {
+                                                <!--Admin -Full Control-->
 
-                                               <button class="btn btn-light me-2 ms-2 mt-3" style="width:62%"
-                                                       @onclick="() => ShowEditEventModal(evt)">
-                                                   <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
-                                               </button>
-                                               <button class="btn btn-outline-danger m-1 mt-3" style="width:22%"
-                                                       @onclick="() => DeleteEvent(evt.Id)">
-                                                   <i class="bi bi-trash"></i>
-                                               </button>
-                                           }
-                                           else if (isManager)
-                                           {
-                                               @if (evt.Status == EventStatus.Pending)
-                                               {
-                                                   <!-- Manager: Editable only before approval -->
-                                                   <button class="btn btn-light me-2 ms-2 mt-3" style="width:65%"
-                                                           @onclick="() => ShowEditEventModal(evt)">
-                                                       <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
-                                                   </button>
+                                                <button class="btn btn-light me-2 ms-2 mt-3" style="width:62%"
+                                                        @onclick="() => ShowEditEventModal(evt)">
+                                                    <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
+                                                </button>
+                                                <button class="btn btn-outline-danger m-1 mt-3" style="width:22%"
+                                                        @onclick="() => OpenDeleteModal(evt.Id)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            }
+                                            else if (isManager)
+                                            {
+                                                @if (evt.Status == EventStatus.Pending)
+                                                {
+                                                    <!-- Manager: Editable only before approval -->
+                                                    <button class="btn btn-light me-2 ms-2 mt-3" style="width:65%"
+                                                            @onclick="() => ShowEditEventModal(evt)">
+                                                        <i class="bi bi-pencil-square me-1 text-danger"></i>Edit
+                                                    </button>
 
-                                                   <button class="btn btn-outline-danger m-1 mt-3" style="width:21%"
-                                                           @onclick="() => DeleteEvent(evt.Id)">
-                                                       <i class="bi bi-trash me-2"></i>
-                                                   </button>
-                                               }
-                                               else
-                                               {
-                                                   <!-- After Approved / Published -->
-                                                   <button class="btn btn-outline-warning  me-2 ms-2 mt-3" style="width:62%" disabled>
-                                                       <i class=" me-2 text-secondary  bi bi-lock"></i>Edit
-                                                   </button>
-                                                   <button class="btn btn-outline-secondary m-1 mt-3" style="width:22%" disabled>
-                                                       <i class="bi bi-lock"></i>
-                                                   </button>
-                                               }
-                                           }
-                                       </div>
-                                   </div>
+                                                    <button class="btn btn-outline-danger m-1 mt-3" style="width:21%"
+                                                            @onclick="() => OpenDeleteModal(evt.Id)">
+                                                        <i class="bi bi-trash me-2"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <!-- After Approved / Published -->
+                                                    <button class="btn btn-outline-warning  me-2 ms-2 mt-3" style="width:62%" disabled>
+                                                        <i class=" me-2 text-secondary  bi bi-lock"></i>Edit
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary m-1 mt-3" style="width:22%" disabled>
+                                                        <i class="bi bi-lock"></i>
+                                                    </button>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
 
 
@@ -502,7 +546,7 @@
                         <h3 class="fw-semibold text-bg-danger-dark mb-0">
                             <i class="bi bi-building me-2"></i>Manage Venues
                         </h3>
-                        <button class="btn btn-outline-danger" @onclick="ShowAddVenueModal">
+                        <button class="btn btn-outline-danger me-4" @onclick="ShowAddVenueModal">
                             <i class="bi bi-plus-circle me-1"></i> Add Venue
                         </button>
                     </div>
@@ -511,7 +555,7 @@
                             <table class="table align-middle mb-0">
                                 <thead class="bg-light text-secondary">
                                     <tr>
-                                        <th>Venue</th>
+                                        <th>Venue Name</th>
                                         <th>Address</th>
                                         <th>Capacity</th>
                                         <th>Events</th>
@@ -529,7 +573,7 @@
                                     }
                                     else
                                     {
-                                        @foreach (var v in venues)
+                                        @foreach (var v in FilteredVenues)
                                         {
                                             <tr>
                                                 <td>
@@ -576,7 +620,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="fw-semibold text-dark mb-0"><i class="bi bi-geo-alt-fill me-2"></i>Manage City</h3>
 
-                        <button class="btn btn-outline-danger" @onclick="ShowAddCityModal">
+                        <button class="btn btn-outline-danger me-4" @onclick="ShowAddCityModal">
                             <i class="bi bi-plus-circle me-1"></i> Add City
                         </button>
                     </div>
@@ -589,7 +633,7 @@
                     else
                     {
                         <div class=" row g-3">
-                            @foreach (var c in citiesList)
+                            @foreach (var c in FilteredCities)
                             {
                                 <div class="col-md-4 col-lg-">
                                     <div class="card border-0 shadow-sm h-100 fade-in">
@@ -639,15 +683,15 @@
             @if (showEventModal)
             {
                 <!--<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-            <div class="modal-dialog modal-md modal-dialog-scrollable" style="max-width:800px;">
-                <div class="modal-content border-0 shadow-lg rounded-3">-->
+                <div class="modal-dialog modal-md modal-dialog-scrollable" style="max-width:800px;">
+                    <div class="modal-content border-0 shadow-lg rounded-3">-->
                 <!-- Header -->
                 <!--<div class="modal-header border border-danger-subtle text-dark py-2">
-            <h5 class="modal-title">
-                @((editingEvent?.Id > 0 ? "Update Event" : "Add New Event"))
-            </h5>
-            <button type="button" class="btn-close btn-close-white" @onclick="() => showEventModal = false"></button>
-        </div>-->
+                    <h5 class="modal-title">
+                        @((editingEvent?.Id > 0 ? "Update Event" : "Add New Event"))
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => showEventModal = false"></button>
+                </div>-->
 
                 <!-- Body -->
                 <!--<div class="modal-body bg-light">-->
@@ -665,13 +709,13 @@
 
                     <div class="drawer-body">
                         <EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">
-                            
+                            @*<ValidationSummary />*@
                             <DataAnnotationsValidator />
 
                             <!-- General Info -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
-                                     General Information
+                                    General Information
                                 </div>
                                 <div class="card-body row g-3">
                                     <div class="col-md-6">
@@ -682,29 +726,45 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">Event Type<span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="editingEvent.EventType" class="form-control" />
-                                        <ValidationMessage For="@(() => editingEvent.EventType)" class="text-danger small" />
+                                        <label class="form-label fw-bold">Event Type<span class="text-muted">(optional)</span></label>
+                                        <InputText @bind-Value="editingEvent.EventType"
+                                                   class="form-control"
+                                                   @oninput="e => { editingEvent.EventType = e.Value?.ToString(); ValidateTypeGenre(); }" />
+
+                                        @if (!string.IsNullOrEmpty(eventTypeError))
+                                        {
+                                            <div class="text-danger small">@eventTypeError</div>
+                                        }
+
                                     </div>
+
 
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">Language<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Language" class="form-control" />
-                                        <ValidationMessage For="@(()=>editingEvent.Language)" class ="text-danger small"/>
+                                        <ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />
                                     </div>
 
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">Genre<span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="editingEvent.Genre" class="form-control" />
-                                        <ValidationMessage For="@(()=>editingEvent.Genre)" class ="text-danger small"/>
+                                        <InputText @bind-Value="editingEvent.Genre"
+                                                   class="form-control"
+                                                   @oninput="e => { editingEvent.Genre = e.Value?.ToString(); ValidateTypeGenre(); }" />
+
+                                        @if (!string.IsNullOrEmpty(genreError))
+                                        {
+                                            <div class="text-danger small">@genreError</div>
+                                        }
+
                                     </div>
+
                                 </div>
                             </div>
 
                             <!-- Date and Time Info -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header text-dark fw-bold">
-                                     Event Schedule
+                                    Event Schedule
                                 </div>
                                 <div class="card-body row g-3">
                                     <div class="col-md-6">
@@ -712,45 +772,56 @@
                                         <input type="datetime-local"
                                                @bind="editingEvent.ShowDate"
                                                class="form-control"
-                                               min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                                               min="@DateTime.Now.ToString("yyyy-MM-ddTTHH:mm")" />
                                         <ValidationMessage For="@(() => editingEvent.ShowDate)" class="text-danger small" />
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">Duration (HH:MM)<span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="durationInput" class="form-control" placeholder="e.g., 02:30" />
-                                        <ValidationMessage For="@(() => editingEvent.Duration)" />
+                                        <label class="form-label fw-bold">Duration (HH:MM) <span class="text-danger">*</span></label>
+
+                                        <InputText class="form-control"
+                                                   @bind-Value="durationInput"
+                                                   @oninput="e => ValidateDuration(e.Value?.ToString() ?? string.Empty)" />
+
+                                        @if (!string.IsNullOrEmpty(durationError))
+                                        {
+                                            <div class="text-danger small">@durationError</div>
+                                        }
+                                        <ValidationMessage For="@(() => editingEvent.Duration)"class="text-danger small"/>
                                     </div>
+
                                 </div>
                             </div>
 
                             <!-- Location Info -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
-                                     Location Details
+                                    Location Details
                                 </div>
                                 <div class="card-body row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">Venue</label>
-                                        <InputSelect @bind-Value="editingEvent.VenueId" class="form-control">
-                                            <option value="">-- Select Venue --</option>
-                                            @foreach (var venue in venues)
+                                        <label class="form-label fw-bold">Venue<span class="text-danger">*</span></label>
+                                        <InputSelect @bind-Value="editingEvent.VenueId" class="form-select" @onchange="OnVenueChanged">
+                                            <option value="0">-- Select Venue --</option>
+                                            @foreach (var venue in filteredVenues)
                                             {
                                                 <option value="@venue.Id">@venue.VenueName</option>
                                             }
                                         </InputSelect>
+
                                         <ValidationMessage For="@(() => editingEvent.VenueId)" />
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">City</label>
-                                        <InputSelect @bind-Value="editingEvent.CityId" class="form-control">
+                                        <label class="form-label fw-bold">City<span class="text-danger">*</span></label>
+                                        <InputSelect @bind-Value="editingEvent.CityId" class="form-select" @onchange="OnCityChanged">
                                             <option value="">-- Select City --</option>
                                             @foreach (var city in citiesList)
                                             {
                                                 <option value="@city.Id">@city.CityName</option>
                                             }
                                         </InputSelect>
+
                                         <ValidationMessage For="@(() => editingEvent.CityId)" />
                                     </div>
                                 </div>
@@ -759,7 +830,7 @@
                             <!-- Ticket and Image Info -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
-                                     Tickets & Image
+                                    Tickets & Image
                                 </div>
                                 <div class="card-body row g-3">
                                     <div class="col-md-6">
@@ -775,6 +846,7 @@
                                         {
                                             <img src="@editingEvent.ImageUrl" alt="Preview" class="mt-2 rounded shadow-sm border" width="120" />
                                         }
+                                        @*<ValidationMessage For="@(() => editingEvent.ImageUrl)" />*@
                                     </div>
                                 </div>
                             </div>
@@ -782,24 +854,31 @@
                             <!-- Description -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
-                                     Description
+                                    Description
                                 </div>
                                 <div class="card-body">
                                     <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="3" placeholder="Write a short description..." />
+                                    <ValidationMessage For="@(() => editingEvent.Description)" class="text-danger small" />
+                                </div>
+                                <!-- Footer -->
+                                <div class=" d-flex justify-content-end align-items-center">
+                                    <button class="btn btn-outline-secondary m-2 shadow-lg" @onclick="() => showEventModal = false">Cancel</button>
+                                    <button class="btn btn-danger m-2 shadow-lg"
+                                            @*disabled="@(!string.IsNullOrWhiteSpace(durationError))">*@
+                                    >
+                                        Save
+                                    </button>
+
                                 </div>
                             </div>
 
-                            <!-- Footer -->
-                            <div class=" d-flex justify-content-end align-items-center">
-                                <button class="btn btn-outline-secondary m-2 shadow-lg" @onclick="() => showEventModal = false">Cancel</button>
-                                <button class="btn btn-danger m-2 shadow-lg ">Save</button>
-                            </div>
+
 
                         </EditForm>
                     </div>
                 </div>
-            @*</div>
-                </div>*@
+                @*</div>
+                    </div>*@
 
 
             }
@@ -902,10 +981,34 @@
                                         disabled="@(string.IsNullOrWhiteSpace(editingCity.CityName) ||
                     editingCity.CountryId == Guid.Empty ||
                     editingCity.StateId == Guid.Empty)">
-                                     Save
+                                    Save
                                 </button>
 
                             </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if(showDeleteModal) 
+            { 
+                <div class="modal fade show d-block" style="background:rgba(0,0,0,0.6);">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm Delete !</h5>
+                            </div>
+
+                            <div class="modal-body">
+                                <p>Are you sure you want to delete this event permanently?</p>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" @onclick="CloseDeleteModal">Cancel</button>
+                                <button class="btn btn-danger" @onclick="DeleteConfirmed">Delete</button>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -957,14 +1060,61 @@
     private List<VenueDto> venues = new();
     private VenueDto editingVenue = new();
     private bool showVenueModal = false;
+    private List<VenueDto> FilteredVenues = new();
+    private string venueSearch = string.Empty;
+    private List<VenueDto> filteredVenues = new();
+
 
     private List<CityDto> citiesList = new();
     private CityDto editingCity = new();
     private bool showCityModal = false;
+    private List<CityDto> FilteredCities = new();
+    private Guid? selectedCountryFilter;
+    private Guid? selectedStateFilter;
+    private string citySearch = string.Empty;
 
     private string durationInput = string.Empty;
+    private string? durationError;
     private IBrowserFile? selectedImageFile;
 
+    private bool showDeleteModal = false;
+    private int deleteEventId;
+
+    private string? eventTypeError;
+    private string? genreError;
+
+    private void ValidateTypeGenre()
+    {
+        var et = editingEvent.EventType?.Trim() ?? "";
+        var ge = editingEvent.Genre?.Trim() ?? "";
+
+        if (string.IsNullOrWhiteSpace(et) && string.IsNullOrWhiteSpace(ge))
+        {
+            eventTypeError = "EventType or Genre is required";
+            genreError = "EventType or Genre is required";
+        }
+        else
+        {
+            eventTypeError = null;
+            genreError = null;
+        }
+    }
+
+
+    private void ValidateDuration(string value)
+    {
+        durationInput = value;
+
+
+        if (!TimeSpan.TryParse(durationInput, out var _))
+        {
+            durationError = "Enter valid duration in HH:mm format (e.g., 02:30)";
+        }
+        else
+        {
+            durationError = null;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -992,6 +1142,8 @@
 
         CalculateVenueEventCounts();
         CalculateCityCounts();
+        filteredVenues = venues.ToList();
+
     }
 
     private void HandleInvalidSubmit()
@@ -1047,123 +1199,122 @@
 
         showEventModal = true;
     }
+
     private bool ConvertDuration()
     {
-        if (TimeSpan.TryParse(durationInput, out var ts))
+        durationError = string.Empty;
+
+        if (!TimeSpan.TryParse(durationInput, out var ts))
         {
-            editingEvent.Duration = ts;
-            return true;
+            durationError = "Invalid format. Use HH:mm (e.g., 01:30).";
+            return false;
         }
-        return false;
+
+        if (ts.TotalMinutes < 10)
+        {
+            durationError = "Duration must be at least 10 minutes.";
+            return false;
+        }
+
+        editingEvent.Duration = ts;
+        return true;
     }
 
     private async Task SaveEvent(EventDto evt)
     {
         try
         {
-            var authState = await AuthProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            // =============== Manager Restrictions ==================
-            if (isManager)
+            if (!ConvertDuration())
             {
-                var existing = Events.FirstOrDefault(e => e.Id == evt.Id);
-
-                if (existing != null &&
-                    (existing.Status == EventStatus.AdminApproved ||
-                     existing.Status == EventStatus.PaymentConfirmed))
-                {
-                    toastService.ShowWarning("This event is approved or published. Manager cannot edit. Contact admin.");
-                    return;
-                }
+                toastService.ShowError("Invalid duration format. Use HH:mm (e.g., 02:30).");
+                return;
             }
-            // BUILD MULTIPART FORM ONLY ONCE (CRITICAL FIX)
+            if (string.IsNullOrWhiteSpace(editingEvent.EventType) &&
+    string.IsNullOrWhiteSpace(editingEvent.Genre))
+            {
+                ValidateTypeGenre();
+                toastService.ShowError("Please fill at least EventType or Genre.");
+                return;
+            }
+
+
             var content = new MultipartFormDataContent();
 
-            content.Add(new StringContent(evt.Title), "Title");
-            content.Add(new StringContent(evt.EventType), "EventType");
+            content.Add(new StringContent(evt.Title ?? ""), "Title");
+            content.Add(new StringContent(evt.EventType ?? ""), "EventType");
             content.Add(new StringContent(evt.Description ?? ""), "Description");
             content.Add(new StringContent(evt.Genre ?? ""), "Genre");
             content.Add(new StringContent(evt.Language ?? ""), "Language");
-            content.Add(new StringContent(evt.VenueId.ToString()), "VenueId");
-            content.Add(new StringContent(evt.CityId.ToString()), "CityId");
 
+            if (evt.VenueId > 0)
+                content.Add(new StringContent(evt.VenueId.ToString()), "VenueId");
 
-            // Ensure Duration format correct
+            if (evt.CityId.HasValue && evt.CityId > 0)
+                content.Add(new StringContent(evt.CityId.Value.ToString()), "CityId");
+
             content.Add(new StringContent(evt.Duration.ToString(@"hh\:mm\:ss")), "Duration");
-
             content.Add(new StringContent(evt.ShowDate.ToString("yyyy-MM-ddTHH:mm:ss")), "ShowDate");
-            //content.Add(new StringContent(evt.VenueId.ToString()), "VenueId");
+            content.Add(new StringContent(evt.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
 
-            content.Add(new StringContent(evt.TicketPrice.ToString(
-                System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
-            // =================== IMAGE UPLOAD ===================
+            // IMAGE
             if (selectedImageFile != null)
             {
-                var stream = selectedImageFile.OpenReadStream(maxAllowedSize: 5_000_000);
+                var stream = selectedImageFile.OpenReadStream(10_000_000);
                 var fileContent = new StreamContent(stream);
-                fileContent.Headers.ContentType =
-                    new System.Net.Http.Headers.MediaTypeHeaderValue(selectedImageFile.ContentType);
-
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedImageFile.ContentType);
                 content.Add(fileContent, "ImageFile", selectedImageFile.Name);
             }
-
-            HttpResponseMessage response;
-            // ADMIN SECTION
-
-            if (isAdmin)
+            else if (evt.Id > 0)
             {
-                if (evt.Id > 0)
-                {
-                    await AdminService.UpdateEventAsync(evt.Id, evt, selectedImageFile);
-                    toastService.ShowSuccess("Event updated successfully.");
-                }
-                else
-                {
-                    await AdminService.AddEventAsync(evt, selectedImageFile);
-                    toastService.ShowSuccess("Event created successfully.");
-                }
-
-                await LoadAdminEvents();
-                showEventModal = false;
-                selectedImageFile = null; // reset
-                return;
+                content.Add(new StringContent(evt.ImageUrl ?? ""), "ImageUrl");
             }
-            // MANAGER SECTION
+
+
+            // MANAGER FLOW
 
             if (isManager)
             {
-                if (evt.Id > 0)
-                {
-                    // Update existing event
-                    response = await Http.PutAsync($"api/ManagerEvent/update/{evt.Id}", content);
-                }
-                else
-                {
-                    // Create new event
-                    response = await Http.PostAsync("api/ManagerEvent/create", content);
-                }
+                HttpResponseMessage response;
 
-                var body = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("MANAGER API RESPONSE: " + body);
+                if (evt.Id > 0)
+                    response = await Http.PutAsync($"api/ManagerEvent/update/{evt.Id}", content);
+                else
+                    response = await Http.PostAsync("api/ManagerEvent/create", content);
+
+                string body = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                 {
                     toastService.ShowError(body);
                     return;
                 }
-                if(!ConvertDuration())
-                {
-                    toastService.ShowError("Invalid duration format. Use HH:MM (e.g., 01:30)");
-                    return;
-                }
 
-                toastService.ShowSuccess("Event saved successfully!");
+                toastService.ShowSuccess("Event saved successfully.");
                 await LoadManagerEvents();
+
                 showEventModal = false;
+                selectedImageFile = null;
+                return;
             }
 
-            selectedImageFile = null; // clear file after save
+
+            // ADMIN FLOW
+
+            if (isAdmin)
+            {
+                if (evt.Id > 0)
+                    await AdminService.UpdateEventAsync(evt.Id, evt, selectedImageFile);
+                else
+                    await AdminService.AddEventAsync(evt, selectedImageFile);
+
+                toastService.ShowSuccess("Event saved successfully!");
+
+                await LoadAdminEvents();
+
+                showEventModal = false;
+                selectedImageFile = null;
+                return;
+            }
         }
         catch (Exception ex)
         {
@@ -1173,6 +1324,22 @@
     }
 
 
+    private void OpenDeleteModal(int id)
+    {
+        deleteEventId = id;
+        showDeleteModal = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        showDeleteModal = false;
+    }
+
+    private async Task DeleteConfirmed()
+    {
+        await DeleteEvent(deleteEventId);
+        showDeleteModal = false;
+    }
 
     private async Task DeleteEvent(int eventId)
     {
@@ -1190,10 +1357,9 @@
                 await Http.DeleteAsync($"api/ManagerEvent/delete/{eventId}");
             }
 
-            // Refresh events after delete
             if (user.IsInRole("Admin"))
                 await LoadAdminEvents();
-            else if (user.IsInRole("Manager"))
+            else
                 await LoadManagerEvents();
 
             CalculateCityCounts();
@@ -1203,7 +1369,6 @@
             Console.WriteLine("Delete failed: " + ex.Message);
         }
     }
-
 
 
 
@@ -1247,7 +1412,7 @@
     private async Task LoadVenues()
     {
         venues = await AdminService.GetAllVenuesAsync();
-        CalculateCityCounts();
+        FilteredVenues = venues;
     }
 
 
@@ -1291,7 +1456,7 @@
     private async Task LoadCities()
     {
         citiesList = await AdminService.GetAllCitiesAsync();
-        CalculateCityCounts();
+        FilteredCities = citiesList;
     }
 
     private void ShowAddCityModal()
@@ -1367,39 +1532,115 @@
         await LoadCities();
         CalculateCityCounts();
     }
-
-
-    private void ApplyFilters()
+    private void ApplyEventFilters()
     {
         var filtered = Events.AsEnumerable();
-        if (selectedDateFilter == "today")
-            filtered = filtered.Where(e => e.ShowDate.Date == DateTime.Today);
-        else if (selectedDateFilter == "tomorrow")
-            filtered = filtered.Where(e => e.ShowDate.Date == DateTime.Today.AddDays(1));
-        else if (selectedDateFilter == "weekend")
-            filtered = filtered.Where(e => new[] { DayOfWeek.Saturday, DayOfWeek.Sunday }.Contains(e.ShowDate.DayOfWeek));
-        else if (selectedDateFilter == "custom" && customStartDate.HasValue && customEndDate.HasValue)
-            filtered = filtered.Where(e => e.ShowDate.Date >= customStartDate.Value.Date && e.ShowDate.Date <= customEndDate.Value.Date);
+
+        if (!string.IsNullOrWhiteSpace(selectedCity))
+            filtered = filtered.Where(e => e.CityName == selectedCity);
 
         if (selectedCategories.Any())
             filtered = filtered.Where(e => selectedCategories.Contains(e.EventType));
 
-        if (!string.IsNullOrWhiteSpace(selectedCity))
-            filtered = filtered.Where(e => e.CityName.Equals(selectedCity, StringComparison.OrdinalIgnoreCase));
-
-        if (selectedPriceRange.HasValue)
+        if (selectedPriceRange != null)
         {
             var (min, max) = selectedPriceRange.Value;
-            if (min == 0 && max == 0)
-                filtered = filtered.Where(e => e.TicketPrice == 0);
-            else
-                filtered = filtered.Where(e => e.TicketPrice >= min && e.TicketPrice <= max);
+            filtered = filtered.Where(e => e.TicketPrice >= min && e.TicketPrice <= max);
         }
+
         FilteredEvents = filtered.ToList();
+    }
+
+
+    private void ApplyVenueFilters()
+    {
+        // If NO filter is applied → return full list
+        if (string.IsNullOrWhiteSpace(selectedCity) &&
+            string.IsNullOrWhiteSpace(venueSearch))
+        {
+            FilteredVenues = venues.ToList();
+            return;
+        }
+
+        var filtered = venues.AsEnumerable();
+
+
+        if (!string.IsNullOrWhiteSpace(selectedCity))
+            filtered = filtered.Where(v =>
+                v.CityName.Equals(selectedCity, StringComparison.OrdinalIgnoreCase));
+
+
+        if (!string.IsNullOrWhiteSpace(venueSearch))
+            filtered = filtered.Where(v =>
+                v.VenueName.Contains(venueSearch, StringComparison.OrdinalIgnoreCase));
+
+        FilteredVenues = filtered.ToList();
+    }
+
+
+
+
+    private void ApplyCityFilters()
+    {
+        var filtered = citiesList.AsEnumerable();
+
+
+        if (selectedCountryFilter.HasValue)
+            filtered = filtered.Where(c => c.CountryId == selectedCountryFilter.Value);
+
+        if (selectedStateFilter.HasValue)
+            filtered = filtered.Where(c => c.StateId == selectedStateFilter.Value);
+
+        if (!string.IsNullOrWhiteSpace(citySearch))
+            filtered = filtered.Where(c => c.CityName.Contains(citySearch, StringComparison.OrdinalIgnoreCase));
+
+        FilteredCities = filtered.ToList();
+
+    }
+
+
+    private void FilterCountry(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+
+        if (!string.IsNullOrWhiteSpace(value) && Guid.TryParse(value, out var id))
+        {
+            selectedCountryFilter = id;
+        }
+        else
+        {
+            selectedCountryFilter = null;
+
+        }
+
+        ApplyFilters();
+    }
+
+
+    //private void FilterState(ChangeEventArgs e)
+    //{
+    //    if (Guid.TryParse(e.Value?.ToString(), out var id))
+    //        selectedStateFilter = id;
+    //    else
+    //        selectedStateFilter = null;
+
+    //    ApplyFilters();
+    //}
+
+
+    private void ApplyFilters()
+    {
+        if (activeTab == "events")
+            ApplyEventFilters();
+        else if (activeTab == "venues")
+            ApplyVenueFilters();
+        else if (activeTab == "cities")
+            ApplyCityFilters();
     }
 
     private void ClearAllFilters()
     {
+        // Event Filters
         selectedDateFilter = "all";
         isCustomRangeEnabled = false;
         customStartDate = null;
@@ -1408,6 +1649,15 @@
         selectedCity = string.Empty;
         selectedPriceRange = null;
         FilteredEvents = Events;
+
+        // Venue Filters
+        venueSearch = string.Empty;
+        FilteredVenues = venues;
+
+        // City Filters
+        selectedCountryFilter = null;
+        citySearch = string.Empty;
+        FilteredCities = citiesList;
     }
 
     private void SetDateFilter(string filter)
@@ -1488,7 +1738,47 @@
     private async Task HandleImageSelected(InputFileChangeEventArgs e)
     {
         selectedImageFile = e.File;
+
+
+        using var stream = selectedImageFile.OpenReadStream(5_000_000);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        editingEvent.ImageUrl =
+            $"data:{selectedImageFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
     }
+
+    private async Task OnCityChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int cityId))
+        {
+            editingEvent.CityId = cityId;
+
+            filteredVenues = await Http.GetFromJsonAsync<List<VenueDto>>(
+    $"api/venues/by-city/{cityId}"
+            );
+        }
+    }
+    private async Task OnVenueChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int venueId))
+        {
+            editingEvent.VenueId = venueId;
+
+
+            var city = await Http.GetFromJsonAsync<CityDto>(
+                $"api/cities/by-venue/{venueId}"
+            );
+
+            editingEvent.CityId = city.Id;
+            filteredVenues = venues;
+
+        }
+    }
+
+
+
+
 
 
 }

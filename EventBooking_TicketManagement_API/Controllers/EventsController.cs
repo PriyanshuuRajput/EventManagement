@@ -1,6 +1,7 @@
 ﻿using Applications.Dto;
 using Applications.Interfaces.IService;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
@@ -46,22 +47,45 @@ namespace EventBooking_TicketManagement_API.Controllers
         }
 
         // POST: api/events
-        [HttpPost]
+        [HttpPost("create")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateEvent([FromForm] EventDto dto)
         {
+            ModelState.Remove("ImageUrl");
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState
-                    .Select(kvp => new
-                    {
-                        Field = kvp.Key,
-                        Errors = kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
-                    });
+                    .Where(ms => ms.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
 
-                return BadRequest(errors);
+                return BadRequest(new { message = "Validation Failed", errors });
             }
 
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userName = User.FindFirstValue(ClaimTypes.Name);
+            if (role == "Admin")
+            {
+                dto.ManagerId = null;
+                dto.ManagerName = "Admin";
+            }
+            else if (role == "Manager")
+            {
+                dto.ManagerId = string.IsNullOrWhiteSpace(userId) ? null : int.Parse(userId);
+                dto.ManagerName = userName ?? "Unknown";
+            }
+            else
+            {
+                return BadRequest(new { message = "Unauthorized role" });
+            }
+
+
+
+            // Handle Image Upload
             if (dto.ImageFile != null)
             {
                 var allowedExtensions = new[] { ".jpeg", ".jpg", ".png", ".webp" };
@@ -72,7 +96,7 @@ namespace EventBooking_TicketManagement_API.Controllers
 
                 var ext = Path.GetExtension(dto.ImageFile.FileName).ToLowerInvariant();
                 if (!allowedExtensions.Contains(ext))
-                    return BadRequest("Invalid file type.");
+                    return BadRequest(new { message = "Invalid file type." });
 
                 var uniqueFile = $"{Guid.NewGuid()}{ext}";
                 var filePath = Path.Combine(uploadsFolder, uniqueFile);
@@ -80,23 +104,42 @@ namespace EventBooking_TicketManagement_API.Controllers
                 using var fileStream = new FileStream(filePath, FileMode.Create);
                 await dto.ImageFile.CopyToAsync(fileStream);
 
-                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{uniqueFile}";
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                dto.ImageUrl = $"{baseUrl}/Uploads/{uniqueFile}";
+
+            }
+            else
+            {
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                dto.ImageUrl = $"{baseUrl}/Uploads/no-image.png";
+
             }
 
             await _eventService.AddEventAsync(dto);
+
             return Ok(new { message = "Event created successfully" });
         }
 
         // PUT: api/events/{id}
-        [HttpPut("{id:int}")]
+        [HttpPut("update/{id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateEvent(int id, [FromForm] EventDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            ModelState.Remove("ImageUrl");
 
-            if (id != dto.Id)
-                return BadRequest(new { message = "ID mismatch." });
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(ms => ms.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+
+                return BadRequest(new { message = "Validation Failed", errors });
+            }
 
             var existing = await _eventService.GetEventByIdAsync(id);
             if (existing == null)
@@ -105,13 +148,14 @@ namespace EventBooking_TicketManagement_API.Controllers
             if (dto.ImageFile != null)
             {
                 var allowedExtensions = new[] { ".jpeg", ".jpg", ".png", ".webp" };
-                var ext = Path.GetExtension(dto.ImageFile.FileName).ToLowerInvariant();
-                if (!allowedExtensions.Contains(ext))
-                    return BadRequest("Invalid file type.");
-
                 var uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "Uploads");
+
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
+
+                var ext = Path.GetExtension(dto.ImageFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(ext))
+                    return BadRequest(new { message = "Invalid file type." });
 
                 var uniqueFile = $"{Guid.NewGuid()}{ext}";
                 var filePath = Path.Combine(uploadsFolder, uniqueFile);
@@ -119,15 +163,21 @@ namespace EventBooking_TicketManagement_API.Controllers
                 using var fileStream = new FileStream(filePath, FileMode.Create);
                 await dto.ImageFile.CopyToAsync(fileStream);
 
-                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{uniqueFile}";
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                dto.ImageUrl = $"{baseUrl}/Uploads/{uniqueFile}";
+
             }
             else
             {
                 dto.ImageUrl = existing.ImageUrl;
+
             }
 
+            // ---- Update event ----
             await _eventService.UpdateEventAsync(id, dto);
-            return Ok(dto);
+
+            return Ok(new { message = "Event updated successfully", dto });
         }
 
         // DELETE: api/events/{id}

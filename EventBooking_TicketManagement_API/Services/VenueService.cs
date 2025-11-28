@@ -70,6 +70,23 @@ namespace EventBooking_TicketManagement_API.Services
 
             await _venueRepository.AddAsync(v);
         }
+        public async Task<List<VenueDto>> GetVenuesByCityIdAsync(int cityId)
+        {
+            var venues = await _context.Venues
+                .Where(v => v.CityId == cityId)
+                .ToListAsync();
+
+            return venues.Select(v => new VenueDto
+            {
+                Id = v.Id,
+                VenueName = v.VenueName,
+                Address = v.Address,
+                Capacity = v.Capacity,
+                CityId = v.CityId,
+                CityName = v.City?.CityName
+            }).ToList();
+        }
+
         public async Task UpdateVenueAsync(int id, VenueDto dto)
         {
             var venue = await _context.Venues
@@ -113,9 +130,7 @@ namespace EventBooking_TicketManagement_API.Services
                 }
             }
 
-            // ================================
-            // 2. HANDLE CAPACITY DECREASE
-            // ================================
+
             if (newCapacity < oldCapacity)
             {
                 int removeSeats = oldCapacity - newCapacity;
