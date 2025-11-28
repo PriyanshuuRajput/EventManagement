@@ -159,8 +159,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             if (existingEvent.ManagerId != manager.Id)
                 return Unauthorized("You can only edit your own events.");
 
-            if (existingEvent.Status == EventStatus.PaymentConfirmed ||
-                existingEvent.Status == EventStatus.AdminApproved)
+            if (existingEvent.Status == EventStatus.AdminApproved)
                 return BadRequest("This event is approved already. Editing needs admin approval.");
 
             // IMAGE UPLOAD

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Applications.Dto
 {
-    public class EventDto
+    public class EventDto : IValidatableObject
     {
         public int Id { get; set; }
 
@@ -13,9 +13,9 @@ namespace Applications.Dto
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 50 characters.")]
         public string Title { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Event type is required.")]
+        //[Required(ErrorMessage = "Event type is required.")]
         [StringLength(20, ErrorMessage = "Event type must be 20 characters.")]
-        public string EventType { get; set; } = string.Empty;
+        public string? EventType { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Description is required.")]
         [StringLength(1000, MinimumLength = 3)]
@@ -23,9 +23,9 @@ namespace Applications.Dto
 
 
         [StringLength(50)]
-        [Required(ErrorMessage = "Genre is required.")]
+        //[Required(ErrorMessage = "Genre is required.")]
 
-        public string Genre { get; set; } = string.Empty;
+        public string? Genre { get; set; } = string.Empty;
 
         [StringLength(50)]
         [Required(ErrorMessage = "Language is required.")]
@@ -55,7 +55,7 @@ namespace Applications.Dto
         public decimal TicketPrice { get; set; }
 
         //[StringLength(500, ErrorMessage = "Image URL cannot exceed 500 characters.")]
-        [Required(ErrorMessage = "Event image is required.")]
+        //[Required(ErrorMessage = "Event image is required.")]
         public string ImageUrl { get; set; } = string.Empty;
 
 
@@ -64,7 +64,7 @@ namespace Applications.Dto
         public int TotalTickets { get; set; } = 0;
         public int SoldTickets { get; set; } = 0;
 
-        public int ManagerId { get; set; }
+        public int? ManagerId { get; set; }
         public string ManagerName { get; set; } = string.Empty;
 
         public string? ManagerEmail { get; set; }
@@ -83,5 +83,27 @@ namespace Applications.Dto
         public bool IsAmountAccepted { get; set; }
         public bool PrizePaid { get; set; } = false;
         public DateTime? PrizePaidAt { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            string eventType = EventType?.Trim() ?? "";
+            string genre = Genre?.Trim() ?? "";
+
+            if (eventType == "" && genre == "")
+            {
+                yield return new ValidationResult(
+                    "Please provide at least Event Type or Genre.",
+                    new[] { nameof(EventType), nameof(Genre) });
+
+            }
+            if (eventType == "" && genre != "")
+            {
+                EventType = genre;
+            }
+            if (genre == "" && eventType != "")
+            {
+                Genre = eventType;
+            }
+        }
     }
 }

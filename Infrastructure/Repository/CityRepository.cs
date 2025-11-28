@@ -34,6 +34,13 @@ namespace Infrastructures.Repository
                 .Include(c => c.Venues)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
+        public async Task<City?> GetCityByVenueIdAsync(int venueId)
+        {
+            return await _context.Venues
+                .Where(v => v.Id == venueId)
+                .Select(v => v.City)
+                .FirstOrDefaultAsync();
+        }
 
         // ✅ Add a new city
         public async Task AddAsync(City city)

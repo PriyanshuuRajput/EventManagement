@@ -1,6 +1,7 @@
 ﻿using Applications.Dto;
 using Applications.Interfaces.IService;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
@@ -64,6 +65,26 @@ namespace EventBooking_TicketManagement_API.Controllers
                 return BadRequest(new { message = "Validation Failed", errors });
             }
 
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userName = User.FindFirstValue(ClaimTypes.Name);
+            if (role == "Admin")
+            {
+                dto.ManagerId = null;
+                dto.ManagerName = "Admin";
+            }
+            else if (role == "Manager")
+            {
+                dto.ManagerId = string.IsNullOrWhiteSpace(userId) ? null : int.Parse(userId);
+                dto.ManagerName = userName ?? "Unknown";
+            }
+            else
+            {
+                return BadRequest(new { message = "Unauthorized role" });
+            }
+
+
+
             // Handle Image Upload
             if (dto.ImageFile != null)
             {
@@ -84,13 +105,16 @@ namespace EventBooking_TicketManagement_API.Controllers
                 await dto.ImageFile.CopyToAsync(fileStream);
 
 
-                dto.ImageUrl = $"/Uploads/{uniqueFile}";
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                dto.ImageUrl = $"{baseUrl}/Uploads/{uniqueFile}";
+
             }
             else
             {
-                // If no file uploaded and ImageUrl empty → assign a default
-                if (string.IsNullOrWhiteSpace(dto.ImageUrl))
-                    dto.ImageUrl = "/Uploads/no-image.png";
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                dto.ImageUrl = $"{baseUrl}/Uploads/no-image.png";
+
             }
 
             await _eventService.AddEventAsync(dto);
@@ -140,14 +164,14 @@ namespace EventBooking_TicketManagement_API.Controllers
                 await dto.ImageFile.CopyToAsync(fileStream);
 
 
-                dto.ImageUrl = $"/Uploads/{uniqueFile}";
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                dto.ImageUrl = $"{baseUrl}/Uploads/{uniqueFile}";
+
             }
             else
             {
-                // If no new image uploaded → keep old one
-                dto.ImageUrl = string.IsNullOrWhiteSpace(existing.ImageUrl)
-                    ? "/Uploads/no-image.png"
-                    : existing.ImageUrl;
+                dto.ImageUrl = existing.ImageUrl;
+
             }
 
             // ---- Update event ----

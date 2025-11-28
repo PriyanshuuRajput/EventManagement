@@ -50,6 +50,20 @@ namespace EventBooking_TicketManagement_API.Services
                 CountryName = city.State?.Country?.Name
             };
         }
+        public async Task<CityDto?> GetCityByVenueIdAsync(int venueId)
+        {
+            var venue = await _cityRepository.GetCityByVenueIdAsync(venueId);
+
+            if (venue == null)
+                return null;
+
+            return new CityDto
+            {
+                Id = venue.Id,
+                CityName = venue.CityName
+            };
+        }
+
 
         // ✅ Add a city
         public async Task AddCityAsync(CityDto dto)

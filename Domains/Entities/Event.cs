@@ -7,8 +7,8 @@ namespace Domains.Entities
     {
         Pending = 0,
         AdminApproved = 1,
-        PaymentConfirmed = 2,
-        Rejected = 3
+        //PaymentConfirmed = 2,
+        Rejected = 2
     }
     public class Event
     {
@@ -45,7 +45,7 @@ namespace Domains.Entities
         public ICollection<Seat>? Seats { get; set; }
 
         [ForeignKey(nameof(Manager))]
-        public int ManagerId { get; set; }
+        public int? ManagerId { get; set; }
 
         public Manager? Managers { get; set; }
 

@@ -52,6 +52,13 @@ namespace EventBooking_TicketManagement_API.Controllers
             }
         }
 
+        [HttpGet("by-city/{cityId:int}")]
+        public async Task<IActionResult> GetVenuesByCity(int cityId)
+        {
+            var venues = await _venueService.GetVenuesByCityIdAsync(cityId);
+            return Ok(venues);
+        }
+
         // PUT: api/venues/{id}
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateVenue(int id, [FromBody] VenueDto dto)

@@ -31,6 +31,17 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok(city);
         }
 
+        [HttpGet("by-venue/{venueId:int}")]
+        public async Task<IActionResult> GetCityByVenue(int venueId)
+        {
+            var city = await cityService.GetCityByVenueIdAsync(venueId);
+
+            if (city == null)
+                return NotFound(new { message = "City not found for this venue." });
+
+            return Ok(city);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateCity([FromBody] CityDto dto)
         {

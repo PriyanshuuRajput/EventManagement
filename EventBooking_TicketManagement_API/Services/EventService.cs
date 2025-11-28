@@ -92,8 +92,17 @@ namespace EventBooking_TicketManagement_API.Services
                 TicketPrice = dto.TicketPrice,
                 ImageUrl = dto.ImageUrl,
 
+                ManagerId = dto.ManagerId,
+                ManagerName = string.IsNullOrWhiteSpace(dto.ManagerName) ? "Unknown Manager" : dto.ManagerName,
+
                 Status = EventStatus.Pending,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                TotalTickets = dto.TotalTickets,
+                SoldTickets = dto.SoldTickets,
+                IsPrizePaid = false,
+                PrizePaidAt = null,
+                EventAmount = dto.EventAmount,
+                OfferedEventAmount = dto.OfferedEventAmount ?? 0m
             };
 
             await _eventRepository.AddAsync(ev);
@@ -105,7 +114,7 @@ namespace EventBooking_TicketManagement_API.Services
             if (ev == null)
                 throw new KeyNotFoundException($"Event with Id {id} not found.");
 
-            if (ev.Status == EventStatus.PaymentConfirmed)
+            if (ev.Status == EventStatus.AdminApproved)
                 throw new InvalidOperationException(
                     "This event is already published. Edit requires admin approval."
                 );
@@ -129,6 +138,12 @@ namespace EventBooking_TicketManagement_API.Services
                 ev.ImageUrl = dto.ImageUrl;
 
             }
+
+            if (dto.ManagerId > 0)
+                ev.ManagerId = dto.ManagerId;
+
+            if (!string.IsNullOrWhiteSpace(dto.ManagerName))
+                ev.ManagerName = dto.ManagerName;
 
             ev.Status = EventStatus.Pending;
             ev.AdminNote = null;
@@ -460,7 +475,7 @@ namespace EventBooking_TicketManagement_API.Services
 
             ev.IsPrizePaid = true;
             ev.PrizePaidAt = DateTime.UtcNow;
-            ev.Status = EventStatus.PaymentConfirmed;
+            ev.Status = EventStatus.AdminApproved;
 
             await _eventRepository.UpdateAsync(ev);
 

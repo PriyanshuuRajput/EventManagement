@@ -709,7 +709,7 @@
 
                     <div class="drawer-body">
                         <EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">
-
+                            @*<ValidationSummary />*@
                             <DataAnnotationsValidator />
 
                             <!-- General Info -->
@@ -726,10 +726,18 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">Event Type<span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="editingEvent.EventType" class="form-control" />
-                                        <ValidationMessage For="@(() => editingEvent.EventType)" class="text-danger small" />
+                                        <label class="form-label fw-bold">Event Type<span class="text-muted">(optional)</span></label>
+                                        <InputText @bind-Value="editingEvent.EventType"
+                                                   class="form-control"
+                                                   @oninput="e => { editingEvent.EventType = e.Value?.ToString(); ValidateTypeGenre(); }" />
+
+                                        @if (!string.IsNullOrEmpty(eventTypeError))
+                                        {
+                                            <div class="text-danger small">@eventTypeError</div>
+                                        }
+
                                     </div>
+
 
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">Language<span class="text-danger">*</span></label>
@@ -739,9 +747,17 @@
 
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">Genre<span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="editingEvent.Genre" class="form-control" />
-                                        <ValidationMessage For="@(()=>editingEvent.Genre)" class="text-danger small" />
+                                        <InputText @bind-Value="editingEvent.Genre"
+                                                   class="form-control"
+                                                   @oninput="e => { editingEvent.Genre = e.Value?.ToString(); ValidateTypeGenre(); }" />
+
+                                        @if (!string.IsNullOrEmpty(genreError))
+                                        {
+                                            <div class="text-danger small">@genreError</div>
+                                        }
+
                                     </div>
+
                                 </div>
                             </div>
 
@@ -761,10 +777,19 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">Duration (HH:MM)<span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="durationInput" class="form-control" placeholder="e.g., 02:30" />
-                                        <ValidationMessage For="@(() => editingEvent.Duration)" />
+                                        <label class="form-label fw-bold">Duration (HH:MM) <span class="text-danger">*</span></label>
+
+                                        <InputText class="form-control"
+                                                   @bind-Value="durationInput"
+                                                   @oninput="e => ValidateDuration(e.Value?.ToString() ?? string.Empty)" />
+
+                                        @if (!string.IsNullOrEmpty(durationError))
+                                        {
+                                            <div class="text-danger small">@durationError</div>
+                                        }
+                                        <ValidationMessage For="@(() => editingEvent.Duration)"class="text-danger small"/>
                                     </div>
+
                                 </div>
                             </div>
 
@@ -776,25 +801,27 @@
                                 <div class="card-body row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">Venue<span class="text-danger">*</span></label>
-                                        <InputSelect @bind-Value="editingEvent.VenueId" class="form-select">
+                                        <InputSelect @bind-Value="editingEvent.VenueId" class="form-select" @onchange="OnVenueChanged">
                                             <option value="0">-- Select Venue --</option>
-                                            @foreach (var venue in venues)
+                                            @foreach (var venue in filteredVenues)
                                             {
                                                 <option value="@venue.Id">@venue.VenueName</option>
                                             }
                                         </InputSelect>
+
                                         <ValidationMessage For="@(() => editingEvent.VenueId)" />
                                     </div>
 
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">City<span class="text-danger">*</span></label>
-                                        <InputSelect @bind-Value="editingEvent.CityId" class="form-select">
+                                        <InputSelect @bind-Value="editingEvent.CityId" class="form-select" @onchange="OnCityChanged">
                                             <option value="">-- Select City --</option>
                                             @foreach (var city in citiesList)
                                             {
                                                 <option value="@city.Id">@city.CityName</option>
                                             }
                                         </InputSelect>
+
                                         <ValidationMessage For="@(() => editingEvent.CityId)" />
                                     </div>
                                 </div>
@@ -813,13 +840,13 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold">Event Image<span class="text-danger">*</span></label>
+                                        <label class="form-label fw-bold">Event Image</label>
                                         <InputFile OnChange="HandleImageSelected" class="form-control" />
                                         @if (!string.IsNullOrEmpty(editingEvent.ImageUrl))
                                         {
                                             <img src="@editingEvent.ImageUrl" alt="Preview" class="mt-2 rounded shadow-sm border" width="120" />
                                         }
-                                        <ValidationMessage For="@(() => editingEvent.ImageUrl)"class="text-danger small" />
+                                        @*<ValidationMessage For="@(() => editingEvent.ImageUrl)" />*@
                                     </div>
                                 </div>
                             </div>
@@ -836,7 +863,12 @@
                                 <!-- Footer -->
                                 <div class=" d-flex justify-content-end align-items-center">
                                     <button class="btn btn-outline-secondary m-2 shadow-lg" @onclick="() => showEventModal = false">Cancel</button>
-                                    <button class="btn btn-danger m-2 shadow-lg ">Save</button>
+                                    <button class="btn btn-danger m-2 shadow-lg"
+                                            @*disabled="@(!string.IsNullOrWhiteSpace(durationError))">*@
+                                    >
+                                        Save
+                                    </button>
+
                                 </div>
                             </div>
 
@@ -1030,6 +1062,8 @@
     private bool showVenueModal = false;
     private List<VenueDto> FilteredVenues = new();
     private string venueSearch = string.Empty;
+    private List<VenueDto> filteredVenues = new();
+
 
     private List<CityDto> citiesList = new();
     private CityDto editingCity = new();
@@ -1040,12 +1074,47 @@
     private string citySearch = string.Empty;
 
     private string durationInput = string.Empty;
+    private string? durationError;
     private IBrowserFile? selectedImageFile;
 
     private bool showDeleteModal = false;
     private int deleteEventId;
 
+    private string? eventTypeError;
+    private string? genreError;
 
+    private void ValidateTypeGenre()
+    {
+        var et = editingEvent.EventType?.Trim() ?? "";
+        var ge = editingEvent.Genre?.Trim() ?? "";
+
+        if (string.IsNullOrWhiteSpace(et) && string.IsNullOrWhiteSpace(ge))
+        {
+            eventTypeError = "EventType or Genre is required";
+            genreError = "EventType or Genre is required";
+        }
+        else
+        {
+            eventTypeError = null;
+            genreError = null;
+        }
+    }
+
+
+    private void ValidateDuration(string value)
+    {
+        durationInput = value;
+
+
+        if (!TimeSpan.TryParse(durationInput, out var _))
+        {
+            durationError = "Enter valid duration in HH:mm format (e.g., 02:30)";
+        }
+        else
+        {
+            durationError = null;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -1073,6 +1142,8 @@
 
         CalculateVenueEventCounts();
         CalculateCityCounts();
+        filteredVenues = venues.ToList();
+
     }
 
     private void HandleInvalidSubmit()
@@ -1128,15 +1199,27 @@
 
         showEventModal = true;
     }
+
     private bool ConvertDuration()
     {
-        if (TimeSpan.TryParse(durationInput, out var ts))
+        durationError = string.Empty;
+
+        if (!TimeSpan.TryParse(durationInput, out var ts))
         {
-            editingEvent.Duration = ts;
-            return true;
+            durationError = "Invalid format. Use HH:mm (e.g., 01:30).";
+            return false;
         }
-        return false;
+
+        if (ts.TotalMinutes < 10)
+        {
+            durationError = "Duration must be at least 10 minutes.";
+            return false;
+        }
+
+        editingEvent.Duration = ts;
+        return true;
     }
+
     private async Task SaveEvent(EventDto evt)
     {
         try
@@ -1146,6 +1229,14 @@
                 toastService.ShowError("Invalid duration format. Use HH:mm (e.g., 02:30).");
                 return;
             }
+            if (string.IsNullOrWhiteSpace(editingEvent.EventType) &&
+    string.IsNullOrWhiteSpace(editingEvent.Genre))
+            {
+                ValidateTypeGenre();
+                toastService.ShowError("Please fill at least EventType or Genre.");
+                return;
+            }
+
 
             var content = new MultipartFormDataContent();
 
@@ -1178,9 +1269,9 @@
                 content.Add(new StringContent(evt.ImageUrl ?? ""), "ImageUrl");
             }
 
-     
+
             // MANAGER FLOW
-      
+
             if (isManager)
             {
                 HttpResponseMessage response;
@@ -1208,7 +1299,7 @@
 
 
             // ADMIN FLOW
-            
+
             if (isAdmin)
             {
                 if (evt.Id > 0)
@@ -1656,6 +1747,36 @@
         editingEvent.ImageUrl =
             $"data:{selectedImageFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
     }
+
+    private async Task OnCityChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int cityId))
+        {
+            editingEvent.CityId = cityId;
+
+            filteredVenues = await Http.GetFromJsonAsync<List<VenueDto>>(
+    $"api/venues/by-city/{cityId}"
+            );
+        }
+    }
+    private async Task OnVenueChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int venueId))
+        {
+            editingEvent.VenueId = venueId;
+
+
+            var city = await Http.GetFromJsonAsync<CityDto>(
+                $"api/cities/by-venue/{venueId}"
+            );
+
+            editingEvent.CityId = city.Id;
+            filteredVenues = venues;
+
+        }
+    }
+
+
 
 
 
