@@ -212,12 +212,14 @@ namespace EventBooking_TicketManagement_API.Services
             return managers.Select(m => new ManagerProfileDto
             {
                 Id = m.Id,
+                ManagerId = m.Id,
                 ManagerName = m.ManagerName,
                 Email = m.User?.Email ?? "",
                 Mobile = m.Mobile,
                 Address = m.Address,
                 Image = m.Image,
                 CreatedAt = m.CreatedAt,
+                EventsCount = m.Events?.Count ?? 0,
                 Status = m.IsApproved == false ? "Pending"
                                                 : m.IsApproved == true
                                                 ? "Approved"

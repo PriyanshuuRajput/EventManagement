@@ -19,6 +19,9 @@ namespace Domains.Entities
         public string Mobile { get; set; } = string.Empty;
         public string? Image { get; set; }
 
+        //public string Email { get; set; } = string.Empty;
+        ////public int EventsCount { get; set; }
+
 
         //public string PAN { get; set; } = string.Empty;
 

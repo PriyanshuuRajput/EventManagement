@@ -12,6 +12,8 @@ namespace Applications.Interfaces.IRepository
         Task<Manager?> GetManagerWithUserByUserIdAsync(int userId);
         Task<List<Manager>> GetAllManagersAsync();
         Task<List<Manager>> GetPendingManagersAsync();
+        //Task<List<Manager>> GetAllManagersWithEventCountAsync();
+
         void DeleteManager(Manager manager);
         Task SaveChangesAsync();
     }

@@ -24,6 +24,7 @@ namespace Applications.Dto.OrganizerDto
         //[Required(ErrorMessage = "Last name is required.")]
         //[MinLength(2, ErrorMessage = "Last name must be at least 2 characters")]
         public string? LastName { get; set; }
+        public int ManagerId { get; set; }
 
         public string ManagerName { get; set; } = "";
 
@@ -43,6 +44,8 @@ namespace Applications.Dto.OrganizerDto
 
         public string Email { get; set; } = string.Empty;
 
+        public int EventsCount { get; set; }
+
         //[EmailAddress]
         public string AlternateEmail { get; set; } = string.Empty;
 
@@ -55,6 +58,7 @@ namespace Applications.Dto.OrganizerDto
 
         // public DateTime? UpdatedAt { get; set; }
         public DateTime CreatedAt { get; set; }
+        //public DateTime UpdatedAt { get; set; }
 
         public string Status { get; set; } = string.Empty;
         public bool AcceptTerms { get; set; }

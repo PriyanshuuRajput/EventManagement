@@ -25,6 +25,7 @@ namespace Infrastructures.DbContexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Role>()
@@ -42,13 +43,14 @@ namespace Infrastructures.DbContexts
                 .HasForeignKey<Manager>(m => m.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Manager ⇄ Events (One-to-Many)
-            // ===========================
-            modelBuilder.Entity<Manager>()
-               .HasMany(m => m.Events)
-               .WithOne(e => e.Managers)
-               .HasForeignKey(e => e.ManagerId)
-               .OnDelete(DeleteBehavior.Restrict);
+            // Event ⇄ Manager (One-to-Many)
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.Managers)
+                .WithMany(m => m.Events)
+                .HasForeignKey(e => e.ManagerId)
+                .HasPrincipalKey(m => m.Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             //  3. Booking ⇄ Seat (One-to-Many)
             // ===========================
