@@ -1,4 +1,5 @@
-﻿using Domains.Entities;
+﻿using Applications.Dto.Pagination;
+using Domains.Entities;
 
 namespace Applications.Interfaces.IRepository
 {
@@ -19,6 +20,10 @@ namespace Applications.Interfaces.IRepository
         Task<IEnumerable<Event>> GetApprovedEventsAsync();
         Task<IEnumerable<Event>> GetRejectedEventsAsync();
         Task<IEnumerable<Event>> GetEventsByManagerByIdAsync(int managerId);
+
+        //Pagination
+
+        Task<PagedResult<Event>> GetPagedEventAsync(PagedRequest req);
 
     }
 }

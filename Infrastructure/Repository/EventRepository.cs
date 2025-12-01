@@ -1,4 +1,5 @@
-﻿using Applications.Interfaces.IRepository;
+﻿using Applications.Dto.Pagination;
+using Applications.Interfaces.IRepository;
 using Domains.Entities;
 using Infrastructures.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -139,6 +140,55 @@ namespace Infrastructures.Repository
                 .ToListAsync();
         }
 
+        //PAgination
+        public async Task<PagedResult<Event>> GetPagedEventAsync(PagedRequest req)
+        {
+            var query = _context.Events
+                .Include(e => e.Venue)
+                    .ThenInclude(v => v.City)
+                .Include(e => e.Managers)
+                    .ThenInclude(m => m.User)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(req.Search))
+            {
+                string searchLower = req.Search.ToLower();
+                query = query.Where(x =>
+                    x.Title.ToLower().Contains(searchLower) ||
+                    x.Venue.VenueName.ToLower().Contains(searchLower) ||
+                    x.ManagerName.ToLower().Contains(searchLower)
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(req.Status))
+            {
+                if (Enum.TryParse<EventStatus>(req.Status, true, out var parsedStatus))
+                {
+                    query = query.Where(x => x.Status == parsedStatus);
+                }
+            }
+
+            if (req.DateFilter.HasValue)
+            {
+                query = query.Where(x => x.ShowDate.Date == req.DateFilter.Value.Date);
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(x => x.CreatedAt)
+                .Skip((req.Page - 1) * req.PageSize)
+                .Take(req.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<Event>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageSize = req.PageSize,
+                Page = req.Page,
+            };
+        }
 
     }
 }

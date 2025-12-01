@@ -1,5 +1,6 @@
 ﻿@page "/admin-dashboard"
 @using Domains.Entities
+@using Applications.Dto.Pagination
 @using EventBooking.Client.Components
 @inject AdminService adminService
 @inject NavigationManager Navigation
@@ -28,7 +29,7 @@
         position: relative;
         border-radius: 12px;
         color: #fff;
-        padding: 20px;
+        padding: 10px 20px;
         overflow: hidden;
         min-width: 260px;
         width: calc(25% - 20px);
@@ -418,7 +419,8 @@
 
                 @foreach (var card in SummaryCards)
                 {
-                    <div class="dashboard-card " style="background-color: #fceeee">
+                    <div class="dashboard-card " style="background-color: #fceeee"
+                        @onclick="()=> NavigateTo(card.Route)">
 
 
                         <i class="@card.Icon dashboard-icon-bg"></i>
@@ -429,9 +431,10 @@
                             <div class="title">@card.Title</div>
 
                             <div class="card-footer">
-                                @*<span>Details</span>*@
-                                <i class="bi bi-arrow-right"></i>
+                                <i class="bi bi-arrow-right text-danger" style="font-size:28px"></i>
                             </div>
+
+
                         </div>
                     </div>
                 }
@@ -548,7 +551,7 @@
 
     <!-- DATE PICKER NEXT TO IT -->
     <div class="ui calendar" id="singleDatePicker" style="width: 200px;">
-        <div class="ui input left icon">
+        <div class="ui input left icon shadow-sm">
             <i class="calendar icon"></i>
             <input type="text"
                    id="selectedDateInput"
@@ -564,7 +567,7 @@
 
 
     <!-- FILTER BUTTONS (Always Below) -->
-    <div class="d-flex gap-3 flex-wrap m-2" style="margin-left:40px">
+    <div class="d-flex gap-3 flex-wrap ms-2 mb-3 mt-3" style="margin-left:40px">
 
         <!-- ALL -->
         <button class="btn btn-sm @(selectedStatus == "" ? "btn-danger" : "btn-outline-secondary") rounded-3"
@@ -693,7 +696,7 @@
 
         <Pagination Page="@CurrentPage"
                     PageSize="@PageSize"
-                        TotalItems="@filteredEventsFull.Count"
+                        TotalItems="@PagedResult.TotalCount"
                     PageChanged="OnPageChanged" />
     </div>
 
@@ -777,7 +780,7 @@
         private List<EventDto> Events = new();
         private List<ManagerProfileDto> Managers = new();
         private List<(string Message, DateTime Date)> Notifications = new();
-        private List<EventDto> filteredEvents = new();
+        // private List<EventDto> filteredEvents = new();
         private DateTime? filterDate = null;
         //private List<DateTime> TimelineDates = new();
         //private DateTime SelectedTimelineDate = DateTime.Today;
@@ -813,12 +816,13 @@
         //private int TotalCount => Events.Count;
 
 
-
+        private PagedResult<EventDto> PagedResult = new();
         private int PageSize = 8;
         private int CurrentPage = 1;
-        private int TotalPages => (int)Math.Ceiling(filteredEventsFull.Count / (double)PageSize);
+        // private int TotalPages => (int)Math.Ceiling(filteredEventsFull.Count / (double)PageSize);
 
-        private List<EventDto> filteredEventsFull = new();
+        private List<EventDto> filteredEvents = new();
+
         private string fadeClass = "show";
 
 
@@ -838,7 +842,7 @@
         private List<EventDto> OngoingEvents => Events.Where(e => e.ShowDate <= DateTime.Today && e.ShowDate.AddDays(1) >= DateTime.Today).ToList();
         private List<EventDto> UpcomingEvents => Events.Where(e => e.ShowDate > DateTime.Today && e.ShowDate <= DateTime.Today.AddDays(10)).ToList();
 
-        private List<(string Title, string Icon, int Value,string color)> SummaryCards = new();
+        private List<(string Title, string Icon, int Value,string color, string Route)> SummaryCards = new();
 
 
         private void SetStatus(string status)
@@ -850,22 +854,23 @@
         protected override async Task OnInitializedAsync()
         {
             Events = await adminService.GetAllEventsAsync();
-            BookingsCount = 42;
+            BookingsCount = 0;
             Managers = await adminService.GetAllManagersAsync();
             CurrentEvents = Events.Count(e => e.ShowDate >= DateTime.Today);
 
             SummaryCards = new()
 {
-    ("Total Events",     "bi bi-calendar-event",    Events.Count,      "bg-blue"),
-    ("Live Events",   "bi bi-calendar2-event",   CurrentEvents,     "bg-green"),
-    ("Total Bookings",   "bi bi-ticket-detailed",   BookingsCount,     "bg-orange"),
-    ("Total Managers",   "bi bi-people-fill",       Managers.Count,    "bg-red")
+    ("Total Events",     "bi bi-calendar-event",    Events.Count,      "bg-blue","/manage-events"),
+    ("Live Events",   "bi bi-calendar2-event",   CurrentEvents,     "bg-green","/events"),
+    ("Total Bookings",   "bi bi-ticket-detailed",   BookingsCount,     "bg-orange","/bookings"),
+    ("Total Managers",   "bi bi-people-fill",       Managers.Count,    "bg-red" ,"/managers")
 };
 
 
-            filteredEventsFull = new List<EventDto>(Events);
+            filteredEvents = new List<EventDto>(Events);
             BuildNotifications();
             //BuildTimeLine();
+            await LoadPagedEventsAsync();
 
             ApplyFilters();
         }
@@ -876,6 +881,22 @@
             {
                 await JS.InvokeVoidAsync("initSingleDatePicker", DotNetObjectReference.Create(this));
             }
+        }
+
+        private async Task LoadPagedEventsAsync()
+        {
+            var req = new PagedRequest
+            {
+                Page = CurrentPage,
+                PageSize = PageSize,
+                Search = searchTerm,
+                Status = selectedStatus,
+                DateFilter = filterDate
+            };
+
+            PagedResult = await adminService.GetPagedEventsAsync(req);
+
+            filteredEvents = PagedResult.Items;
         }
 
         [JSInvokable]
@@ -991,78 +1012,91 @@
             ApplyFilters();
         }
 
-        private void ApplyFilters()
+        //private void ApplyFilters()
+        //{
+        //    var term = searchTerm?.Trim().ToLower() ?? "";
+
+        //    filteredEventsFull = Events
+        //        .Where(e =>
+
+        //            // STATUS FILTER
+        //            (
+        //                string.IsNullOrEmpty(selectedStatus)
+        //                || (selectedStatus == "Approved" && e.Status == EventStatus.AdminApproved)
+        //                || (selectedStatus == "Pending" && e.Status == EventStatus.Pending)
+        //                || (selectedStatus == "Rejected" && e.Status == EventStatus.Rejected)
+        //            )
+
+        //            &&
+
+        //            // SEARCH TERM FILTER
+        //            (
+        //                string.IsNullOrWhiteSpace(term)
+        //                ||
+        //                (
+        //                    (e.Title?.ToLower().Contains(term) ?? false)
+        //                    || (e.ManagerName?.ToLower().Contains(term) ?? false)
+        //                    || (e.VenueName?.ToLower().Contains(term) ?? false)
+        //                    || (e.CityName?.ToLower().Contains(term) ?? false)
+        //                    || (e.EventType?.ToLower().Contains(term) ?? false)
+        //                    || (e.EventAmount.ToString().Contains(term))
+        //                )
+        //            )
+
+        //            &&
+
+        //            // DATE FILTER — ONLY WHEN CHECKBOX ENABLED
+        //            //(
+        //            //    !EnableDateFilter
+        //            //    || (EnableDateFilter && filterDate.HasValue && e.ShowDate.Date == filterDate.Value.Date)
+        //            //)
+        //            (filterDate ==  null
+        //            || e.ShowDate.Date == filterDate.Value.Date
+        //            )
+        //        )
+        //        .OrderByDescending(e => e.CreatedAt)
+        //        .ToList();
+
+        //    CurrentPage = 1;
+        //    ApplyPagination();
+        //}
+
+        private async void ApplyFilters()
         {
-            var term = searchTerm?.Trim().ToLower() ?? "";
-
-            filteredEventsFull = Events
-                .Where(e =>
-
-                    // STATUS FILTER
-                    (
-                        string.IsNullOrEmpty(selectedStatus)
-                        || (selectedStatus == "Approved" && e.Status == EventStatus.AdminApproved)
-                        || (selectedStatus == "Pending" && e.Status == EventStatus.Pending)
-                        || (selectedStatus == "Rejected" && e.Status == EventStatus.Rejected)
-                    )
-
-                    &&
-
-                    // SEARCH TERM FILTER
-                    (
-                        string.IsNullOrWhiteSpace(term)
-                        ||
-                        (
-                            (e.Title?.ToLower().Contains(term) ?? false)
-                            || (e.ManagerName?.ToLower().Contains(term) ?? false)
-                            || (e.VenueName?.ToLower().Contains(term) ?? false)
-                            || (e.CityName?.ToLower().Contains(term) ?? false)
-                            || (e.EventType?.ToLower().Contains(term) ?? false)
-                            || (e.EventAmount.ToString().Contains(term))
-                        )
-                    )
-
-                    &&
-
-                    // DATE FILTER — ONLY WHEN CHECKBOX ENABLED
-                    //(
-                    //    !EnableDateFilter
-                    //    || (EnableDateFilter && filterDate.HasValue && e.ShowDate.Date == filterDate.Value.Date)
-                    //)
-                    (filterDate ==  null
-                    || e.ShowDate.Date == filterDate.Value.Date
-                    )
-                )
-                .OrderByDescending(e => e.CreatedAt)
-                .ToList();
-
             CurrentPage = 1;
-            ApplyPagination();
+            await LoadPagedEventsAsync();
+            StateHasChanged();
         }
-
-
 
         private async Task OnPageChanged(int page)
         {
             CurrentPage = page;
-            ApplyPagination();
+            await LoadPagedEventsAsync();
         }
 
-        private async void ApplyPagination()
-        {
-            fadeClass = "";
-            StateHasChanged();
-            await Task.Delay(100);
-
-            filteredEvents = filteredEventsFull
-                .Skip((CurrentPage - 1) * PageSize)
-                .Take(PageSize)
-                .ToList();
 
 
-            fadeClass = "show";
-            StateHasChanged();
-        }
+        //private async Task OnPageChanged(int page)
+        //{
+        //    CurrentPage = page;
+        //    ApplyPagination();
+        //}
+
+        //private async void ApplyPagination()
+        //{
+        //    fadeClass = "";
+        //    StateHasChanged();
+        //    await Task.Delay(100);
+
+        //    filteredEvents = filteredEventsFull
+        //        .Skip((CurrentPage - 1) * PageSize)
+        //        .Take(PageSize)
+        //        .ToList();
+
+
+        //    fadeClass = "show";
+        //    StateHasChanged();
+        //}
 
 
         private void ToggleOngoing() => showOngoing = !showOngoing;
@@ -1086,4 +1120,10 @@
         {
             Navigation.NavigateTo("/managers");
         }
+
+        private void NavigateTo(string route)
+        {
+            Navigation.NavigateTo(route);
+        }
+
     }

@@ -216,10 +216,12 @@
         <li class="nav-item">
             <NavLink class="nav-link" href="/offers">Offers</NavLink>
         </li>
-
+        @if (userRole != "Admin")
+        {
         <li class="nav-item">
             <a class="nav-link list-show" @onclick="ManagerSignup">List Your Show</a>
         </li>
+        }
     </ul>
 
         <!-- Right Side Navigation -->

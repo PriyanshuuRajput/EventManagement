@@ -1,4 +1,5 @@
 ﻿using Applications.Dto;
+using Applications.Dto.Pagination;
 using Applications.Interfaces.IService;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -197,6 +198,13 @@ namespace EventBooking_TicketManagement_API.Controllers
         {
             var events = await _eventService.GetApprovedEventsAsync();
             return Ok(events);
+        }
+
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPagedEvents([FromQuery] PagedRequest req)
+        {
+            var result = await _eventService.GetPagedEventAsync(req);
+            return Ok(result);
         }
     }
 }

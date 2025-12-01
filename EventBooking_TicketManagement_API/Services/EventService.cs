@@ -1,4 +1,5 @@
 ﻿using Applications.Dto;
+using Applications.Dto.Pagination;
 using Applications.Interfaces.IRepository;
 using Applications.Interfaces.IService;
 using Domains.Entities;
@@ -489,6 +490,58 @@ namespace EventBooking_TicketManagement_API.Services
             await _emailService.SendEmailAsync(adminEmail, subject, body);
         }
 
+
+        //PAgination
+        public async Task<PagedResult<EventDto>> GetPagedEventAsync(PagedRequest req)
+        {
+
+            var pagedEvents = await _eventRepository.GetPagedEventAsync(req);
+
+
+            var mappedItems = pagedEvents.Items.Select(e => new EventDto
+            {
+                Id = e.Id,
+                Title = e.Title,
+                EventType = e.EventType,
+                Description = e.Description,
+                Genre = e.Genre,
+                Language = e.Language,
+                Duration = e.Duration,
+                ShowDate = e.ShowDate,
+                TicketPrice = e.TicketPrice,
+                ImageUrl = e.ImageUrl,
+
+                VenueId = e.VenueId,
+                VenueName = e.Venue?.VenueName ?? string.Empty,
+                CityName = e.Venue?.City?.CityName ?? string.Empty,
+                Address = e.Venue?.Address ?? string.Empty,
+                Capacity = e.Venue?.Capacity ?? 0,
+
+                ManagerId = e.ManagerId,
+                ManagerName = e.ManagerName,
+
+                Status = e.Status,
+                AdminNote = e.AdminNote,
+                CreatedAt = e.CreatedAt,
+                ApprovedAt = e.ApprovedAt,
+
+                TotalTickets = e.TotalTickets,
+                SoldTickets = e.SoldTickets,
+
+                EventAmount = e.EventAmount,
+                OfferedEventAmount = e.OfferedEventAmount,
+                IsAmountAccepted = e.IsAmountAccepted
+            }).ToList();
+
+
+            return new PagedResult<EventDto>
+            {
+                Items = mappedItems,
+                Page = pagedEvents.Page,
+                PageSize = pagedEvents.PageSize,
+                TotalCount = pagedEvents.TotalCount
+            };
+        }
 
     }
 }
