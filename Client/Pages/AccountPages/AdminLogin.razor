@@ -47,8 +47,18 @@
 
 
             <!-- Login Button -->
-            <button type="submit" class="btn btn-outline-danger w-100 fw-semibold py-2 mt-2">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+            <button type="submit" class="btn btn-outline-danger w-100 fw-semibold py-2 mt-2"
+                    disabled="@IsLoggingIn">
+                @if (IsLoggingIn)
+                {
+                    <span class="spinner-border spinner-border-sm text-danger" role="status"></span>
+                    <span>Logging in...</span>
+                }
+                else
+                {
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Login</span>
+                }
             </button>
 
             <!-- Error Message -->
@@ -73,6 +83,7 @@
 
 
 @code {
+    private bool IsLoggingIn = false;
     private bool showPassword = false;
 
     private string PasswordInputType => showPassword ? "text" : "password";
@@ -90,12 +101,26 @@
 
     private async Task HandleAdminLogin()
     {
-        string fallbackUrl = "/admin-dashboard";
+        if (IsLoggingIn) return;
 
-        if (!string.IsNullOrEmpty(returnUrl))
-            fallbackUrl = returnUrl!;
+        IsLoggingIn = true;
+        StateHasChanged();
+        try
+        {
+            string fallbackUrl = "/admin-dashboard";
 
-        await LoginAsync("https://localhost:7239/api/Account/login", fallbackUrl);
+            if (!string.IsNullOrEmpty(returnUrl))
+                fallbackUrl = returnUrl!;
+
+            await LoginAsync("https://localhost:7239/api/Account/login", fallbackUrl);
+        }
+        catch  (Exception ex)
+        {
+            errorMessage = "Login failed: " + ex.Message;
+        }
+
+        IsLoggingIn = false;
+        StateHasChanged();
     }
 
 

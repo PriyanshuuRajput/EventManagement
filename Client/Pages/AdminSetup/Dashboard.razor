@@ -45,7 +45,7 @@
         position: absolute;
         right: -10px;
         top: 0;
-        opacity: 0.40;
+        opacity: 0.2;
         z-index: 0;
         width: 70px;
         height: 70px;
@@ -57,7 +57,7 @@
         color: #fff;
         font-size: 32px;
         margin-bottom: 15px;
-        box-shadow: -20px 19px 0px 20px rgba(0,0,0,0.15);
+        box-shadow: 0px 0px 0px 10px rgba(0,0,0,0.15);
     }
 
     .content {
@@ -67,7 +67,7 @@
 
 
     .number {
-        font-size: 50px;
+        font-size: 40px;
         font-weight: 800;
         margin-bottom: 30px;
     }
@@ -80,10 +80,10 @@
 
    
     .card-footer {
-        margin-top: 100px;
+        margin-top: 40px ;
         font-size: 20px;
         display: flex;
-        justify-content: space-between;
+        justify-content: end;
         align-items: center;
     }
 
@@ -134,6 +134,84 @@
         width: 6px;
     }
 
+
+    /* Timeline Container */
+
+    .no-wrap {
+        white-space: nowrap !important;
+    }
+
+    .date-container {
+        background: #ffffff;
+        padding: 10px 20px;
+        border-radius: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        overflow-x: auto;
+    }
+
+    /* Each date item */
+    .date-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        padding: 4px 10px;
+        border-radius: 16px;
+        transition: all 0.25s ease;
+    }
+
+        /* Day text */
+        .date-item .day {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .5px;
+            color: #777;
+        }
+
+        /* Number */
+        .date-item .num {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 3px;
+        }
+
+        /* Active Selected */
+        .date-item.active {
+            background: #dc3545;
+            color: white;
+        }
+
+            .date-item.active .day,
+            .date-item.active .num {
+                color: white;
+            }
+
+        .date-item:hover {
+            transform: translateY(-2px);
+        }
+    .date-container::-webkit-scrollbar {
+        display: none;
+    }
+
+
+    /* Dark Version */
+    /*.date-container.dark {
+        background: #0f172a;
+    }
+
+        .date-container.dark .day {
+            color: #cbd5e1;
+        }
+
+        .date-container.dark .num {
+            color: #f1f5f9;
+        }*/
+
     .row.g-4 > div {
         display: flex;
     }
@@ -147,7 +225,8 @@
         border-radius: 10px;
     }
     .event-table th {
-        background: #f8f9fa;
+        background: #dee2e6;
+        font-size:16px  ;
         font-weight: 600;
         padding: 14px 12px !important;
         white-space: nowrap;
@@ -176,21 +255,29 @@
     }
 
     .status-badge {
-        padding: 6px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
+        padding: 8px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 700;
         white-space: nowrap;
     }
 
     .price-badge {
-        padding: 7px 12px;
-        border-radius: 20px;
-        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: 700;
         font-size: 13px;
         background: #f1f3f4;
         color: #333;
     }
+/*    .status-badge {
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 14px;
+        background: #f1f3f4;
+        color: #333;
+    }*/
 
     .table-container {
         max-height: 420px;
@@ -304,7 +391,7 @@
 </style>
 
 
-<div class="container-fluid">
+<div class="container-fluid py-4">
 
     <!--Header-->
     @*<div class="d-flex justify-content-between align-items-center mb-4">
@@ -318,11 +405,11 @@
         </div>*@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-semibold text-dark mb-0">
-        <i class="bi bi-speedometer2 me-2"></i>
-        Dashboard
+            <i class="bi bi-speedometer2 me-2"></i>
+            Dashboard
         </h3>
-        
-     </div>
+
+    </div>
 
     <div class="row g-4 mb-4 ">
         <!-- Left Side: Summary Cards -->
@@ -331,9 +418,9 @@
 
                 @foreach (var card in SummaryCards)
                 {
-                    <div class="dashboard-card " style="background-color: #ffefef">
+                    <div class="dashboard-card " style="background-color: #fceeee">
 
-                        
+
                         <i class="@card.Icon dashboard-icon-bg"></i>
 
                         <!-- Content -->
@@ -342,7 +429,7 @@
                             <div class="title">@card.Title</div>
 
                             <div class="card-footer">
-                                <span>Details</span>
+                                @*<span>Details</span>*@
                                 <i class="bi bi-arrow-right"></i>
                             </div>
                         </div>
@@ -355,9 +442,10 @@
 
         <!-- Right Side: Notifications -->
         <div class="col-lg-3 col-md-12 ">
-            <div class="card shadow-lg rounded-2 border-0 " style="background-color:#ffefef">
-                <div class="card-header bg-secondary-subtle fw-semibold rounded-top-2" >
+            <div class="card shadow-lg rounded-2 border-0 " style="background-color: #fceeee">
+                <div class="card-header text-dark  border-danger fw-semibold rounded-top-2 d-flex justify-content-between" style="background-color: #dee2e6">
                     Notifications
+                    <i class="bi bi-bell-fill text-danger"></i>
                 </div>
                 <div class="card-body  p-3 notification-list">
                     @if (!Notifications.Any())
@@ -374,13 +462,13 @@
                             string colorClass = "bg-light";
 
                             if (note.Message.Contains("Pending") || note.Message.Contains("request"))
-                                colorClass = "bg-warning-subtle text-dark";
+                                colorClass = "bg-light text-dark";
 
                             else if (note.Message.Contains("waiting for payment"))
-                                colorClass = "bg-info-subtle text-dark";
+                                colorClass = " bg-light text-dark";
 
                             else
-                                colorClass = "bg-primary-subtle text-dark";
+                                colorClass = "bg-light text-dark";
 
                             <div class="notify-card @colorClass shadow-sm">
                                 <div>
@@ -389,7 +477,6 @@
                                     </div>
                                     <div class="text-muted small">@note.Date.ToString("dd MMM yyyy, hh:mm tt")</div>
                                 </div>
-                                <i class="bi bi-bell-fill text-danger"></i>
                             </div>
                         }
 
@@ -399,244 +486,292 @@
         </div>
     </div>
 
-        @*<div class="col-md-6 mb-3 mb-md-0 mt-2">
-                <div class="input-group shadow-sm">
-                    <span class="input-group-text bg-white">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input class="form-control"
-                           placeholder="Search event name or email..."
-                           @bind="SearchTerm"
-                           @bind:event="oninput" />
-                </div>
-            </div>*@
-
-
-        <!-- Search box -->
-        <div class="row mb-3 align-items-center">
-            <div class="col-md-6 mb-3 mb-md-0 mt-2">
-                <div class="input-group shadow-sm">
-                    <span class="input-group-text bg-white">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input class="form-control"
-                           placeholder="Search by event name , manager name or address..."
-                           @bind="SearchTerm"
-                           @bind:event="oninput" />
-                </div>
+    @*<div class="col-md-6 mb-3 mb-md-0 mt-2">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input class="form-control"
+                       placeholder="Search event name or email..."
+                       @bind="SearchTerm"
+                       @bind:event="oninput" />
             </div>
-        </div>
+        </div>*@
 
-        <!-- FILTER BUTTONS (Always Below) -->
-        <div class="d-flex gap-3 flex-wrap py-2 mb-2" style="margin-left:45px">
 
-            <!-- ALL -->
-            <button class="btn btn-sm @(selectedStatus == "" ? "btn-danger" : "btn-outline-secondary") rounded-3"
-                    @onclick="@( () => SetStatus(""))">
-                All
-            </button>
+    <!-- Search Bar -->
 
-            <!-- PENDING -->
-            <button class="btn btn-sm @(selectedStatus == "Pending" ? "btn-warning" : "btn-outline-secondary") rounded-3"
-                    @onclick="@( () => SetStatus("Pending") )">
-                Pending (@PendingCount)
-            </button>
+        <!--<!--<div class="d-flex align-items-center gap-3" style="max-width: 50%; min-width: 300px;">
 
-            <!-- APPROVED -->
-            <button class="btn btn-sm @(selectedStatus == "Approved" ? "btn-success" : "btn-outline-secondary") rounded-3"
-                    @onclick="@( () => SetStatus("Approved"))">
-                Approved (@ApprovedCount)
-            </button>
+            <!-- Checkbox (Single Line) -->
+    <!--<div class="form-check m-0 d-flex align-items-center">--><!---->
+    <!---->@*<input class="form-check-input me-2 mb-1"
+        type="checkbox"
+        style="padding:10px"
+        id="enableDateFilter"
+        checked="@EnableDateFilter"
+        @onchange="OnDateFilterChanged" />*@-->
 
-            <!-- REJECTED -->
-            <button class="btn btn-sm @(selectedStatus == "Rejected" ? "btn-danger" : "btn-outline-secondary") rounded-3"
-                    @onclick="@( () => SetStatus("Rejected"))">
-                Rejected (@RejectedCount)
-            </button>
+    <!--<label class="form-check-label no-wrap" for="enableDateFilter" style="font-weight:600">
+            Enable Date Filter
+        </label>
+    </div>-->
+    <!-- Timeline -->
+    <!--<div class="date-container flex-grow-1">
+        @foreach (var d in TimelineDates)
+        {
+            bool isActive = SelectedTimelineDate.Date == d.Date;
 
-        </div>
-
-        <!--Events table-->
-        <div class="card mb-4 border-0 rounded-0">
-            <!--<div class="card-header d-flex justify-content-between align-items-center text-white bg-danger rounded-top-3">
-        <h6 class="fw-bold mb-0">Recent Events</h6>-->
-            @*<input class="form-control form-control-sm shadow-sm " placeholder=" Search event, manager, city..."
-        @bind="SearchTerm" @bind:event="oninput" style="width: 300px;" />*@
-
-            <!--</div>-->
-            <div class="card-body p-0">
-                <div class="table-container">
-                    <table class="table event-table table-hover mb-0">
-                        <thead class="sticky-top shadow-sm" style="top:0; z-index:10;">
-                            <tr>
-                                <th>Event Name</th>
-                                <th>Manager Name</th>
-                                <th>Address</th>
-                                <th>Event Date</th>
-                                <th>Created</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-
-                        <tbody class="table-fade @(fadeClass)">
-                            @if (!filteredEvents.Any())
-                            {
-                                <tr>
-                                    <td colspan="7" class="text-center py-4 text-muted">
-                                        No events found
-                                    </td>
-                                </tr>
-                            }
-                            else
-                            {
-                                @foreach (var evt in filteredEvents)
-                                {
-                                    <tr>
-
-                                        <!-- Event Name -->
-                                        <td>
-                                            <div class="event-title">@evt.Title</div>
-                                            <div class="event-sub">@evt.EventType</div>
-                                        </td>
-
-                                        <!-- Manager -->
-                                        <td class="event-title">
-                                            @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
-                                        </td>
-
-                                        <!-- Address -->
-                                        <td>
-                                            <div class="event-title">@evt.VenueName</div>
-                                            <div class="event-sub">@evt.CityName</div>
-                                        </td>
-
-                                        <!-- Event Date -->
-                                        <td>
-                                            <div class="event-title">@evt.ShowDate.ToString("dd-MMM-yyyy")</div>
-                                            <div class="event-sub">@evt.ShowDate.ToString("hh:mm tt")</div>
-                                        </td>
-
-                                        <!-- Created -->
-                                        <td class="event-sub">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
-
-                                        <!-- Price -->
-                                        <td>
-                                            <span class="price-badge">₹ @evt.EventAmount</span>
-                                        </td>
-
-                                        <!-- Status -->
-                                        <td>
-                                        <td>
-                                            @if (evt.Status == EventStatus.Pending)
-                                            {
-                                                <button class="badge bg-warning text-dark"
-                                                        style="cursor:pointer"
-                                                        @onclick="(() => EventApprove(evt.Id))">
-                                                    Pending
-                                                </button>
-                                            }
-                                            else if (evt.Status == EventStatus.AdminApproved)
-                                            {
-                                                <span class="badge bg-success">Approved</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-danger">Rejected</span>
-                                            }
-                                        </td>
-
-                                        </td>
-
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
+            <div class="date-item @(isActive ? "active" : "")"
+                 @onclick="() => SelectDate(d)">
+                <div class="day">@d.ToString("ddd").ToUpper()</div>
+                <div class="num">@d.Day</div>
             </div>
-
-            <Pagination Page="@CurrentPage"
-                        PageSize="@PageSize"
-                        TotalItems="@filteredEventsFull.Count"
-                        PageChanged="OnPageChanged" />
-        </div>
-
-        <!-- Ongoing Events Accordion -->
-        <div class="mb-3">
-            <div class="card shadow-sm bg-secondary text-dark border-0 rounded-4" style="cursor: pointer; background-color:#f8d7da" @onclick="ToggleOngoing">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <span class="fw-bold">Ongoing Events (Today)</span>
-                    <i class="bi bi-chevron-down" style="transition: transform 0.3s; transform: rotate(@(showOngoing ? 180 : 0)deg)"></i>
-                </div>
-            </div>
-
-            <div class="smooth-collapse @(showOngoing ? "expand-height" : "collapse-height") mt-2">
-                @if (OngoingEvents.Any())
-                {
-                    <div class="event-scroll-box">
-                        <div class="d-flex gap-3 flex-nowrap">
-                            @foreach (var evt in OngoingEvents)
-                            {
-                                <div class="event-card" style="width:260px">
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
-                                        <img src="@evt.ImageUrl" class="card-img-top rounded-top-4" style="height:180px; object-fit:cover;" alt="@evt.Title" />
-                                        <div class="card-body">
-                                            <h5 class="fw-bold text-primary">@evt.Title</h5>
-                                            <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
-                                            <p class="mb-1"><strong>Date:</strong> @evt.ShowDate.ToString("dd MMM yyyy")</p>
-                                            <p class="mb-0"><strong>Ticket Price:</strong> @evt.TicketPrice.ToString("C")</p>
-                                        </div>   
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <p class="text-muted text-center my-2">No ongoing events</p>
-                }
-            </div>
-        </div>
-
-        <!-- Upcoming Events Accordion -->
-        <div class="mb-3">
-            <div class="card shadow-sm  text-dark rounded-4 border-0" style="cursor: pointer ; background-color:#f8d7da" @onclick="ToggleUpcoming">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <span class="fw-bold">Upcoming Events (Next 10 Days)</span>
-                    <i class="bi bi-chevron-down" style="transition: transform 0.3s; transform: rotate(@(showUpcoming ? 180 : 0)deg)"></i>
-                </div>
-            </div>
-
-            <div class="smooth-collapse @(showUpcoming ? "expand-height" : "collapse-height") mt-2">
-                @if (UpcomingEvents.Any())
-                {<div class="event-scroll-box">
-                        <div class="d-flex gap-3 flex-nowrap">
-                            @foreach (var evt in UpcomingEvents)
-                            {
-                                <div class="event-card" style="width:260px">
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
-                                        <img src="@evt.ImageUrl" class="card-img-top rounded-top-4" style="height:180px; object-fit:cover;" alt="@evt.Title" />
-                                        <div class="card-body">
-                                            <h5 class="fw-bold text-secondary">@evt.Title</h5>
-                                            <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
-                                            <p class="mb-1"><strong>Date:</strong> @evt.ShowDate.ToString("dd MMM yyyy")</p>
-                                            <p class="mb-0"><strong>Price:</strong> ₹@evt.TicketPrice.ToString()</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <p class="text-muted text-center my-2">No upcoming events</p>
-                }
-            </div>
+        }
+    </div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!-- Search Bar + Date Picker -->
+<div class="d-flex align-items-center gap-3 flex-wrap">
+    <!-- SEARCH BAR -->
+    <div style="width: 300px;">
+        <div class="input-group shadow-sm">
+            <span class="input-group-text bg-white">
+                <i class="bi bi-search"></i>
+            </span>
+            <input class="form-control"
+                   placeholder="Search ..."
+                   @bind="SearchTerm"
+                   @bind:event="oninput" />
         </div>
     </div>
+
+    <!-- DATE PICKER NEXT TO IT -->
+    <div class="ui calendar" id="singleDatePicker" style="width: 200px;">
+        <div class="ui input left icon">
+            <i class="calendar icon"></i>
+            <input type="text"
+                   id="selectedDateInput"
+                   placeholder="Choose Date"
+                   readonly />
+        </div>
+    </div>
+    <button class="btn btn-outline-danger"
+            @onclick="ClearFilters">
+        Clear
+    </button>
+</div>
+
+
+    <!-- FILTER BUTTONS (Always Below) -->
+    <div class="d-flex gap-3 flex-wrap m-2" style="margin-left:40px">
+
+        <!-- ALL -->
+        <button class="btn btn-sm @(selectedStatus == "" ? "btn-danger" : "btn-outline-secondary") rounded-3"
+                @onclick="@( () => SetStatus(""))">
+            All
+        </button>
+
+        <!-- PENDING -->
+        <button class="btn btn-sm @(selectedStatus == "Pending" ? "btn-warning" : "btn-outline-secondary") rounded-3"
+                @onclick="@( () => SetStatus("Pending") )">
+            Pending (@PendingCount)
+        </button>
+
+        <!-- APPROVED -->
+        <button class="btn btn-sm @(selectedStatus == "Approved" ? "btn-success" : "btn-outline-secondary") rounded-3"
+                @onclick="@( () => SetStatus("Approved"))">
+            Approved (@ApprovedCount)
+        </button>
+
+        <!-- REJECTED -->
+        <button class="btn btn-sm @(selectedStatus == "Rejected" ? "btn-danger" : "btn-outline-secondary") rounded-3"
+                @onclick="@( () => SetStatus("Rejected"))">
+            Rejected (@RejectedCount)
+        </button>
+
+    </div>
+
+    <!--Events table-->
+    <div class="card mb-4 border-0 rounded-0">
+        <!--<div class="card-header d-flex justify-content-between align-items-center text-white bg-danger rounded-top-3">
+        <h6 class="fw-bold mb-0">Recent Events</h6>-->
+        @*<input class="form-control form-control-sm shadow-sm " placeholder=" Search event, manager, city..."
+            @bind="SearchTerm" @bind:event="oninput" style="width: 300px;" />*@
+
+        <!--</div>-->
+        <div class="card-body p-0">
+            <div class="table-container">
+                <table class="table event-table table-hover mb-0">
+                    <thead class="sticky-top shadow-sm" style="top:0; z-index:10;">
+                        <tr>
+                            <th>Event Name</th>
+                            <th>Manager Name</th>
+                            <th>Address</th>
+                            <th>Event Date</th>
+                            <th>Created</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="table-fade @(fadeClass)">
+                        @if (!filteredEvents.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    No events found
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                                @foreach (var evt in filteredEvents)
+                            {
+                                <tr>
+
+                                    <!-- Event Name -->
+                                    <td>
+                                        <div class="event-title">@evt.Title</div>
+                                        <div class="event-sub">@evt.EventType</div>
+                                    </td>
+
+                                    <!-- Manager -->
+                                    <td class="event-title">
+                                        @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
+                                    </td>
+
+                                    <!-- Address -->
+                                    <td>
+                                        <div class="event-title">@evt.VenueName</div>
+                                        <div class="event-sub">@evt.CityName</div>
+                                    </td>
+
+                                    <!-- Event Date -->
+                                    <td>
+                                        <div class="event-title">@evt.ShowDate.ToString("dd-MMM-yyyy")</div>
+                                        <div class="event-sub">@evt.ShowDate.ToString("hh:mm tt")</div>
+                                    </td>
+
+                                    <!-- Created -->
+                                    <td class="event-sub">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
+
+                                    <!-- Price -->
+                                    <td>
+                                        <span class="price-badge d-flex justify-content-center align-items-center">₹ @evt.EventAmount</span>
+                                    </td>
+
+                                    <!-- Status -->
+
+                                    <td>
+                                        @if (evt.Status == EventStatus.Pending)
+                                        {
+                                            <button class="status-badge text-white bg-warning text-dark"
+                                                    style="cursor:pointer"
+                                                    @onclick="(() => EventApprove(evt.Id))">
+                                                Pending
+                                            </button>
+                                        }
+                                        else if (evt.Status == EventStatus.AdminApproved)
+                                        {
+                                            <span class="status-badge text-white bg-success">Approved</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge  text-white bg-danger">Rejected</span>
+                                        }
+                                    </td>
+
+
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <Pagination Page="@CurrentPage"
+                    PageSize="@PageSize"
+                        TotalItems="@filteredEventsFull.Count"
+                    PageChanged="OnPageChanged" />
+    </div>
+
+    <!-- Ongoing Events Accordion -->
+    <div class="mb-3">
+        <div class="card shadow-sm text-dark border-0 rounded-4" style="cursor: pointer; background-color: #dee2e6" @onclick="ToggleOngoing">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Ongoing Events (Today)</span>
+                <i class="bi bi-chevron-down" style="transition: transform 0.3s; transform: rotate(@(showOngoing ? 180 : 0)deg)"></i>
+            </div>
+        </div>
+
+        <div class="smooth-collapse @(showOngoing ? "expand-height" : "collapse-height") mt-2">
+            @if (OngoingEvents.Any())
+            {
+                <div class="event-scroll-box">
+                    <div class="d-flex gap-3 flex-nowrap">
+                        @foreach (var evt in OngoingEvents)
+                        {
+                            <div class="event-card" style="width:260px">
+                                <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <img src="@evt.ImageUrl" class="card-img-top rounded-top-4" style="height:180px; object-fit:cover;" alt="@evt.Title" />
+                                    <div class="card-body">
+                                        <h5 class="fw-bold text-primary">@evt.Title</h5>
+                                        <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
+                                        <p class="mb-1"><strong>Date:</strong> @evt.ShowDate.ToString("dd MMM yyyy")</p>
+                                        <p class="mb-0"><strong>Ticket Price:</strong> @evt.TicketPrice.ToString("C")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center my-2">No ongoing events</p>
+            }
+        </div>
+    </div>
+
+    <!-- Upcoming Events Accordion -->
+    <div class="mb-3">
+        <div class="card shadow-sm  text-dark rounded-4 border-0" style="cursor: pointer; background-color: #dee2e6" @onclick="ToggleUpcoming">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Upcoming Events (Next 10 Days)</span>
+                <i class="bi bi-chevron-down" style="transition: transform 0.3s; transform: rotate(@(showUpcoming ? 180 : 0)deg)"></i>
+            </div>
+        </div>
+
+        <div class="smooth-collapse @(showUpcoming ? "expand-height" : "collapse-height") mt-2">
+            @if (UpcomingEvents.Any())
+            {<div class="event-scroll-box">
+                    <div class="d-flex gap-3 flex-nowrap">
+                        @foreach (var evt in UpcomingEvents)
+                        {
+                            <div class="event-card" style="width:260px">
+                                <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <img src="@evt.ImageUrl" class="card-img-top rounded-top-4" style="height:180px; object-fit:cover;" alt="@evt.Title" />
+                                    <div class="card-body">
+                                        <h5 class="fw-bold text-secondary">@evt.Title</h5>
+                                        <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
+                                        <p class="mb-1"><strong>Date:</strong> @evt.ShowDate.ToString("dd MMM yyyy")</p>
+                                        <p class="mb-0"><strong>Price:</strong> ₹@evt.TicketPrice.ToString()</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center my-2">No upcoming events</p>
+            }
+        </div>
+    </div>
+</div>
 
     @code {
         private List<EventDto> Events = new();
@@ -644,6 +779,32 @@
         private List<(string Message, DateTime Date)> Notifications = new();
         private List<EventDto> filteredEvents = new();
         private DateTime? filterDate = null;
+        //private List<DateTime> TimelineDates = new();
+        //private DateTime SelectedTimelineDate = DateTime.Today;
+        private bool enableDateFilter;
+        private DateTime? SelectedDate = null;
+        //private bool EnableDateFilter
+        //{
+        //    get => enableDateFilter;
+        //    set
+        //    {
+        //        enableDateFilter = value;
+
+        //        if (!value)
+        //        {
+        //            filterDate = null;
+        //        }
+        //        else if (SelectedDate != null)
+        //        {
+        //            filterDate = SelectedDate.Value.Date;
+        //        }
+
+        //        ApplyFilters();
+        //    }
+        //}
+
+
+
         private string searchTerm = "";
         private string selectedStatus { get; set; } = "";
         private int PendingCount => Events.Count(e => e.Status == EventStatus.Pending);
@@ -704,10 +865,90 @@
 
             filteredEventsFull = new List<EventDto>(Events);
             BuildNotifications();
-
+            //BuildTimeLine();
 
             ApplyFilters();
         }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                await JS.InvokeVoidAsync("initSingleDatePicker", DotNetObjectReference.Create(this));
+            }
+        }
+
+        [JSInvokable]
+        public void OnSemanticDateSelected(string dateStr)
+        {
+            if (DateTime.TryParse(dateStr, out var dt))
+            {
+                filterDate = dt.Date;
+                SelectedDate = dt;
+                ApplyFilters();
+            }
+        }
+
+        private void ClearFilters()
+        {
+
+            SearchTerm = "";
+            searchTerm = "";
+
+
+            SelectedDate = null;
+            filterDate = null;
+
+            // RESET STATUS FILTER
+            selectedStatus = "";
+
+
+            JS.InvokeVoidAsync("clearSemanticDate");
+
+            ApplyFilters();
+        }
+
+        //private void BuildTimeLine()
+        //{
+        //    TimelineDates.Clear();
+        //    var start = DateTime.Today.AddDays(-2);
+
+        //    for(int i = 0;i<10; i++)
+        //    {
+        //        TimelineDates.Add(start.AddDays(i));
+        //    }
+
+        //}
+
+        //private void SelectDate(DateTime d)
+        //{
+        //    SelectedTimelineDate = d;
+        //    if (EnableDateFilter)
+        //    {
+
+
+        //        filterDate = d.Date;
+        //        ApplyFilters();
+        //    }
+        //}
+        //private void OnDateFilterChanged(ChangeEventArgs e)
+        //{
+        //    bool value = (bool)e.Value!;
+        //    EnableDateFilter =value;
+
+        //    if (!value)
+        //    {
+        //        filterDate = null;
+        //        SelectedTimelineDate = DateTime.Today;
+        //    }
+        //    else
+        //    {
+        //        filterDate = SelectedTimelineDate.Date;
+        //    }
+
+        //    ApplyFilters();
+        //}
+
 
         private void BuildNotifications()
         {
@@ -757,13 +998,17 @@
             filteredEventsFull = Events
                 .Where(e =>
 
+                    // STATUS FILTER
                     (
                         string.IsNullOrEmpty(selectedStatus)
                         || (selectedStatus == "Approved" && e.Status == EventStatus.AdminApproved)
                         || (selectedStatus == "Pending" && e.Status == EventStatus.Pending)
                         || (selectedStatus == "Rejected" && e.Status == EventStatus.Rejected)
                     )
+
                     &&
+
+                    // SEARCH TERM FILTER
                     (
                         string.IsNullOrWhiteSpace(term)
                         ||
@@ -776,6 +1021,17 @@
                             || (e.EventAmount.ToString().Contains(term))
                         )
                     )
+
+                    &&
+
+                    // DATE FILTER — ONLY WHEN CHECKBOX ENABLED
+                    //(
+                    //    !EnableDateFilter
+                    //    || (EnableDateFilter && filterDate.HasValue && e.ShowDate.Date == filterDate.Value.Date)
+                    //)
+                    (filterDate ==  null
+                    || e.ShowDate.Date == filterDate.Value.Date
+                    )
                 )
                 .OrderByDescending(e => e.CreatedAt)
                 .ToList();
@@ -783,6 +1039,8 @@
             CurrentPage = 1;
             ApplyPagination();
         }
+
+
 
         private async Task OnPageChanged(int page)
         {
