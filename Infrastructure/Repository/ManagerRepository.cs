@@ -66,10 +66,33 @@ namespace Infrastructure.Repository
         {
             return await _db.Managers
                 .Include(m => m.User)
+                .Include(m => m.Events)
                 .ToListAsync();
 
         }
 
+        //public async Task<List<Manager>> GetAllManagersWithEventCountAsync()
+        //{
+        //    return await _db.Managers
+        //        .Include(m => m.User)
+        //        .GroupJoin(
+        //        _db.Events,
+        //        manager => manager.Id,
+        //        ev => ev.ManagerId,
+        //        (manager, events) => new Manager
+        //        {
+        //            Id = manager.Id,
+        //            ManagerName = manager.ManagerName,
+        //            Email = manager.User!.Email,
+        //            Mobile = manager.Mobile,
+        //            Address = manager.Address,
+        //            Image = manager.Image,
+        //            CreatedAt = manager.CreatedAt,
+        //            IsApproved = manager.IsApproved,
+        //            EventsCount = events.Count()
+
+        //        }).ToListAsync();
+        //}
         public async Task<List<Manager>> GetPendingManagersAsync()
         {
             return await _db.Managers

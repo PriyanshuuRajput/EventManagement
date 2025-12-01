@@ -208,17 +208,19 @@ namespace EventBooking_TicketManagement_API.Controllers
 
 
             string adminEmail = "rajputronak0058@gmail.com";
-
-            await _emailService.SendEmailAsync(
-                adminEmail,
-                "New Manager Signup Request",
-            $@"
-            <h2>New Manager Request</h2>
-            <p>A new manager has applied for approval.</p>
-            <p><b>Email:</b> {dto.Email}</p>
-            <p>Please review and approve them in the Admin Dashboard.</p>
+            _ = Task.Run(() =>
+            {
+                _emailService.SendEmailAsync(
+                    adminEmail,
+                    "New Manager Signup Request",
+                    $@"
+                <h2>New Manager Request</h2>
+                <p>A new manager has applied for approval.</p>
+                <p><b>Email:</b> {dto.Email}</p>
+                <p>Please review and approve them in the Admin Dashboard.</p>
             "
-            );
+                );
+            });
 
             return Ok(new
             {

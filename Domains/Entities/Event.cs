@@ -44,7 +44,7 @@ namespace Domains.Entities
         // 🔗 Optional: Seats or bookings related to this event
         public ICollection<Seat>? Seats { get; set; }
 
-        [ForeignKey(nameof(Manager))]
+        [ForeignKey(nameof(Managers))]
         public int? ManagerId { get; set; }
 
         public Manager? Managers { get; set; }

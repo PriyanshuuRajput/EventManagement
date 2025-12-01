@@ -64,6 +64,16 @@ namespace EventBooking_TicketManagement_API.Controllers
 
         }
 
+
+        [HttpGet("events-by-manager/{managerId}")]
+        public async Task<IActionResult> GetEventsByManager(int managerId)
+        {
+            var events = await _eventService.GetManagerEventsAsync(managerId);
+
+            return Ok(events);
+        }
+
+
         //  Get all pending events
         [HttpGet("pending")]
         public async Task<IActionResult> GetPendingEvents()

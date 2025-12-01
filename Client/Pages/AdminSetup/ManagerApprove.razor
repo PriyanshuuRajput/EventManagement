@@ -1,14 +1,192 @@
 ﻿@page "/managers"
 
+@using System.Text.Json
+
 
 @inject HttpClient Http
 @inject Blazored.Toast.Services.IToastService toast
 @*@using Blazored.Toast
-@using Blazored.Toast.Configuration*@
+    @using Blazored.Toast.Configuration*@
 
 
 
 <style>
+    /* Modal Background Fade */
+    /*.custom-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(3px);
+        animation: fadeIn 0.25s ease-out;
+    }*/
+
+    /* Smooth Zoom Animation for Modal */
+    .custom-modal-content {
+        border-radius: 16px !important;
+        border: none !important;
+        animation: scaleIn 0.25s ease-out;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+
+    .btn-danger {
+        transition: 0.25s;
+    }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 6px 18px rgba(220,53,69,0.4);
+        }
+
+    /* Keyframes */
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.92);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .pending {
+        position: relative;
+        cursor: pointer;
+    }
+
+        .pending:hover td:not(.no-blur) {
+            filter: blur(1px);
+            opacity: 0;
+            transition: 0.2s ease;
+        }
+
+        .pending:hover .no-blur {
+            opacity: 1 !important;
+        }
+
+        .pending:hover::after {
+            content: "Click here to approve the manager";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            padding: 8px 14px;
+            /*            background: rgba(255, 255, 255, 0.8);*/
+            backdrop-filter: blur(10px);
+            border-radius: 6px;
+            font-weight: 700;
+            color: #dc3545;
+            font-size: 18px;
+            z-index: 10;
+        }
+
+/* BACKDROP */
+.side-panel-backdrop {
+    position: fixed;
+/*    inset: 0;*/
+/*    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);*/
+    z-index: 50;
+}
+
+/* RIGHT SLIDING PANEL */
+    .side-panel {
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 420px;
+        height: 100%;
+        background: #ffffffeb;
+        backdrop-filter: blur(12px);
+        padding: 20px;
+        box-shadow: -8px 0px 20px 0px #fcbaba;
+        z-index: 60;
+        animation: slideIn .35s ease-out;
+        overflow-y: auto;
+    }
+
+    /* Full-width banner background */
+    .profile-header {
+        width: 100%;
+        background: url('https://images.unsplash.com/photo-1763205367855-093764253663?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+        margin-bottom: 20px;
+        color: white;
+        backdrop-filter: blur(4px);
+    }
+
+    /* Flexible inside content */
+    .profile-content {
+        display: flex;
+        align-items: center;
+    }
+
+    /* Rounded image (left side) */
+    .manager-photo-round {
+        width: 85px;
+        height: 85px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    }
+
+
+/*    .event-item {
+        cursor: pointer;
+        transition: 0.2s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }*/
+
+ .event-list {
+    margin-top: 8px;
+}
+
+    .event-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 10px;
+        border-radius: 6px;
+        background: #f8f9fa;
+        margin-bottom: 6px;
+        border: 2px solid #eee;
+        overflow: hidden;
+        background-color: #fcbaba;
+    }
+    .event-left {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 0; 
+    }
+
+    .event-title {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 250px;
+        flex-shrink: 1; 
+    }
+
+@@keyframes slideIn {
+    from { right: -500px; opacity: 0; }
+    to { right: 0; opacity: 1; }
+}
+
 
     /* ---FOOTER BANNER ---*/
     .promo-banner {
@@ -31,7 +209,7 @@
 </style>
 
 
-<div class="container py-4">
+<div class="container-fluid py-0">
 
 
     @*<BlazoredToast ToastId="mainToast" Settings="ToastSettings" />*@
@@ -108,8 +286,9 @@
                     <th>Image</th>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>Contact</th>
+                    <th>Created At</th>
                     <th>Address</th>
+                    <th>Total Events</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -137,8 +316,10 @@
                 {
                     @foreach (var m in PagedItems)
                     {
-                        <tr>
-                            <td>
+                        <tr class="@(m.Status == "Pending" ? "pending" : "")"
+                            @onclick="(() => OnRowClick(m))">
+
+                            <td class="no-blur">
                                 @if (!string.IsNullOrEmpty(m.Image))
                                 {
                                     <img src="@m.Image" class="rounded-square rounded-3" style=" width: 70px; height: 60px; object-fit: cover" />
@@ -161,54 +342,59 @@
                                 ? "<span class='text-muted'>—</span>"
                                 : m.Email))
                             </td>
-
                             <td>
-                                @((MarkupString)(string.IsNullOrWhiteSpace(m.Mobile)
-                                ? "<span class='text-muted'>—</span>"
-                                : m.Mobile))
-                            </td>
+                                    @((MarkupString)(string.IsNullOrWhiteSpace(m.CreatedAt.ToString("dd MMM yyyy"))
+                                    ? "<span class='text-muted'>—</span>"
+                                    : m.CreatedAt.ToString("dd MMM yyyy")))
+                                </td>
                             <td>
                                 @((MarkupString)(string.IsNullOrWhiteSpace(m.Address)
                                 ? "<span class='text-muted'>—</span>"
                                 : m.Address))
                             </td>
-
+                            <td>
+                                @(m.Status == "Pending"
+                                ? (MarkupString)"<span class='text-muted'>—</span>"
+                                : (m.EventsCount == 0
+                                ? (MarkupString)"<span class='text-muted'>0</span>"
+                                : (MarkupString)$"{m.EventsCount}")
+                                 )
+                            </td>
                             <td>
                                 @if (m.Status == "Pending")
                                 {
-                                    <button class="badge bg-warning text-dark"
-                                            style="cursor:pointer"
-                                            @onclick="(() => OpenApproveModal(m))">
-                                        Pending
-                                    </button>
+                                    <span class="badge bg-warning" style="font-weight:800;padding:8px">Pending</span>
                                 }
                                 else if (m.Status == "Approved")
                                 {
-                                    <span class="badge bg-success">Approved</span>
+                                    <span class="badge bg-success" style="font-weight:800;padding:8px">Approved</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-danger">Rejected</span>
+                                    <span class="badge bg-danger" style="font-weight:800;padding:8px">Rejected</span>
                                 }
                             </td>
 
-                            <td class="text-center">
+                            <td class="text-center no-blur">
 
-                                <div class="  btn-group btn-group-sm ">
+                                <div class="">
 
                                     <!-- VIEW -->
                                     <button class="btn btn-sm btn-outline-primary" title="View"
+                                             @onclick:stopPropagation="true"
                                             @onclick="(() => ViewManager(m))">
                                         <i class="bi bi-eye"></i>
                                     </button>
 
                                     <!-- EDIT -->
-                                    <!--<button class="btn btn-sm btn-outline-secondary me-1" title="Edit"
+                                    <button class="btn btn-sm btn-outline-secondary" title="Edit"
+                                             @onclick:stopPropagation="true"
                                             @onclick="(() => EditManager(m.Id))">
                                         <i class="bi bi-pencil"></i>
-                                    </button>-->
+                                    </button>
                                     <!-- DELETE -->
                                     <button class="btn btn-sm btn-outline-danger" title="Delete"
+                                             @onclick:stopPropagation="true"
                                             @onclick="(() => ConfirmDelete(m.Id))">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -259,41 +445,38 @@
 
 @if (ShowAddModal)
 {
-    <div class="modal fade show d-block" style="background:rgba(0,0,0,0.6);">
+    <div class=" modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);animation: fadein 0.3s ease-out ">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Manager</h5>
+            <div class="modal-content shadow-lg border-0 custom-modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Add New Manager</h5>
                 </div>
-
                 <div class="modal-body">
 
-                    <EditForm Model="NewManager" OnValidSubmit="AddManagerAsync">
+                    <EditForm Model="NewManager">
                         <DataAnnotationsValidator />
-                        <ValidationSummary/>
 
                         <div class="mb-3">
-                            <label class="form-label">Manager Email (Gmail only)</label>
-                            <InputText class="form-control" placeholder="Enter the email" @bind-Value="NewManager.Email" />
-                            <ValidationMessage For="@(() => NewManager.Email)" />
+                            <label class="form-label fw-semibold">Email<span class="text-danger">*</span></label>
 
+                            <InputText class="form-control"
+                                       placeholder="Enter email"
+                                       @bind-Value="NewManager.Email" />
 
                             @if (!string.IsNullOrEmpty(emailError))
                             {
-                                <div class="text-danger mt-1">@emailError</div>
+                                <div class="text-danger small mt-1">@emailError</div>
                             }
                         </div>
-
                     </EditForm>
-
                 </div>
-
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @onclick="CloseAddModal">Cancel</button>
-                    <button class="btn btn-danger px-4"
-                            @onclick="AddManagerAsync">
-                        Add
+                    <button class="btn btn-danger px-4" @onclick="AddManagerAsync" disabled="@isProcessing">
+                        @if (isProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }Add
                     </button>
                 </div>
 
@@ -303,37 +486,35 @@
 }
 
 <!--Approval Modal-->
-@if (SelectedManagers != null)
+@if (PendingManagers != null)
 {
-    <div class=" modal fade show d-block " style="background:rgba(0,0,0,0.6);">
+    <div class=" modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);animation: fadein 0.3s ease-out ">
         <div class=" modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class=" modal-header">
-                    <h5 class=" modal-title">Manager Approval Request ! </h5>
+            <div class="modal-content custom-modal-content">
+                <div class=" modal-header border-0">
+                    <h5 class="modal-title fw-bold">Manager Approval Request ! </h5>
                     <button class="btn-close" @onclick="CloseModal"></button>
                 </div>
-
                 <div class="modal-body">
                     @*<p><b>Name:</b>@SelectedManagers.ManagerName</p>*@
-                    <p><b>Email:</b>@SelectedManagers.Email</p>
+                    <p><strong>Email = </strong>@PendingManagers.Email</p>
                     @*<p><b>Mobile:</b>@SelectedManagers.Mobile</p>
                         <p><b>Address:</b>@SelectedManagers.Address</p>*@
                     <p>
-                        <b>Status:</b>
-                        @if (SelectedManagers.Status == "Approved")
-                        {<span class="badge bg-success">Approved</span> }
-                        else if (SelectedManagers.Status == "Rejected")
-                        { <span class="badge bg-danger">Rejected</span> }
+                        <strong>Status = </strong>
+                        @if (PendingManagers.Status == "Approved")
+                        {<span class="badge bg-success" style="border-radius:4px;padding:6px">Approved</span> }
+                        else if (PendingManagers.Status == "Rejected")
+                        { <span class="badge bg-danger" style="border-radius:4px;padding:6px">Rejected</span> }
                         else
-                        { <span class="badge bg-warning text-dark">Pending</span>}
+                        { <span class="badge bg-warning text-dark" style="border-radius:4px;padding:6px">Pending</span>}
                     </p>
                 </div>
                 <div class="modal-footer">
-
-                    @if (SelectedManagers.Status == "Pending")
+                    @if (PendingManagers.Status == "Pending")
                     {
-                        <button class="btn btn-success" @onclick="() => Approve(SelectedManagers.Id)">Approve</button>
-                        <button class="btn btn-danger" @onclick="() => Reject(SelectedManagers.Id)">Reject</button>
+                        <button class="btn btn-success" @onclick="() => Approve(PendingManagers.Id)">Approve</button>
+                        <button class="btn btn-danger" @onclick="() => Reject(PendingManagers.Id)">Reject</button>
                     }
 
                 </div>
@@ -343,16 +524,126 @@
     </div>
 }
 
-<!--Delete Modal-->
+<!-----------------------View Modal-------------------------------------------------------------------->
+@if (ShowViewModal && SelectedManagers != null)
+{
+    <div class="side-panel-backdrop" @onclick="CloseViewModal"></div>
+
+    <div class="side-panel">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold m-0">@SelectedManagers.ManagerName Profile</h4>
+            <button class="btn-close" @onclick="CloseViewModal"></button>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="profile-header">
+            <div class="profile-content d-flex align-items-center">
+
+                <!-- LEFT ROUND IMAGE -->
+                <img src="@GetManagerImage(SelectedManagers.Image)"
+                     class="manager-photo-round" />
+
+                <!-- RIGHT INFO -->
+                <div class="ms-4">
+                    <h5 class="fw-bold m-0">@SelectedManagers.ManagerName</h5>
+
+                    <p class="text-light mb-1">@SelectedManagers.Email</p>
+
+                    <span class="badge @(SelectedManagers.Status == "Approved" ? "bg-success" : "bg-warning text-dark") px-3 py-2">
+                        @SelectedManagers.Status
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <hr />
+        <!-- INFO AREA -->
+        <div>
+            <p><strong>Contact Number:</strong> @SelectedManagers.Mobile</p>
+            <p><strong>Address Details:</strong> @SelectedManagers.Address</p>
+            <p><strong>Account Created On:</strong> @SelectedManagers.CreatedAt.ToString("dd MMM yyyy")</p>
+            <p><strong>Total Assigned Events:</strong> @SelectedManagers.EventsCount</p>
+        </div>
+        <hr />
+
+        <!-- EVENTS LIST -->
+        <h5 class="fw-semibold mt-3">Assigned Events</h5>
+
+        <!-- SEARCH BAR -->
+        <div class="input-group ">
+            <span class="input-group-text bg-white">
+                <i class="bi bi-search"></i>
+            </span>
+            <input class="form-control"
+                   placeholder="Search by event..."
+                   @bind="SearchTerm"
+                   @bind:event="oninput" />
+        </div>
+
+        @if (FilteredEvents == null || !FilteredEvents.Any())
+        {
+            <p class="text-muted">No events found for this search.</p>
+        }
+        else
+        {
+            <div class="event-list">
+                @foreach (var ev in FilteredEvents)
+                {
+                    <div class="event-row">
+                        <div class="event-left">
+                            <i class="bi bi-calendar-event text-danger me-2"></i>
+
+                            <div>
+                                <div class="event-title">@ev.Title</div>
+                                <small class="text-muted">
+                                    @ev.ShowDate.ToString("dd MMM yyyy")
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- PAGINATION -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <button class="btn btn-outline-secondary btn-sm"
+                        disabled="@(currentPage == 1)"
+                        @onclick="PrevPage">
+                    Previous
+                </button>
+
+                <span class="text-muted small">Page @currentPage of @TotalPages</span>
+
+                <button class="btn btn-outline-secondary btn-sm"
+                        disabled="@(currentPage == TotalPages)"
+                        @onclick="NextPage">
+                    Next
+                </button>
+            </div>
+        }
+
+
+    </div>
+}
+
+
+
+
+
+
+<!--Delete Modal------------------------------------------------------------------------------------------>
 
 @if (ShowDeleteConfirm)
 {
-    <div class="modal fade show d-block" style="background:rgba(0,0,0,0.6);">
+    <div class=" modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);animation: fadein 0.3s ease-out ">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content custom-modal-content">
 
-                <div class="modal-header">
-                    <h5 class="modal-title">Delete Manager?</h5>
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-danger">Delete Manager !</h5>
                 </div>
 
                 <div class="modal-body">
@@ -361,7 +652,7 @@
 
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @onclick="CloseDeleteConfirm">Cancel</button>
-                    <button class="btn btn-danger" @onclick="DeleteManager">Delete</button>
+                    <button class="btn btn-danger" @onclick="DeleteManager" disabled="@isProcessing">Delete</button>
                 </div>
 
             </div>
@@ -375,39 +666,28 @@
 @code
 {
     private string SearchText { get; set; } = "";
+    private string SearchTerm { get; set; } = "";
     private string SelectedStatus { get; set; } = "";
 
+    private ManagerProfileDto? PendingManagers { get; set; }
     private List<ManagerProfileDto>? Managers { get; set; }
     private ManagerProfileDto? SelectedManagers { get; set; }
+    private List<EventDto>? ManagerEvents;
     ManagerSignUpDto NewManager = new ManagerSignUpDto();
 
 
     private string? emailError;
 
-
+    bool isProcessing = false;
     bool ShowAddModal = false;
     bool ShowDeleteConfirm = false;
+    bool ShowViewModal = false;
     int DeleteId = 0;
 
 
     private int currentPage = 1;
     private int pageSize = 10;
     private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
-
-
-    //    private ToastSettings ToastSettings = new ToastSettings(
-    //    additionalClasses: "" ,
-    //    iconType: null,
-    //    //heading: "",
-    //    //showIcon: true,
-    //    //showProgressBar: true,
-    //    //onClick: null,
-    //    timeout: 4000
-    //    //requireInteraction: false,
-    //    //disableTimeout: false,
-    //    //maximumOpacity: 100,
-    //    //position: ToastPosition.TopRight
-    //);
 
 
     protected override async Task OnInitializedAsync()
@@ -419,7 +699,7 @@
 
     private void SelectManager(ManagerProfileDto m) => SelectedManagers = m;
     private void OpenApproveModal(ManagerProfileDto m) => SelectedManagers = m;
-    private void CloseModal() => SelectedManagers = null;
+    private void CloseModal() => PendingManagers = null;
 
     private void SetStatus(string status)
     {
@@ -446,7 +726,11 @@
 
     private async Task AddManagerAsync()
     {
+        if (isProcessing)
+            return;
 
+
+        isProcessing = true;
         emailError = null;
         var response = await Http.PostAsJsonAsync($"api/Account/manager-signup/", NewManager);
         if (response.IsSuccessStatusCode)
@@ -457,11 +741,35 @@
         }
         else
         {
-            var error = await response.Content.ReadAsStringAsync();
-            toast.ShowError(error);
-            emailError = await response.Content.ReadAsStringAsync();
+            var errorText = await response.Content.ReadAsStringAsync();
+
+            try
+            {
+                using var doc = JsonDocument.Parse(errorText);
+
+                var errors = doc.RootElement.GetProperty("errors");
+                emailError = errors.EnumerateObject().First().Value[0].GetString();
+            }
+            catch
+            {
+                emailError = errorText;
+            }
+
+            toast.ShowError(emailError);
         }
 
+        isProcessing = false;
+
+
+    }
+
+
+    private void OnRowClick(ManagerProfileDto m)
+    {
+        if (m.Status == "Pending")
+        {
+            PendingManagers = m;
+        }
     }
 
 
@@ -482,25 +790,6 @@
         await Reload();
         CloseModal();
     }
-
-
-    //private async Task Reject(int id)
-    //{
-    //    var response = await Http.PostAsync($"api/admin/reject-manager/{id}", null);
-
-    //    if (response.IsSuccessStatusCode)
-    //    {
-    //        toast.ShowInfo("Manager rejected.");
-    //    }
-    //    else
-    //    {
-    //        toast.ShowError("Unable to reject manager.");
-    //    }
-
-    //    await Reload();
-    //    CloseModal();
-
-    //}
 
     private async Task Reject(int id)
     {
@@ -525,7 +814,28 @@
     }
 
 
-    private void ViewManager(ManagerProfileDto manager)
+
+    async void ViewManager(ManagerProfileDto manager)
+    {
+        SelectedManagers = manager;
+        ShowViewModal = true;
+
+        ManagerEvents = await Http.GetFromJsonAsync<List<EventDto>>(
+            $"api/admin/events-by-manager/{manager.Id}");
+
+    }
+
+    void CloseViewModal()
+    {
+        ShowViewModal = false;
+        SelectedManagers = null;
+
+    }
+
+    string GetManagerImage(string? img) =>
+        string.IsNullOrWhiteSpace(img) ? "/avtar.png" : img;
+
+    private void EditManager(int id)
     {
         // navigate or open modal
     }
@@ -544,6 +854,7 @@
 
     private async Task DeleteManager()
     {
+        isProcessing = true;
         var response = await Http.DeleteAsync($"api/admin/delete-manager/{DeleteId}");
         if (response.IsSuccessStatusCode)
         {
@@ -557,6 +868,7 @@
 
         }
         ShowDeleteConfirm = false;
+        isProcessing = false;
     }
 
     private async Task Reload()
@@ -575,11 +887,24 @@
                     )
                      ?? Enumerable.Empty<ManagerProfileDto>();
 
+    private IEnumerable<EventDto> FilteredEvents =>
+    (ManagerEvents ?? Enumerable.Empty<EventDto>())
+    .Where(m =>
+        string.IsNullOrWhiteSpace(SearchTerm) ||
+        (m.Title ?? "").Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+        m.ShowDate.ToString("dd MM yyyy")
+            .Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
+    )
+    .OrderByDescending(m => m.ShowDate)
+    .Skip((currentPage - 1) * pageSize)
+    .Take(pageSize);
+
+
 
     private IEnumerable<ManagerProfileDto> PagedItems =>
-                    FilteredItems
-                    .Skip((currentPage - 1) * pageSize)
-                    .Take(pageSize);
+                FilteredItems
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize);
 
     private void PrevPage()
     {
