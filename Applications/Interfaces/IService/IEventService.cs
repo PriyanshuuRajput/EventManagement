@@ -1,4 +1,5 @@
 ﻿using Applications.Dto;
+using Applications.Dto.Pagination;
 
 namespace Applications.Interfaces.IService
 {
@@ -24,6 +25,11 @@ namespace Applications.Interfaces.IService
 
         Task AcceptOfferedAmountAsync(int eventId, decimal finalAmount);
         Task MarkEventAsPaidAsync(int eventId);
+
+
+        //PAgination
+        Task<PagedResult<EventDto>> GetPagedEventAsync(PagedRequest req);
+
 
     }
 }

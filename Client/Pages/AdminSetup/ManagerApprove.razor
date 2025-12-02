@@ -94,14 +94,17 @@
             z-index: 10;
         }
 
+
+
 /* BACKDROP */
-.side-panel-backdrop {
-    position: fixed;
-/*    inset: 0;*/
-/*    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(4px);*/
-    z-index: 50;
-}
+    .side-panel-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+        z-index: 50;
+        animation: fadeIn .3s ease-out;
+    }
 
 /* RIGHT SLIDING PANEL */
     .side-panel {
@@ -113,9 +116,9 @@
         background: #ffffffeb;
         backdrop-filter: blur(12px);
         padding: 20px;
-        box-shadow: -8px 0px 20px 0px #fcbaba;
+/*        box-shadow: -8px 0px 20px 0px #fcbaba;*/
         z-index: 60;
-        animation: slideIn .35s ease-out;
+        animation: slideIn .80s ease-out;
         overflow-y: auto;
     }
 
@@ -188,6 +191,38 @@
 }
 
 
+    /* Top toolbar style above table */
+    /*.table-toolbar {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        border-top: 1px solid #dee2e6;
+        border-radius: 6px 6px 0 0;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }*/
+
+    /* Dropdown style to match your UI */
+    .show-dropdown {
+        width: 70px;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        padding: 4px 10px;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        transition: all .2s ease-in-out;
+    }
+
+        .show-dropdown:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 6px rgba(220, 53, 69, 0.4);
+        }
+
+    /* Text alignment fix */
+    /*.table-toolbar label {
+        white-space: nowrap;
+    }*/
+
     /* ---FOOTER BANNER ---*/
     .promo-banner {
         background: linear-gradient(to right, #fff, #f8f9fa);
@@ -209,6 +244,7 @@
 </style>
 
 
+
 <div class="container-fluid py-0">
 
 
@@ -216,14 +252,14 @@
 
 
 
-    <h3 class="fw-bold mt-3" style="font-size:32px">Managers</h3>
-    <p class="text-muted mt-0">Review new manager signups and manage existing managers</p>
+    <h3 class="fw-bold mt-3" style="font-size:30px">Managers</h3>
+    <p class="text-muted mt-0">Review new manager signups and manage existing managers...</p>
 
     <div class="row mb-3 align-items-center">
 
         <!-- LEFT SIDE (SEARCH BAR) -->
-        <div class="col-md-6 mb-3 mb-md-0 mt-2">
-            <div class="input-group shadow-sm">
+        <div class="col-md-6 mb-3 mb-md-0 mt-2 d-flex justify-content-space-around">
+            <div class="input-group shadow-sm " style="max-width:50%">
                 <span class="input-group-text bg-white">
                     <i class="bi bi-search"></i>
                 </span>
@@ -232,6 +268,10 @@
                        @bind="SearchText"
                        @bind:event="oninput" />
             </div>
+            <button class="btn btn-danger ms-2" style=" padding : 0px 15px" title="clear"
+                    @onclick="ClearFilters">
+                <i class="bi bi-arrow-clockwise fw-bold"></i>
+            </button>
         </div>
 
         <!-- RIGHT SIDE (CREATE BUTTON) -->
@@ -257,19 +297,19 @@
         <!-- PENDING -->
         <button class="btn btn-sm @(SelectedStatus == "Pending" ? "btn-warning" : "btn-outline-secondary") rounded-3"
                 @onclick="@( () => SetStatus("Pending") )">
-            Pending
+            Pending (@PendingCount)
         </button>
 
         <!-- APPROVED -->
         <button class="btn btn-sm @(SelectedStatus == "Approved" ? "btn-success" : "btn-outline-secondary") rounded-3"
                 @onclick="@( () => SetStatus("Approved"))">
-            Approved
+            Approved (@ApprovedCount)
         </button>
 
         <!-- REJECTED -->
         <button class="btn btn-sm @(SelectedStatus == "Rejected" ? "btn-danger" : "btn-outline-secondary") rounded-3"
                 @onclick="@( () => SetStatus("Rejected"))">
-            Rejected
+            Rejected (@RejectedCount)
         </button>
 
     </div>
@@ -281,7 +321,7 @@
     <div class="table-responsive rounded-0">
         <table class="table table-hover align-middle">
             <thead class="table-secondary">
-                <tr>
+                <tr class="fw-semibold">
                     @*<th></th>*@
                     <th>Image</th>
                     <th>Name</th>
@@ -299,7 +339,7 @@
                 @if (Managers == null)
                 {
                     <tr>
-                        <td colspan="7" class="text-center py-4">
+                        <td colspan="8" class="text-center py-4">
                             Loading...
                         </td>
                     </tr>
@@ -363,7 +403,7 @@
                             <td>
                                 @if (m.Status == "Pending")
                                 {
-                                    <span class="badge bg-warning" style="font-weight:800;padding:8px">Pending</span>
+                                    <span class="badge bg-warning" style="font-weight:800;padding:8px 10px">Pending</span>
                                 }
                                 else if (m.Status == "Approved")
                                 {
@@ -375,7 +415,7 @@
                                 }
                             </td>
 
-                            <td class="text-center no-blur">
+                            <td class="no-blur">
 
                                 <div class="">
 
@@ -409,7 +449,21 @@
 
     <!-- Pagination -->
     <div class="d-flex justify-content-between align-items-center ">
-        <div class="small text-muted">Showing @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, FilteredItems.Count())) of @FilteredItems.Count() events</div>
+        <div class="d-flex align-items-center gap-2 ms-4">
+        <label class="fw-semibold text-muted mb-0">Show</label>
+
+        <select class="form-select form-select-sm show-dropdown"
+                @onchange="OnPageSizeChanged">
+             @*<option value="">-- Select --</option>*@
+            <option value="5">5</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+        </select>
+        </div>
+        <div class="small text-muted">Showing @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, FilteredItems.Count())) of @FilteredItems.Count() managers</div>
 
         <nav>
             <ul class="pagination pagination-sm mb-0">
@@ -532,8 +586,8 @@
     <div class="side-panel">
 
         <!-- HEADER -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold m-0">@SelectedManagers.ManagerName Profile</h4>
+        <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:20px">
+            <h4 class="fw-bold m-0" style="font-size:20px">@SelectedManagers.ManagerName Profile</h4>
             <button class="btn-close" @onclick="CloseViewModal"></button>
         </div>
 
@@ -559,7 +613,7 @@
 
         </div>
 
-        <hr />
+       @*<hr />*@
         <!-- INFO AREA -->
         <div>
             <p><strong>Contact Number:</strong> @SelectedManagers.Mobile</p>
@@ -570,7 +624,7 @@
         <hr />
 
         <!-- EVENTS LIST -->
-        <h5 class="fw-semibold mt-3">Assigned Events</h5>
+        <h5 class="fw-bold mt-3" style="font-size:20px">Event List </h5>
 
         <!-- SEARCH BAR -->
         <div class="input-group ">
@@ -643,7 +697,7 @@
             <div class="modal-content custom-modal-content">
 
                 <div class="modal-header border-0">
-                    <h5 class="modal-title text-danger">Delete Manager !</h5>
+                    <h5 class="modal-title text-danger">Confirm Delete!</h5>
                 </div>
 
                 <div class="modal-body">
@@ -669,6 +723,10 @@
     private string SearchTerm { get; set; } = "";
     private string SelectedStatus { get; set; } = "";
 
+    private const string  PendingStatus= "Pending";
+    private const string ApproveStatus = "Approved";
+    private const string RejectedStatus = "Rejected";
+
     private ManagerProfileDto? PendingManagers { get; set; }
     private List<ManagerProfileDto>? Managers { get; set; }
     private ManagerProfileDto? SelectedManagers { get; set; }
@@ -685,8 +743,13 @@
     int DeleteId = 0;
 
 
+    private int PendingCount => Managers?.Count(e => e.Status == PendingStatus) ?? 0;
+    private int ApprovedCount => Managers?.Count(e => e.Status == ApproveStatus) ?? 0;
+    private int RejectedCount => Managers?.Count(e => e.Status == RejectedStatus) ?? 0;
+
+
     private int currentPage = 1;
-    private int pageSize = 10;
+    private int pageSize = 5;
     private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
 
 
@@ -877,27 +940,28 @@
     }
 
     private IEnumerable<ManagerProfileDto> FilteredItems =>
-                Managers?
-                    .Where(m =>
-                        (string.IsNullOrWhiteSpace(SearchText) ||
-                        (m.ManagerName ?? "").Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                        (m.Email ?? "").Contains(SearchText, StringComparison.OrdinalIgnoreCase))
-                            &&
-                        (string.IsNullOrWhiteSpace(SelectedStatus) || m.Status == SelectedStatus)
-                    )
-                     ?? Enumerable.Empty<ManagerProfileDto>();
+      (Managers?
+          .Where(m =>
+              (string.IsNullOrWhiteSpace(SearchText) ||
+              (m.ManagerName ?? "").Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+              (m.Email ?? "").Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+              &&
+              (string.IsNullOrWhiteSpace(SelectedStatus) || m.Status == SelectedStatus)
+          )
+          .OrderByDescending(m => m.CreatedAt)
+      ) ?? Enumerable.Empty<ManagerProfileDto>();
 
     private IEnumerable<EventDto> FilteredEvents =>
-    (ManagerEvents ?? Enumerable.Empty<EventDto>())
-    .Where(m =>
-        string.IsNullOrWhiteSpace(SearchTerm) ||
-        (m.Title ?? "").Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-        m.ShowDate.ToString("dd MM yyyy")
-            .Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
-    )
-    .OrderByDescending(m => m.ShowDate)
-    .Skip((currentPage - 1) * pageSize)
-    .Take(pageSize);
+(ManagerEvents ?? Enumerable.Empty<EventDto>())
+.Where(m =>
+    string.IsNullOrWhiteSpace(SearchTerm) ||
+    (m.Title ?? "").Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+    m.ShowDate.ToString("dd MM yyyy")
+        .Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
+)
+.OrderByDescending(m => m.ShowDate)
+.Skip((currentPage - 1) * pageSize)
+.Take(pageSize);
 
 
 
@@ -916,6 +980,22 @@
     {
         if (currentPage < TotalPages)
             currentPage++;
+    }
+    private void OnPageSizeChanged(ChangeEventArgs e)
+    {
+        pageSize = int.Parse(e.Value!.ToString());
+        currentPage = 1;
+    }
+
+    private void ClearFilters()
+    {
+        SearchTerm = "";
+        SearchText = "";
+        SelectedStatus = "";
+
+        currentPage = 1; 
+
+        StateHasChanged(); 
     }
 
     private void GoToPage(int page)

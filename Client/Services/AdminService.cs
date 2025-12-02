@@ -1,5 +1,6 @@
 ﻿using Applications.Dto;
 using Applications.Dto.OrganizerDto;
+using Applications.Dto.Pagination;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
@@ -252,6 +253,46 @@ namespace EventBooking.Client.Services
         public async Task<List<StateDto>> GetStatesByCountryAsync(Guid countryId)
         {
             return await _httpClient.GetFromJsonAsync<List<StateDto>>($"api/state/by-country/{countryId}") ?? new();
+
         }
+
+
+        ///Pagination
+        ///
+        public async Task<PagedResult<EventDto>> GetPagedEventsAsync(PagedRequest req)
+        {
+            await AddAuthHeaderAsync();
+
+            // 1️⃣ Convert "Approve" → "AdminApproved"
+            string status = req.Status;
+            if (!string.IsNullOrWhiteSpace(req.Status))
+            {
+                status = req.Status switch
+                {
+                    "Approve" => "AdminApproved",
+                    "Reject" => "Rejected",
+                    _ => req.Status
+                };
+            }
+
+            //  Format date properly (Send only the date part)
+            string dateFilter = req.DateFilter.HasValue
+                ? req.DateFilter.Value.ToString("yyyy-MM-dd")
+                : string.Empty;
+
+            //  Build query string
+            var query = $"api/Events/paged?" +
+                        $"page={req.Page}" +
+                        $"&pageSize={req.PageSize}" +
+                        $"&search={req.Search ?? ""}" +
+                        $"&status={status ?? ""}" +
+                        $"&dateFilter={dateFilter}";
+
+            //  Call API and parse the response
+            var result = await _httpClient.GetFromJsonAsync<PagedResult<EventDto>>(query);
+
+            return result ?? new PagedResult<EventDto>();
+        }
+
     }
 }

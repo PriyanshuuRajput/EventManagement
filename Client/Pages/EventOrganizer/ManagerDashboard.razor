@@ -356,7 +356,7 @@
                 (e.Address?.ToLower().Contains(q) ?? false) ||
                 (e.Language?.ToLower().Contains(q) ?? false)
             )
-            .Take(7)
+            .Take(5)
             .ToList();
 
         showSuggestions = Suggestions.Any();

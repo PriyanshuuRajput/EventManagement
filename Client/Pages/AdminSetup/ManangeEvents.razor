@@ -107,7 +107,7 @@
         flex-direction: column;
     }
 
- 
+
     .event-title {
         min-height: 48px;
         display: -webkit-box;
@@ -146,83 +146,104 @@
         border: 1px solid rgba(0,0,0,0.1);
     }
 
-    .drawer-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.45);
-        backdrop-filter: blur(2px);
-        animation: fadeIn 0.3s ease-in-out;
-        z-index: 2000;
-    }
+  /* ---------- OVERLAY ---------- */
+.drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.40);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+}
 
-    .drawer-panel {
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 50%;
-        height: 100vh;
-        background: #fff;
-        border-left: 2px solid #dc3545;
-        border-radius: 0 0 0 12px;
-        display: flex;
-        flex-direction: column;
-        /*        padding: 20px;
-        overflow-y: auto;*/
-        z-index: 2001;
-        transform: translateX(100%);
-        animation: slideIn 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
+/* ---------- DRAWER PANEL ---------- */
+.drawer-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 50%;                     /* reduced width (was too wide) */
+    max-width: 780px;               /* prevents huge layout */
+    height: 100vh;
+    background: #fff;
+    border-left: 2px solid #dc3545;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn .30s ease-out forwards;
+    z-index: 2001;
+}
 
+@@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+}
 
-    @@keyframes slideIn {
-        from {
-            transform: translateX(100%);
-        }
+/* ---------- HEADER ---------- */
+.drawer-header {
+    padding: 20px 20px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 
-        to {
-            transform: translateX(0%);
-        }
-    }
+/* ---------- BODY ---------- */
+.drawer-body {
+    padding: 12px 18px;
+    overflow-y: auto;
+}
 
-    .drawer-header {
-        padding: 18px 20px;
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(6px);
-        border-bottom: 1px solid #efefef;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-    }
+.drawer-body::-webkit-scrollbar {
+    width: 0; /* Hides scrollbar for clean UI */
+}
 
-    .drawer-body {
-        padding: 20px;
-        overflow-y: auto;
-    }
-    .drawer-body::-webkit-scrollbar 
-        {
-            width: 0px;
-        }
-    .drawer-footer {
-        background: #fff;
-        padding-top: 15px;
-        border-top: 1px solid #eee;
-        position: sticky;
-        bottom: 0;
-    }
+/* ---------- CARDS ---------- */
+.drawer-panel .card {
+/*    margin-bottom: 10px;*/
+    border-radius: 0px;
+}
 
-    /* ===== FORM INPUT STYLE ===== */
-    .drawer-input {
-        border-radius: 10px !important;
-        padding: 10px 14px !important;
-        font-size: 1rem;
-        border: 1px solid #ddd !important;
-        transition: 0.2s ease;
-    }
+.drawer-panel .card-header {
+    padding: 10px 14px !important;
+    font-size: 16px;
+    background: #fafafa;
+}
 
-        .drawer-input:focus {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2) !important;
-        }
+.drawer-panel .card-body {
+    padding: 12px 14px !important;
+}
+
+/* Reduce spacing between columns */
+.drawer-panel .row.g-3 {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+}
+
+/* ---------- FORM INPUTS ---------- */
+.drawer-panel .form-control,
+.drawer-panel .form-select {
+    padding: 6px 10px !important;
+    font-size: 0.9rem;
+    border-radius: 6px;
+}
+
+.drawer-panel .form-control:focus,
+.drawer-panel .form-select:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.20);
+}
+
+/* ---------- FOOTER ---------- */
+.drawer-footer {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 10px 20px;
+    border-top: 1px solid #eee;
+}
+
+.drawer-footer button {
+    min-width: 110px;
+}
 
 
 
@@ -252,7 +273,15 @@
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
     }
 
-  
+    .custom-modal-content {
+        border-radius: 16px !important;
+        border: none !important;
+        animation: scaleIn 0.25s ease-out;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
 
     .banner {
         padding: 22px;
@@ -304,51 +333,59 @@
                 @if (activeTab == "events")
                 {
 
-                    <!-- Date Filter -->
-                    <div class="filter-section mb-3">
-                        <h6>Date</h6>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button class="@GetDateButtonClass("today")" @onclick='() => SetDateFilter("today")'>Today</button>
-                            <button class="@GetDateButtonClass("tomorrow")" @onclick='() => SetDateFilter("tomorrow")'>Tomorrow</button>
-                            <button class="@GetDateButtonClass("weekend")" @onclick='() => SetDateFilter("weekend")'>Weekend</button>
-                        </div>
-                    </div>
+                    <!--Manager Search Filter-->
 
-                    <!-- Category Filter -->
-                    <div class="filter-section mb-3">
-                        <h6>EventType</h6>
-                        @foreach (var category in categories)
+            <div class="filter-section mb-3">
+                <h6>Manager Name </h6>
+                    <input type="text" class="form-control form-control-sm" placeholder="Search name..."
+                           @bind="managerSearch" @oninput="(e) => ApplyFilters()" />
+            </div>
+
+                <!-- Date Filter -->
+                <div class="filter-section mb-3">
+                    <h6>Date</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="@GetDateButtonClass("today")" @onclick='() => SetDateFilter("today")'>Today</button>
+                        <button class="@GetDateButtonClass("tomorrow")" @onclick='() => SetDateFilter("tomorrow")'>Tomorrow</button>
+                        <button class="@GetDateButtonClass("weekend")" @onclick='() => SetDateFilter("weekend")'>Weekend</button>
+                    </div>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="filter-section mb-3">
+                    <h6>EventType</h6>
+                    @foreach (var category in categories)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="@category" @onchange="e => ToggleCategory(category)">
+                            <label class="form-check-label small" for="@category">@category</label>
+                        </div>
+                    }
+                </div>
+
+                <!-- City Filter -->
+                <div class="filter-section mb-3">
+                    <h6>City</h6>
+                    <select class="form-select form-select-sm" @onchange="FilterCity">
+                        <option value="">All Cities</option>
+                        @foreach (var city in cities)
                         {
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="@category" @onchange="e => ToggleCategory(category)">
-                                <label class="form-check-label small" for="@category">@category</label>
-                            </div>
+                            <option value="@city">@city</option>
                         }
-                    </div>
+                    </select>
+                </div>
 
-                    <!-- City Filter -->
-                    <div class="filter-section mb-3">
-                        <h6>City</h6>
-                        <select class="form-select form-select-sm" @onchange="FilterCity">
-                            <option value="">All Cities</option>
-                            @foreach (var city in cities)
-                            {
-                                <option value="@city">@city</option>
-                            }
-                        </select>
+                <!-- Price Filter -->
+                <div class="filter-section mb-3">
+                    <h6>Ticket Price</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="@GetPriceButtonClass(0, 0)" @onclick="() => SetPriceRange(0, 0)">Free</button>
+                        <button class="@GetPriceButtonClass(1, 500)" @onclick="() => SetPriceRange(1, 500)">₹0–500</button>
+                        <button class="@GetPriceButtonClass(501, 2000)" @onclick="() => SetPriceRange(501, 2000)">₹501–2000</button>
+                        <button class="@GetPriceButtonClass(2001, 5000)" @onclick="() => SetPriceRange(2001, 5000)">₹2001–5000</button>
+                        <button class="@GetPriceButtonClass(5001, 100000)" @onclick="() => SetPriceRange(5001, 100000)">Above ₹5000</button>
                     </div>
-
-                    <!-- Price Filter -->
-                    <div class="filter-section mb-3">
-                        <h6>Ticket Price</h6>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button class="@GetPriceButtonClass(0, 0)" @onclick="() => SetPriceRange(0, 0)">Free</button>
-                            <button class="@GetPriceButtonClass(1, 500)" @onclick="() => SetPriceRange(1, 500)">₹0–500</button>
-                            <button class="@GetPriceButtonClass(501, 2000)" @onclick="() => SetPriceRange(501, 2000)">₹501–2000</button>
-                            <button class="@GetPriceButtonClass(2001, 5000)" @onclick="() => SetPriceRange(2001, 5000)">₹2001–5000</button>
-                            <button class="@GetPriceButtonClass(5001, 100000)" @onclick="() => SetPriceRange(5001, 100000)">Above ₹5000</button>
-                        </div>
-                    </div>
+                </div>
                 }
                 @if (activeTab == "venues")
                 {
@@ -387,15 +424,15 @@
 
                     <!-- State Filter -->
                     @*<div class="filter-section mb-3">
-                        <h6>State</h6>
-                        <select class="form-select form-select-sm" @onchange="FilterState">
-                            <option value="">All States</option>
-                            @foreach (var state in filteredStates)
-                            {
-                                <option value="@state.Id">@state.Name</option>
-                            }
-                        </select>
-                    </div>*@
+                <h6>State</h6>
+                <select class="form-select form-select-sm" @onchange="FilterState">
+                    <option value="">All States</option>
+                    @foreach (var state in filteredStates)
+                    {
+                        <option value="@state.Id">@state.Name</option>
+                    }
+                </select>
+            </div>*@
 
                     <!-- City Search -->
                     <div class="filter-section mb-3">
@@ -420,7 +457,7 @@
             {
                 <div class="fade-in">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-semibold text-dark"><i class="bi bi-calendar-event me-2"></i>Manage Events</h4>
+                        <h4 class="fw-semibold text-dark" style="font-size:30px">Events</h4>
                         <button class="btn btn-outline-danger me-4" @onclick="ShowAddEventModal">
                             <i class="bi bi-plus-circle me-1"></i>Add Event
                         </button>
@@ -445,10 +482,18 @@
                                         <div class="card-body">
 
                                             <!-- TITLE -->
-                                            <h5 class="fw-bold text-dark mb-1 event-title" data-bs-toggle="tooltip" data-placement="top" title="@evt.Title">
+                                            <h5 class="fw-bold text-dark mb-0 event-title" data-bs-toggle="tooltip" data-placement="top" title="@evt.Title">
                                                 @evt.Title
                                             </h5>
+
                                             <p class="text-muted small">@evt.EventType</p>
+
+                                            <!--Manager Name -->
+                                            <span class="badge bg-light text-danger border fw-bold small mb-2 d-inline-flex align-items-center"
+                                                  style="font-size:15px">
+                                                <i class="bi bi-person-fill me-1"></i>
+                                                @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
+                                            </span>
 
                                             <!-- DATE & TIME -->
                                             <div class="d-flex justify-content-between text-center mb-3 gap-3">
@@ -465,11 +510,17 @@
                                             <hr style="height:10px" />
 
                                             <!-- VENUE -->
-                                            <p class="small fw-bold text-muted mb-2" style="font-size:15px">
-                                                <i class="bi bi-geo-alt-fill text-danger me-2"></i>@evt.VenueName
-                                                <span class="small text-muted m-4">@evt.Address</span>
-                                                <span class="small text-muted m-4">@evt.CityName</span>
-                                            </p>
+                                            <div class="mb-2">
+                                                <!-- Venue Name -->
+                                                <div class="small fw-semibold text-dark">
+                                                    <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                                                    @evt.VenueName
+                                                </div>
+                                                <!-- City -->
+                                                <div class="small text-muted ms-4">
+                                                    @evt.CityName
+                                                </div>
+                                            </div>
 
                                             <!-- DURATION -->
                                             <p class="small text-muted mb-1">
@@ -700,7 +751,7 @@
 
                 <div class="drawer-panel">
                     <div class="drawer-header d-flex justify-content-between align-items-center">
-                        <h5 class="m-0 fw-bold">
+                        <h5 class="fw-bold" style="font-size:22px">
                             @(editingEvent?.Id > 0 ? "Update Event" : "Add New Event")
                         </h5>
 
@@ -713,19 +764,19 @@
                             <DataAnnotationsValidator />
 
                             <!-- General Info -->
-                            <div class="card shadow-sm mb-2">
+                            <div class="card shadow-sm mb-0 mt-2">
                                 <div class="card-header  text-dark fw-bold">
                                     General Information
                                 </div>
                                 <div class="card-body row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Event Name<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Title" class="form-control" />
                                         <ValidationMessage For="@(() => editingEvent.Title)" class="text-danger small" />
 
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Event Type<span class="text-muted">(optional)</span></label>
                                         <InputText @bind-Value="editingEvent.EventType"
                                                    class="form-control"
@@ -738,14 +789,7 @@
 
                                     </div>
 
-
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">Language<span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="editingEvent.Language" class="form-control" />
-                                        <ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />
-                                    </div>
-
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Genre<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Genre"
                                                    class="form-control"
@@ -758,16 +802,22 @@
 
                                     </div>
 
-                                </div>
-                            </div>
 
-                            <!-- Date and Time Info -->
-                            <div class="card shadow-sm mb-2">
-                                <div class="card-header text-dark fw-bold">
-                                    Event Schedule
-                                </div>
-                                <div class="card-body row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Language<span class="text-danger">*</span></label>
+                                        <InputText @bind-Value="editingEvent.Language" class="form-control" />
+                                        <ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />
+                                    </div>
+                                    @*</div>*@
+
+
+                                    <!-- Date and Time Info -->
+                                    @*<div class="card shadow-sm mb-2">
+        <div class="card-header text-dark fw-bold">
+            Event Schedule
+        </div>*@
+                                    @*<div class="card-body row g-3">*@
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Event Date & Time<span class="text-danger">*</span></label>
                                         <input type="datetime-local"
                                                @bind="editingEvent.ShowDate"
@@ -776,7 +826,7 @@
                                         <ValidationMessage For="@(() => editingEvent.ShowDate)" class="text-danger small" />
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Duration (HH:MM) <span class="text-danger">*</span></label>
 
                                         <InputText class="form-control"
@@ -787,14 +837,32 @@
                                         {
                                             <div class="text-danger small">@durationError</div>
                                         }
-                                        <ValidationMessage For="@(() => editingEvent.Duration)"class="text-danger small"/>
+                                        <ValidationMessage For="@(() => editingEvent.Duration)" class="text-danger small" />
                                     </div>
 
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Ticket Price (₹)<span class="text-danger">*</span></label>
+                                        <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
+                                        <ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Event Image</label>
+                                        <InputFile OnChange="HandleImageSelected" class="form-control" />
+                                        @if (!string.IsNullOrEmpty(editingEvent.ImageUrl))
+                                        {
+                                            <img src="@editingEvent.ImageUrl" alt="Preview" class="mt-2 rounded shadow-sm border" width="120" />
+                                        }
+                                        @*<ValidationMessage For="@(() => editingEvent.ImageUrl)" />*@
+                                    </div>
+
+                                    @*</div>*@
                                 </div>
                             </div>
 
                             <!-- Location Info -->
-                            <div class="card shadow-sm mb-2">
+                            <div class="card shadow-sm mb-0">
                                 <div class="card-header  text-dark fw-bold">
                                     Location Details
                                 </div>
@@ -828,44 +896,34 @@
                             </div>
 
                             <!-- Ticket and Image Info -->
-                            <div class="card shadow-sm mb-2">
+                            <!--<div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
                                     Tickets & Image
                                 </div>
                                 <div class="card-body row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">Ticket Price (₹)<span class="text-danger">*</span></label>
-                                        <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
-                                        <ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />
-                                    </div>
+                                    
 
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">Event Image</label>
-                                        <InputFile OnChange="HandleImageSelected" class="form-control" />
-                                        @if (!string.IsNullOrEmpty(editingEvent.ImageUrl))
-                                        {
-                                            <img src="@editingEvent.ImageUrl" alt="Preview" class="mt-2 rounded shadow-sm border" width="120" />
-                                        }
-                                        @*<ValidationMessage For="@(() => editingEvent.ImageUrl)" />*@
-                                    </div>
+                                   
                                 </div>
-                            </div>
+                            </div>-->
 
                             <!-- Description -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
                                     Description
                                 </div>
-                                <div class="card-body">
-                                    <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="3" placeholder="Write a short description..." />
+                                <div class="card-body border-0">
+                                    <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="4" placeholder="Write a short description..." />
                                     <ValidationMessage For="@(() => editingEvent.Description)" class="text-danger small" />
                                 </div>
                                 <!-- Footer -->
-                                <div class=" d-flex justify-content-end align-items-center">
-                                    <button class="btn btn-outline-secondary m-2 shadow-lg" @onclick="() => showEventModal = false">Cancel</button>
+                                <div class=" d-flex justify-content-end align-items-center gap-3">
+                                    <button class="btn btn-outline-secondary m-2 shadow-lg"
+                                            style="padding:5px 20px ; font-size:18px"
+                                            @onclick="() => showEventModal = false">Cancel</button>
                                     <button class="btn btn-danger m-2 shadow-lg"
-                                            @*disabled="@(!string.IsNullOrWhiteSpace(durationError))">*@
-                                    >
+                                            style="padding:5px 35px ; font-size:20px"
+                                            disabled="@(!string.IsNullOrWhiteSpace(durationError))">
                                         Save
                                     </button>
 
@@ -992,26 +1050,26 @@
 
             @if(showDeleteModal) 
             { 
-                <div class="modal fade show d-block" style="background:rgba(0,0,0,0.6);">
+                <div class=" modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);animation: fadein 0.3s ease-out ">
                     <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
+                        <div class="modal-content custom-modal-content">
 
-                            <div class="modal-header">
-                                <h5 class="modal-title">Confirm Delete !</h5>
-                            </div>
-
-                            <div class="modal-body">
-                                <p>Are you sure you want to delete this event permanently?</p>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button class="btn btn-secondary" @onclick="CloseDeleteModal">Cancel</button>
-                                <button class="btn btn-danger" @onclick="DeleteConfirmed">Delete</button>
-                            </div>
-
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title">Confirm Delete !</h5>
                         </div>
+
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete this event permanently?</p>
+                        </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="CloseDeleteModal">Cancel</button>
+                        <button class="btn btn-danger" @onclick="DeleteConfirmed">Delete</button>
+                    </div>
+
                     </div>
                 </div>
+            </div>
             }
             <div class="promo-banner banner mt-4 text-center">
                 <h4 class="fw-bold text-dark mb-1">
@@ -1082,6 +1140,9 @@
 
     private string? eventTypeError;
     private string? genreError;
+
+
+    private string managerSearch = string.Empty;
 
     private void ValidateTypeGenre()
     {
@@ -1507,16 +1568,16 @@
             if (city.Id == 0)
             {
                 await AdminService.AddCityAsync(city);
-                toastService.ShowSuccess("✅ City added successfully!");
+                toastService.ShowSuccess("City added successfully!");
             }
             else
             {
                 await AdminService.UpdateCityAsync(city.Id, city);
-                toastService.ShowSuccess("✅ City updated successfully!");
+                toastService.ShowSuccess("City updated successfully!");
             }
 
             showCityModal = false;
-            await LoadCities(); // refresh list
+            await LoadCities();
             CalculateCityCounts();
         }
         catch (Exception ex)
@@ -1536,6 +1597,11 @@
     {
         var filtered = Events.AsEnumerable();
 
+        if (!string.IsNullOrWhiteSpace(managerSearch))
+            filtered = filtered.Where(e =>
+                (e.ManagerName ?? "Admin")
+                .Contains(managerSearch, StringComparison.OrdinalIgnoreCase));
+
         if (!string.IsNullOrWhiteSpace(selectedCity))
             filtered = filtered.Where(e => e.CityName == selectedCity);
 
@@ -1548,6 +1614,7 @@
             filtered = filtered.Where(e => e.TicketPrice >= min && e.TicketPrice <= max);
         }
 
+        filtered = ApplyDateFilter(filtered);
         FilteredEvents = filtered.ToList();
     }
 
@@ -1640,6 +1707,7 @@
 
     private void ClearAllFilters()
     {
+        managerSearch = string.Empty;
         // Event Filters
         selectedDateFilter = "all";
         isCustomRangeEnabled = false;
@@ -1676,14 +1744,33 @@
         ApplyFilters();
     }
 
-    private void ApplyCustomDateFilter()
+    private IEnumerable<EventDto> ApplyDateFilter(IEnumerable<EventDto> events)
     {
-        selectedDateFilter = "custom";
-        ApplyFilters();
+        var today = DateTime.Today;
+        var tomorrow = today.AddDays(1);
+        var saturday = today.AddDays(-(int)today.DayOfWeek + 6);
+        var sunday = saturday.AddDays(1);
+
+        return selectedDateFilter switch
+        {
+            "today" => events.Where(e => e.ShowDate.Date == today),
+            "tomorrow" => events.Where(e => e.ShowDate.Date == tomorrow),
+            "weekend" => events.Where(e =>
+                e.ShowDate.Date == saturday ||
+                e.ShowDate.Date == sunday),
+
+            "custom" when customStartDate.HasValue && customEndDate.HasValue =>
+                events.Where(e =>
+                    e.ShowDate.Date >= customStartDate.Value.Date &&
+                    e.ShowDate.Date <= customEndDate.Value.Date),
+
+            _ => events
+        };
     }
 
+
     private string GetDateButtonClass(string filter)
-        => selectedDateFilter == filter ? "btn btn-outline-danger btn-sm active" : "btn btn-outline-secondary btn-sm";
+    => selectedDateFilter == filter ? "btn btn-outline-danger btn-sm active" : "btn btn-outline-secondary btn-sm";
 
     private void ToggleCategory(string category)
     {

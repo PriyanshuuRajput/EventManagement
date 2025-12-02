@@ -1,5 +1,6 @@
 ﻿@page "/admin-dashboard"
 @using Domains.Entities
+@using Applications.Dto.Pagination
 @using EventBooking.Client.Components
 @inject AdminService adminService
 @inject NavigationManager Navigation
@@ -28,7 +29,7 @@
         position: relative;
         border-radius: 12px;
         color: #fff;
-        padding: 20px;
+        padding: 10px 20px;
         overflow: hidden;
         min-width: 260px;
         width: calc(25% - 20px);
@@ -80,7 +81,7 @@
 
    
     .card-footer {
-        margin-top: 40px ;
+        margin-top: 100px ;
         font-size: 20px;
         display: flex;
         justify-content: end;
@@ -110,7 +111,7 @@
 
 
     .notification-list {
-        max-height: 360px; 
+        max-height: 200px; 
         overflow-y: auto;
     }
 
@@ -388,6 +389,69 @@
         object-fit: cover;
     }
 
+    .pending-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .pending-label {
+        display: inline-block;
+        transition: opacity .2s ease;
+    }
+
+    .approve-btn {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    /* Hover behaviour */
+    .pending-wrapper:hover .pending-label {
+        opacity: 0;
+    }
+
+    .pending-wrapper:hover .approve-btn {
+        display: inline-block;
+    }
+
+    /* Top toolbar style above table */
+    .table-toolbar {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        border-top: 1px solid #dee2e6;
+        border-radius: 6px 6px 0 0; 
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+
+    /* Dropdown style to match your UI */
+    .show-dropdown {
+        width: 70px;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        padding: 4px 10px;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        transition: all .2s ease-in-out;
+    }
+
+        .show-dropdown:focus {
+            border-color: #dc3545 !important; 
+            box-shadow: 0 0 6px rgba(220, 53, 69, 0.4);
+        }
+
+    /* Text alignment fix */
+    .table-toolbar label {
+        white-space: nowrap;
+    }
+
+
+
 </style>
 
 
@@ -403,8 +467,8 @@
                 <i class="bi bi-calendar-plus me-1"></i>  Manage Managers
             </button>
         </div>*@
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-semibold text-dark mb-0">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h3 class="fw-bold text-dark mb-0" style="font-size:30px">
             <i class="bi bi-speedometer2 me-2"></i>
             Dashboard
         </h3>
@@ -418,7 +482,8 @@
 
                 @foreach (var card in SummaryCards)
                 {
-                    <div class="dashboard-card " style="background-color: #fceeee">
+                    <div class="dashboard-card " style="background-color: #fceeee"
+                        @onclick="()=> NavigateTo(card.Route)">
 
 
                         <i class="@card.Icon dashboard-icon-bg"></i>
@@ -429,9 +494,10 @@
                             <div class="title">@card.Title</div>
 
                             <div class="card-footer">
-                                @*<span>Details</span>*@
-                                <i class="bi bi-arrow-right"></i>
+                                <i class="bi bi-arrow-right text-danger" style="font-size:28px"></i>
                             </div>
+
+
                         </div>
                     </div>
                 }
@@ -548,7 +614,7 @@
 
     <!-- DATE PICKER NEXT TO IT -->
     <div class="ui calendar" id="singleDatePicker" style="width: 200px;">
-        <div class="ui input left icon">
+        <div class="ui input left icon shadow-sm">
             <i class="calendar icon"></i>
             <input type="text"
                    id="selectedDateInput"
@@ -556,15 +622,15 @@
                    readonly />
         </div>
     </div>
-    <button class="btn btn-outline-danger"
+    <button class="btn btn-danger ms-2 shadow-sm" style="padding:6px 14px"title="clear"
             @onclick="ClearFilters">
-        Clear
-    </button>
+        <i class="bi bi-arrow-clockwise fw-bold"></i>
+</button>
 </div>
 
 
     <!-- FILTER BUTTONS (Always Below) -->
-    <div class="d-flex gap-3 flex-wrap m-2" style="margin-left:40px">
+    <div class="d-flex gap-3 flex-wrap ms-2 mb-3 mt-3" style="margin-left:40px">
 
         <!-- ALL -->
         <button class="btn btn-sm @(selectedStatus == "" ? "btn-danger" : "btn-outline-secondary") rounded-3"
@@ -595,9 +661,9 @@
     <!--Events table-->
     <div class="card mb-4 border-0 rounded-0">
         <!--<div class="card-header d-flex justify-content-between align-items-center text-white bg-danger rounded-top-3">
-        <h6 class="fw-bold mb-0">Recent Events</h6>-->
+    <h6 class="fw-bold mb-0">Recent Events</h6>-->
         @*<input class="form-control form-control-sm shadow-sm " placeholder=" Search event, manager, city..."
-            @bind="SearchTerm" @bind:event="oninput" style="width: 300px;" />*@
+        @bind="SearchTerm" @bind:event="oninput" style="width: 300px;" />*@
 
         <!--</div>-->
         <div class="card-body p-0">
@@ -618,83 +684,125 @@
                     <tbody class="table-fade @(fadeClass)">
                         @if (!filteredEvents.Any())
                         {
-                            <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">
-                                    No events found
-                                </td>
-                            </tr>
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                No events found
+                            </td>
+                        </tr>
                         }
                         else
                         {
-                                @foreach (var evt in filteredEvents)
+                        @foreach (var evt in filteredEvents)
                             {
-                                <tr>
+                        <tr>
+                            @*<tr class="@(evt.Status == EventStatus.Pending ? "pending-row" : "")"
+                            @onclick="() => OnRowClick(evt)">*@
 
-                                    <!-- Event Name -->
-                                    <td>
-                                        <div class="event-title">@evt.Title</div>
-                                        <div class="event-sub">@evt.EventType</div>
-                                    </td>
+                            <!-- Event Name -->
+                            <td>
+                                <div class="event-title">@evt.Title</div>
+                                <div class="event-sub">@evt.EventType</div>
+                            </td>
 
-                                    <!-- Manager -->
-                                    <td class="event-title">
-                                        @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
-                                    </td>
+                            <!-- Manager -->
+                            <td class="event-title">
+                                @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
+                            </td>
 
-                                    <!-- Address -->
-                                    <td>
-                                        <div class="event-title">@evt.VenueName</div>
-                                        <div class="event-sub">@evt.CityName</div>
-                                    </td>
+                            <!-- Address -->
+                            <td>
+                                <div class="event-title">@evt.VenueName</div>
+                                <div class="event-sub">@evt.CityName</div>
+                            </td>
 
-                                    <!-- Event Date -->
-                                    <td>
-                                        <div class="event-title">@evt.ShowDate.ToString("dd-MMM-yyyy")</div>
-                                        <div class="event-sub">@evt.ShowDate.ToString("hh:mm tt")</div>
-                                    </td>
+                            <!-- Event Date -->
+                            <td>
+                                <div class="event-title">@evt.ShowDate.ToString("dd-MMM-yyyy")</div>
+                                <div class="event-sub">@evt.ShowDate.ToString("hh:mm tt")</div>
+                            </td>
 
-                                    <!-- Created -->
-                                    <td class="event-sub">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
+                            <!-- Created -->
+                            <td class="event-sub">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
 
-                                    <!-- Price -->
-                                    <td>
-                                        <span class="price-badge d-flex justify-content-center align-items-center">₹ @evt.EventAmount</span>
-                                    </td>
+                            <!-- Price -->
+                            <td>
+                                <span class="price-badge d-flex justify-content-center align-items-center">₹ @evt.EventAmount</span>
+                            </td>
 
-                                    <!-- Status -->
+                            <!-- Status -->
 
-                                    <td>
-                                        @if (evt.Status == EventStatus.Pending)
+                            <td>
+                                @if (evt.Status == EventStatus.Pending)
                                         {
-                                            <button class="status-badge text-white bg-warning text-dark"
-                                                    style="cursor:pointer"
-                                                    @onclick="(() => EventApprove(evt.Id))">
-                                                Pending
-                                            </button>
+                                @*<a class="status-badge text-white bg-warning "
+                                   style="cursor:pointer; padding:8px 14px"
+                                   @onclick="(() => EventApprove(evt.Id))">
+                                    Pending
+                                </a>*@
+                                <div class=" pending-wrapper">
+                                    <span class="status-badge bg-warning text-white pending-label" style="padding:6px 13px">
+                                        Pending
+                                    </span>
+
+                                    <!-- HOVER (Approve Button) -->
+                                    <button class="btn btn-danger btn-sm approve-btn "
+                                            style="padding:6px 13px"
+                                            @onclick="(() => EventApprove(evt.Id))">
+                                        Approve
+                                    </button>
+
+                                </div>
                                         }
                                         else if (evt.Status == EventStatus.AdminApproved)
                                         {
-                                            <span class="status-badge text-white bg-success">Approved</span>
+                                <span class="status-badge text-white bg-success">Approved</span>
                                         }
                                         else
                                         {
-                                            <span class="status-badge  text-white bg-danger">Rejected</span>
+                                <span class="status-badge  text-white bg-danger">Rejected</span>
                                         }
-                                    </td>
+                            </td>
 
 
-                                </tr>
-                            }
+                        </tr>
+                        }
                         }
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <Pagination Page="@CurrentPage"
-                    PageSize="@PageSize"
-                        TotalItems="@filteredEventsFull.Count"
-                    PageChanged="OnPageChanged" />
+        <div class="table-toolbar d-flex justify-content-between align-items-center px-3 py-2">
+
+            <!-- LEFT: Show Entries -->
+            <div class="d-flex align-items-center gap-2">
+                <label class="fw-semibold text-muted mb-0">Show</label>
+
+                <select class="form-select form-select-sm show-dropdown"
+                        @onchange="OnPageSizeChanged">
+                    @*<option value="">-- Select --</option>*@
+                    <option value="5">5</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+            </div>
+            <div class="small text-muted">
+                Showing @(StartIndex) - @(EndIndex) of @PagedResult.TotalCount events
+            </div>
+
+
+            <!-- RIGHT: Pagination -->
+            <div>
+                <Pagination Page="@CurrentPage"
+                            PageSize="@PageSize"
+                            TotalItems="@PagedResult.TotalCount"
+                            PageChanged="OnPageChanged" />
+            </div>
+
+        </div>
     </div>
 
     <!-- Ongoing Events Accordion -->
@@ -773,11 +881,11 @@
     </div>
 </div>
 
-    @code {
+@code {
         private List<EventDto> Events = new();
         private List<ManagerProfileDto> Managers = new();
         private List<(string Message, DateTime Date)> Notifications = new();
-        private List<EventDto> filteredEvents = new();
+        // private List<EventDto> filteredEvents = new();
         private DateTime? filterDate = null;
         //private List<DateTime> TimelineDates = new();
         //private DateTime SelectedTimelineDate = DateTime.Today;
@@ -813,12 +921,16 @@
         //private int TotalCount => Events.Count;
 
 
-
-        private int PageSize = 8;
+        private PagedResult<EventDto> PagedResult = new();
+        private int PageSize = 5;
         private int CurrentPage = 1;
-        private int TotalPages => (int)Math.Ceiling(filteredEventsFull.Count / (double)PageSize);
+        private int StartIndex => ((CurrentPage - 1) * PageSize) + 1;
+        private int EndIndex => Math.Min(CurrentPage * PageSize, PagedResult.TotalCount);
 
-        private List<EventDto> filteredEventsFull = new();
+        // private int TotalPages => (int)Math.Ceiling(filteredEventsFull.Count / (double)PageSize);
+
+        private List<EventDto> filteredEvents = new();
+
         private string fadeClass = "show";
 
 
@@ -838,7 +950,7 @@
         private List<EventDto> OngoingEvents => Events.Where(e => e.ShowDate <= DateTime.Today && e.ShowDate.AddDays(1) >= DateTime.Today).ToList();
         private List<EventDto> UpcomingEvents => Events.Where(e => e.ShowDate > DateTime.Today && e.ShowDate <= DateTime.Today.AddDays(10)).ToList();
 
-        private List<(string Title, string Icon, int Value,string color)> SummaryCards = new();
+        private List<(string Title, string Icon, int Value,string color, string Route)> SummaryCards = new();
 
 
         private void SetStatus(string status)
@@ -850,22 +962,23 @@
         protected override async Task OnInitializedAsync()
         {
             Events = await adminService.GetAllEventsAsync();
-            BookingsCount = 42;
+            BookingsCount = 0;
             Managers = await adminService.GetAllManagersAsync();
             CurrentEvents = Events.Count(e => e.ShowDate >= DateTime.Today);
 
             SummaryCards = new()
 {
-    ("Total Events",     "bi bi-calendar-event",    Events.Count,      "bg-blue"),
-    ("Live Events",   "bi bi-calendar2-event",   CurrentEvents,     "bg-green"),
-    ("Total Bookings",   "bi bi-ticket-detailed",   BookingsCount,     "bg-orange"),
-    ("Total Managers",   "bi bi-people-fill",       Managers.Count,    "bg-red")
+    ("Total Events",     "bi bi-calendar-event",    Events.Count,      "bg-blue","/manage-events"),
+    ("Live Events",   "bi bi-calendar2-event",   CurrentEvents,     "bg-green","/events"),
+    ("Total Bookings",   "bi bi-ticket-detailed",   BookingsCount,     "bg-orange","/bookings"),
+    ("Total Managers",   "bi bi-people-fill",       Managers.Count,    "bg-red" ,"/managers")
 };
 
 
-            filteredEventsFull = new List<EventDto>(Events);
+            filteredEvents = new List<EventDto>(Events);
             BuildNotifications();
             //BuildTimeLine();
+            await LoadPagedEventsAsync();
 
             ApplyFilters();
         }
@@ -877,6 +990,32 @@
                 await JS.InvokeVoidAsync("initSingleDatePicker", DotNetObjectReference.Create(this));
             }
         }
+
+        private async Task LoadPagedEventsAsync()
+        {
+            var req = new PagedRequest
+            {
+                Page = CurrentPage,
+                PageSize = PageSize,
+                Search = searchTerm,
+                Status = selectedStatus,
+                DateFilter = filterDate
+            };
+
+            PagedResult = await adminService.GetPagedEventsAsync(req);
+
+            filteredEvents = PagedResult.Items;
+        }
+
+        private async Task OnPageSizeChanged(ChangeEventArgs e)
+        {
+            PageSize = int.Parse(e.Value.ToString());
+            CurrentPage = 1;  
+
+            await LoadPagedEventsAsync();  
+            StateHasChanged();
+        }
+
 
         [JSInvokable]
         public void OnSemanticDateSelected(string dateStr)
@@ -991,78 +1130,91 @@
             ApplyFilters();
         }
 
-        private void ApplyFilters()
+        //private void ApplyFilters()
+        //{
+        //    var term = searchTerm?.Trim().ToLower() ?? "";
+
+        //    filteredEventsFull = Events
+        //        .Where(e =>
+
+        //            // STATUS FILTER
+        //            (
+        //                string.IsNullOrEmpty(selectedStatus)
+        //                || (selectedStatus == "Approved" && e.Status == EventStatus.AdminApproved)
+        //                || (selectedStatus == "Pending" && e.Status == EventStatus.Pending)
+        //                || (selectedStatus == "Rejected" && e.Status == EventStatus.Rejected)
+        //            )
+
+        //            &&
+
+        //            // SEARCH TERM FILTER
+        //            (
+        //                string.IsNullOrWhiteSpace(term)
+        //                ||
+        //                (
+        //                    (e.Title?.ToLower().Contains(term) ?? false)
+        //                    || (e.ManagerName?.ToLower().Contains(term) ?? false)
+        //                    || (e.VenueName?.ToLower().Contains(term) ?? false)
+        //                    || (e.CityName?.ToLower().Contains(term) ?? false)
+        //                    || (e.EventType?.ToLower().Contains(term) ?? false)
+        //                    || (e.EventAmount.ToString().Contains(term))
+        //                )
+        //            )
+
+        //            &&
+
+        //            // DATE FILTER — ONLY WHEN CHECKBOX ENABLED
+        //            //(
+        //            //    !EnableDateFilter
+        //            //    || (EnableDateFilter && filterDate.HasValue && e.ShowDate.Date == filterDate.Value.Date)
+        //            //)
+        //            (filterDate ==  null
+        //            || e.ShowDate.Date == filterDate.Value.Date
+        //            )
+        //        )
+        //        .OrderByDescending(e => e.CreatedAt)
+        //        .ToList();
+
+        //    CurrentPage = 1;
+        //    ApplyPagination();
+        //}
+
+        private async void ApplyFilters()
         {
-            var term = searchTerm?.Trim().ToLower() ?? "";
-
-            filteredEventsFull = Events
-                .Where(e =>
-
-                    // STATUS FILTER
-                    (
-                        string.IsNullOrEmpty(selectedStatus)
-                        || (selectedStatus == "Approved" && e.Status == EventStatus.AdminApproved)
-                        || (selectedStatus == "Pending" && e.Status == EventStatus.Pending)
-                        || (selectedStatus == "Rejected" && e.Status == EventStatus.Rejected)
-                    )
-
-                    &&
-
-                    // SEARCH TERM FILTER
-                    (
-                        string.IsNullOrWhiteSpace(term)
-                        ||
-                        (
-                            (e.Title?.ToLower().Contains(term) ?? false)
-                            || (e.ManagerName?.ToLower().Contains(term) ?? false)
-                            || (e.VenueName?.ToLower().Contains(term) ?? false)
-                            || (e.CityName?.ToLower().Contains(term) ?? false)
-                            || (e.EventType?.ToLower().Contains(term) ?? false)
-                            || (e.EventAmount.ToString().Contains(term))
-                        )
-                    )
-
-                    &&
-
-                    // DATE FILTER — ONLY WHEN CHECKBOX ENABLED
-                    //(
-                    //    !EnableDateFilter
-                    //    || (EnableDateFilter && filterDate.HasValue && e.ShowDate.Date == filterDate.Value.Date)
-                    //)
-                    (filterDate ==  null
-                    || e.ShowDate.Date == filterDate.Value.Date
-                    )
-                )
-                .OrderByDescending(e => e.CreatedAt)
-                .ToList();
-
             CurrentPage = 1;
-            ApplyPagination();
+            await LoadPagedEventsAsync();
+            StateHasChanged();
         }
-
-
 
         private async Task OnPageChanged(int page)
         {
             CurrentPage = page;
-            ApplyPagination();
+            await LoadPagedEventsAsync();
         }
 
-        private async void ApplyPagination()
-        {
-            fadeClass = "";
-            StateHasChanged();
-            await Task.Delay(100);
-
-            filteredEvents = filteredEventsFull
-                .Skip((CurrentPage - 1) * PageSize)
-                .Take(PageSize)
-                .ToList();
 
 
-            fadeClass = "show";
-            StateHasChanged();
-        }
+        //private async Task OnPageChanged(int page)
+        //{
+        //    CurrentPage = page;
+        //    ApplyPagination();
+        //}
+
+        //private async void ApplyPagination()
+        //{
+        //    fadeClass = "";
+        //    StateHasChanged();
+        //    await Task.Delay(100);
+
+        //    filteredEvents = filteredEventsFull
+        //        .Skip((CurrentPage - 1) * PageSize)
+        //        .Take(PageSize)
+        //        .ToList();
+
+
+        //    fadeClass = "show";
+        //    StateHasChanged();
+        //}
 
 
         private void ToggleOngoing() => showOngoing = !showOngoing;
@@ -1078,6 +1230,11 @@
         {
             Navigation.NavigateTo($"/approval-manager-events/{eventId}");
         }
+        private void OnRowClick(EventDto evt)
+        {
+            if (evt.Status == EventStatus.Pending)
+            EventApprove(evt.Id);
+        }
         private void GoToManageEvents()
         {
             Navigation.NavigateTo("/manage-events");
@@ -1086,4 +1243,10 @@
         {
             Navigation.NavigateTo("/managers");
         }
+
+        private void NavigateTo(string route)
+        {
+            Navigation.NavigateTo(route);
+        }
+
     }
