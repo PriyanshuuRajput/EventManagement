@@ -33,7 +33,12 @@
                 <ValidationMessage For="@(() => signupModel.PhoneNumber)" />
             </div>
         </div>*@
-            <button type="submit" class="btn btn-danger w-100 fw-semibold mt-2">
+            <button type="submit" class="btn btn-danger w-100 fw-semibold mt-2"
+                    disabled="@IsProcessing">
+                @if (IsProcessing)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" ></span>
+                }
                 Submit
             </button>
             @if (!string.IsNullOrWhiteSpace(errorMessage))
@@ -50,13 +55,19 @@
 
     private ManagerSignUpDto signupModel = new();
     private string? errorMessage;
+    private bool IsProcessing = false;
     [Parameter] public EventCallback OnCancel { get; set; }
 
     [Parameter] public EventCallback OnSwitchToLogin { get; set; }
 
     private async Task HandleSignup()
     {
+        if (IsProcessing)
+            return;
+
+        IsProcessing = true;
         errorMessage = null;
+
         if (string.IsNullOrWhiteSpace(signupModel.Email))
         {
             errorMessage = "Please enter Email!";
@@ -83,6 +94,7 @@
 
         var error = await response.Content.ReadAsStringAsync();
         errorMessage = error;
+        IsProcessing = false;
     }
 
 

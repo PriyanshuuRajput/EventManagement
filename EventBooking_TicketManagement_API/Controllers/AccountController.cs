@@ -206,7 +206,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             _db.Managers.Add(manager);
             _db.SaveChanges();
 
-
+            //string loginUrl = "https://localhost:7117/admin";
             string adminEmail = "rajputronak0058@gmail.com";
             _ = Task.Run(() =>
             {
@@ -217,8 +217,7 @@ namespace EventBooking_TicketManagement_API.Controllers
                 <h2>New Manager Request</h2>
                 <p>A new manager has applied for approval.</p>
                 <p><b>Email:</b> {dto.Email}</p>
-                <p>Please review and approve them in the Admin Dashboard.</p>
-            "
+                <p>Please review and approve the manager..</p>"
                 );
             });
 

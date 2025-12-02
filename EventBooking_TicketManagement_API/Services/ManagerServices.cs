@@ -122,9 +122,9 @@ namespace EventBooking_TicketManagement_API.Services
             <!-- Button -->
             <div style='text-align:center; margin:30px 0;'>
                 <a href='{loginUrl}' 
-                   style='background:#4a6cf7; padding:12px 20px; color:white; 
-                          text-decoration:none; border-radius:6px; font-size:16px;'>
-                    Login to Manager Portal
+                   style='background:#dc3545; padding:10px 16px; color:white; 
+                          text-decoration:none; border-radius:6px; font-size:14px;'>
+                    Login 
                 </a>
             </div>
 
@@ -143,7 +143,7 @@ namespace EventBooking_TicketManagement_API.Services
 
             await _emailService.SendEmailAsync(
         manager.User.Email,
-        "Your Manager Account is Approved ✔",
+        "Your Manager Account is Approved ",
         emailBody
     );
 
@@ -262,7 +262,7 @@ namespace EventBooking_TicketManagement_API.Services
             await _managerRepo.SaveChangesAsync();
 
             string message = $@"<p> Dear Applicant,</p>
-                                <p> YOur manager account request has been <b>rejected</b>.</p>
+                                <p> Your manager account request has been <b>rejected</b>.</p>
                                 <p><b>Reason:</b>{reason}</p>
                                 <p>If you believe this was a mistake, kindly re-apply.</p>
                                 <p>Regards,<br/>EventiGo Team</p>";

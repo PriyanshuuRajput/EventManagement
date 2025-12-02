@@ -81,7 +81,7 @@
 
    
     .card-footer {
-        margin-top: 40px ;
+        margin-top: 100px ;
         font-size: 20px;
         display: flex;
         justify-content: end;
@@ -111,7 +111,7 @@
 
 
     .notification-list {
-        max-height: 360px; 
+        max-height: 200px; 
         overflow-y: auto;
     }
 
@@ -389,6 +389,69 @@
         object-fit: cover;
     }
 
+    .pending-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .pending-label {
+        display: inline-block;
+        transition: opacity .2s ease;
+    }
+
+    .approve-btn {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    /* Hover behaviour */
+    .pending-wrapper:hover .pending-label {
+        opacity: 0;
+    }
+
+    .pending-wrapper:hover .approve-btn {
+        display: inline-block;
+    }
+
+    /* Top toolbar style above table */
+    .table-toolbar {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        border-top: 1px solid #dee2e6;
+        border-radius: 6px 6px 0 0; 
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+
+    /* Dropdown style to match your UI */
+    .show-dropdown {
+        width: 70px;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        padding: 4px 10px;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        transition: all .2s ease-in-out;
+    }
+
+        .show-dropdown:focus {
+            border-color: #dc3545 !important; 
+            box-shadow: 0 0 6px rgba(220, 53, 69, 0.4);
+        }
+
+    /* Text alignment fix */
+    .table-toolbar label {
+        white-space: nowrap;
+    }
+
+
+
 </style>
 
 
@@ -404,8 +467,8 @@
                 <i class="bi bi-calendar-plus me-1"></i>  Manage Managers
             </button>
         </div>*@
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-semibold text-dark mb-0">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h3 class="fw-bold text-dark mb-0" style="font-size:30px">
             <i class="bi bi-speedometer2 me-2"></i>
             Dashboard
         </h3>
@@ -559,10 +622,10 @@
                    readonly />
         </div>
     </div>
-    <button class="btn btn-outline-danger"
+    <button class="btn btn-danger ms-2 shadow-sm" style="padding:6px 14px"title="clear"
             @onclick="ClearFilters">
-        Clear
-    </button>
+        <i class="bi bi-arrow-clockwise fw-bold"></i>
+</button>
 </div>
 
 
@@ -598,9 +661,9 @@
     <!--Events table-->
     <div class="card mb-4 border-0 rounded-0">
         <!--<div class="card-header d-flex justify-content-between align-items-center text-white bg-danger rounded-top-3">
-        <h6 class="fw-bold mb-0">Recent Events</h6>-->
+    <h6 class="fw-bold mb-0">Recent Events</h6>-->
         @*<input class="form-control form-control-sm shadow-sm " placeholder=" Search event, manager, city..."
-            @bind="SearchTerm" @bind:event="oninput" style="width: 300px;" />*@
+        @bind="SearchTerm" @bind:event="oninput" style="width: 300px;" />*@
 
         <!--</div>-->
         <div class="card-body p-0">
@@ -621,83 +684,125 @@
                     <tbody class="table-fade @(fadeClass)">
                         @if (!filteredEvents.Any())
                         {
-                            <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">
-                                    No events found
-                                </td>
-                            </tr>
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                No events found
+                            </td>
+                        </tr>
                         }
                         else
                         {
-                                @foreach (var evt in filteredEvents)
+                        @foreach (var evt in filteredEvents)
                             {
-                                <tr>
+                        <tr>
+                            @*<tr class="@(evt.Status == EventStatus.Pending ? "pending-row" : "")"
+                            @onclick="() => OnRowClick(evt)">*@
 
-                                    <!-- Event Name -->
-                                    <td>
-                                        <div class="event-title">@evt.Title</div>
-                                        <div class="event-sub">@evt.EventType</div>
-                                    </td>
+                            <!-- Event Name -->
+                            <td>
+                                <div class="event-title">@evt.Title</div>
+                                <div class="event-sub">@evt.EventType</div>
+                            </td>
 
-                                    <!-- Manager -->
-                                    <td class="event-title">
-                                        @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
-                                    </td>
+                            <!-- Manager -->
+                            <td class="event-title">
+                                @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
+                            </td>
 
-                                    <!-- Address -->
-                                    <td>
-                                        <div class="event-title">@evt.VenueName</div>
-                                        <div class="event-sub">@evt.CityName</div>
-                                    </td>
+                            <!-- Address -->
+                            <td>
+                                <div class="event-title">@evt.VenueName</div>
+                                <div class="event-sub">@evt.CityName</div>
+                            </td>
 
-                                    <!-- Event Date -->
-                                    <td>
-                                        <div class="event-title">@evt.ShowDate.ToString("dd-MMM-yyyy")</div>
-                                        <div class="event-sub">@evt.ShowDate.ToString("hh:mm tt")</div>
-                                    </td>
+                            <!-- Event Date -->
+                            <td>
+                                <div class="event-title">@evt.ShowDate.ToString("dd-MMM-yyyy")</div>
+                                <div class="event-sub">@evt.ShowDate.ToString("hh:mm tt")</div>
+                            </td>
 
-                                    <!-- Created -->
-                                    <td class="event-sub">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
+                            <!-- Created -->
+                            <td class="event-sub">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
 
-                                    <!-- Price -->
-                                    <td>
-                                        <span class="price-badge d-flex justify-content-center align-items-center">₹ @evt.EventAmount</span>
-                                    </td>
+                            <!-- Price -->
+                            <td>
+                                <span class="price-badge d-flex justify-content-center align-items-center">₹ @evt.EventAmount</span>
+                            </td>
 
-                                    <!-- Status -->
+                            <!-- Status -->
 
-                                    <td>
-                                        @if (evt.Status == EventStatus.Pending)
+                            <td>
+                                @if (evt.Status == EventStatus.Pending)
                                         {
-                                            <button class="status-badge text-white bg-warning text-dark"
-                                                    style="cursor:pointer"
-                                                    @onclick="(() => EventApprove(evt.Id))">
-                                                Pending
-                                            </button>
+                                @*<a class="status-badge text-white bg-warning "
+                                   style="cursor:pointer; padding:8px 14px"
+                                   @onclick="(() => EventApprove(evt.Id))">
+                                    Pending
+                                </a>*@
+                                <div class=" pending-wrapper">
+                                    <span class="status-badge bg-warning text-white pending-label" style="padding:6px 13px">
+                                        Pending
+                                    </span>
+
+                                    <!-- HOVER (Approve Button) -->
+                                    <button class="btn btn-danger btn-sm approve-btn "
+                                            style="padding:6px 13px"
+                                            @onclick="(() => EventApprove(evt.Id))">
+                                        Approve
+                                    </button>
+
+                                </div>
                                         }
                                         else if (evt.Status == EventStatus.AdminApproved)
                                         {
-                                            <span class="status-badge text-white bg-success">Approved</span>
+                                <span class="status-badge text-white bg-success">Approved</span>
                                         }
                                         else
                                         {
-                                            <span class="status-badge  text-white bg-danger">Rejected</span>
+                                <span class="status-badge  text-white bg-danger">Rejected</span>
                                         }
-                                    </td>
+                            </td>
 
 
-                                </tr>
-                            }
+                        </tr>
+                        }
                         }
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <Pagination Page="@CurrentPage"
-                    PageSize="@PageSize"
-                        TotalItems="@PagedResult.TotalCount"
-                    PageChanged="OnPageChanged" />
+        <div class="table-toolbar d-flex justify-content-between align-items-center px-3 py-2">
+
+            <!-- LEFT: Show Entries -->
+            <div class="d-flex align-items-center gap-2">
+                <label class="fw-semibold text-muted mb-0">Show</label>
+
+                <select class="form-select form-select-sm show-dropdown"
+                        @onchange="OnPageSizeChanged">
+                    @*<option value="">-- Select --</option>*@
+                    <option value="5">5</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+            </div>
+            <div class="small text-muted">
+                Showing @(StartIndex) - @(EndIndex) of @PagedResult.TotalCount events
+            </div>
+
+
+            <!-- RIGHT: Pagination -->
+            <div>
+                <Pagination Page="@CurrentPage"
+                            PageSize="@PageSize"
+                            TotalItems="@PagedResult.TotalCount"
+                            PageChanged="OnPageChanged" />
+            </div>
+
+        </div>
     </div>
 
     <!-- Ongoing Events Accordion -->
@@ -776,7 +881,7 @@
     </div>
 </div>
 
-    @code {
+@code {
         private List<EventDto> Events = new();
         private List<ManagerProfileDto> Managers = new();
         private List<(string Message, DateTime Date)> Notifications = new();
@@ -817,8 +922,11 @@
 
 
         private PagedResult<EventDto> PagedResult = new();
-        private int PageSize = 8;
+        private int PageSize = 5;
         private int CurrentPage = 1;
+        private int StartIndex => ((CurrentPage - 1) * PageSize) + 1;
+        private int EndIndex => Math.Min(CurrentPage * PageSize, PagedResult.TotalCount);
+
         // private int TotalPages => (int)Math.Ceiling(filteredEventsFull.Count / (double)PageSize);
 
         private List<EventDto> filteredEvents = new();
@@ -898,6 +1006,16 @@
 
             filteredEvents = PagedResult.Items;
         }
+
+        private async Task OnPageSizeChanged(ChangeEventArgs e)
+        {
+            PageSize = int.Parse(e.Value.ToString());
+            CurrentPage = 1;  
+
+            await LoadPagedEventsAsync();  
+            StateHasChanged();
+        }
+
 
         [JSInvokable]
         public void OnSemanticDateSelected(string dateStr)
@@ -1111,6 +1229,11 @@
         private void EventApprove(int eventId)
         {
             Navigation.NavigateTo($"/approval-manager-events/{eventId}");
+        }
+        private void OnRowClick(EventDto evt)
+        {
+            if (evt.Status == EventStatus.Pending)
+            EventApprove(evt.Id);
         }
         private void GoToManageEvents()
         {

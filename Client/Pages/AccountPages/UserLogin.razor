@@ -39,7 +39,11 @@
         <ValidationMessage For="@(() => loginModel.Password)" />
     </div>
 
-    <button type="submit" class="btn btn-danger w-100 mb-2">
+    <button type="submit" class="btn btn-danger w-100 mb-2"
+            disabled ="@isProcessing">
+        @if(isProcessing){
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        }
         <i class="bi bi-box-arrow-in-right me-2"></i> Login
     </button>
 
@@ -65,6 +69,7 @@
     [Parameter] public EventCallback OnSwitchToSignup { get; set; }
     [Parameter] public string? email { get; set; }
     private bool showPassword = false;
+    private bool isProcessing = false;
 
     private string PasswordInputType => showPassword ? "text" : "password";
     private string EyeIcon => showPassword ? "bi-eye-fill" : "bi-eye-slash-fill";
@@ -92,6 +97,9 @@
 
     private async Task HandleLoginForm()
     {
+        if (isProcessing)
+            return;
+        isProcessing = true;
         var http = new HttpClient();
 
         var response = await http.PostAsJsonAsync("https://localhost:7239/api/Account/login", loginModel);
@@ -140,6 +148,8 @@
 
         // DEFAULT → Just go home
         Navigation.NavigateTo("/", true);
+
+        isProcessing = false;
     }
 
     private async Task OnCancelClicked() => await OnCancel.InvokeAsync();
