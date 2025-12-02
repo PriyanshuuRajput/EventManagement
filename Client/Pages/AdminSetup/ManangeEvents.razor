@@ -107,7 +107,7 @@
         flex-direction: column;
     }
 
- 
+
     .event-title {
         min-height: 48px;
         display: -webkit-box;
@@ -146,122 +146,105 @@
         border: 1px solid rgba(0,0,0,0.1);
     }
 
-    .drawer-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.45);
-        backdrop-filter: blur(2px);
-        animation: fadeIn 0.3s ease-in-out;
-        z-index: 2000;
-    }
+  /* ---------- OVERLAY ---------- */
+.drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.40);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+}
 
-    .drawer-panel {
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 75%;
-        height: 100vh;
-        background: #fff;
-        border-left: 2px solid #dc3545;
-        border-radius: 0 0 0 12px;
-        display: flex;
-        flex-direction: column;
-        /*        padding: 20px;
-        overflow-y: auto;*/
-        z-index: 2001;
-        transform: translateX(100%);
-        animation: slideIn 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
+/* ---------- DRAWER PANEL ---------- */
+.drawer-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 50%;                     /* reduced width (was too wide) */
+    max-width: 780px;               /* prevents huge layout */
+    height: 100vh;
+    background: #fff;
+    border-left: 2px solid #dc3545;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn .30s ease-out forwards;
+    z-index: 2001;
+}
 
+@@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+}
 
-    @@keyframes slideIn {
-        from {
-            transform: translateX(100%);
-        }
+/* ---------- HEADER ---------- */
+.drawer-header {
+    padding: 20px 20px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 
-        to {
-            transform: translateX(0%);
-        }
-    }
+/* ---------- BODY ---------- */
+.drawer-body {
+    padding: 12px 18px;
+    overflow-y: auto;
+}
 
-    .drawer-header {
-        padding: 18px 20px;
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(6px);
-        border-bottom: 1px solid #efefef;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-    }
+.drawer-body::-webkit-scrollbar {
+    width: 0; /* Hides scrollbar for clean UI */
+}
 
-    .drawer-body {
-        padding: 0px 30px;
-        overflow-y: auto;
-    }
-    .drawer-body::-webkit-scrollbar 
-        {
-            width: 0px;
-        }
-    .drawer-footer {
-        background: #fff;
-        padding-top: 15px;
-        border-top: 1px solid #eee;
-        position: sticky;
-        bottom: 0;
-    }
+/* ---------- CARDS ---------- */
+.drawer-panel .card {
+/*    margin-bottom: 10px;*/
+    border-radius: 0px;
+}
 
-    /* ===== FORM INPUT STYLE ===== */
-    .drawer-input {
-        border-radius: 10px !important;
-        padding: 10px 14px !important;
-        font-size: 1rem;
-        border: 1px solid #ddd !important;
-        transition: 0.2s ease;
-    }
+.drawer-panel .card-header {
+    padding: 10px 14px !important;
+    font-size: 16px;
+    background: #fafafa;
+}
 
-        .drawer-input:focus {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2) !important;
-        }
+.drawer-panel .card-body {
+    padding: 12px 14px !important;
+}
 
+/* Reduce spacing between columns */
+.drawer-panel .row.g-3 {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+}
 
-    /* Reduce height of cards in drawer */
-    .drawer-panel .card {
-        margin-bottom: 8px !important; /* was big */
-        border-radius: 10px;
-    }
+/* ---------- FORM INPUTS ---------- */
+.drawer-panel .form-control,
+.drawer-panel .form-select {
+    padding: 6px 10px !important;
+    font-size: 0.9rem;
+    border-radius: 6px;
+}
 
-    .drawer-panel .card-header {
-        padding: 6px 12px !important; /* reduce header height */
-        font-size: 14px;
-    }
+.drawer-panel .form-control:focus,
+.drawer-panel .form-select:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.20);
+}
 
-    .drawer-panel .card-body {
-        padding: 10px 12px !important; /* smaller body padding */
-    }
+/* ---------- FOOTER ---------- */
+.drawer-footer {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 10px 20px;
+    border-top: 1px solid #eee;
+}
 
-    .drawer-panel .row.g-3 {
-        --bs-gutter-x: 0.75rem;
-        --bs-gutter-y: 0.75rem; /* reduce column gap */
-    }
+.drawer-footer button {
+    min-width: 110px;
+}
 
-    /* Make form inputs shorter */
-    .drawer-panel .form-control,
-    .drawer-panel .form-select {
-        padding: 6px 10px !important;
-        font-size: 0.9rem !important;
-    }
-
-    /* Reduce space between cards */
-    .drawer-panel .mb-2 {
-        margin-bottom: 6px !important;
-    }
-
-    /* Reduce space at form footer */
-    .drawer-panel .d-flex.justify-content-end {
-        margin-top: 4px !important;
-        padding-top: 0 !important;
-    }
 
 
     @@keyframes fadeIn {
@@ -768,7 +751,7 @@
 
                 <div class="drawer-panel">
                     <div class="drawer-header d-flex justify-content-between align-items-center">
-                        <h5 class="m-0 fw-bold">
+                        <h5 class="fw-bold" style="font-size:22px">
                             @(editingEvent?.Id > 0 ? "Update Event" : "Add New Event")
                         </h5>
 
@@ -781,19 +764,19 @@
                             <DataAnnotationsValidator />
 
                             <!-- General Info -->
-                            <div class="card shadow-sm mb-2">
+                            <div class="card shadow-sm mb-0 mt-2">
                                 <div class="card-header  text-dark fw-bold">
                                     General Information
                                 </div>
                                 <div class="card-body row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Event Name<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Title" class="form-control" />
                                         <ValidationMessage For="@(() => editingEvent.Title)" class="text-danger small" />
 
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Event Type<span class="text-muted">(optional)</span></label>
                                         <InputText @bind-Value="editingEvent.EventType"
                                                    class="form-control"
@@ -806,14 +789,7 @@
 
                                     </div>
 
-
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">Language<span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="editingEvent.Language" class="form-control" />
-                                        <ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />
-                                    </div>
-
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Genre<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Genre"
                                                    class="form-control"
@@ -826,16 +802,22 @@
 
                                     </div>
 
-                                </div>
-                            </div>
 
-                            <!-- Date and Time Info -->
-                            <div class="card shadow-sm mb-2">
-                                <div class="card-header text-dark fw-bold">
-                                    Event Schedule
-                                </div>
-                                <div class="card-body row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Language<span class="text-danger">*</span></label>
+                                        <InputText @bind-Value="editingEvent.Language" class="form-control" />
+                                        <ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />
+                                    </div>
+                                    @*</div>*@
+
+
+                                    <!-- Date and Time Info -->
+                                    @*<div class="card shadow-sm mb-2">
+        <div class="card-header text-dark fw-bold">
+            Event Schedule
+        </div>*@
+                                    @*<div class="card-body row g-3">*@
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Event Date & Time<span class="text-danger">*</span></label>
                                         <input type="datetime-local"
                                                @bind="editingEvent.ShowDate"
@@ -844,7 +826,7 @@
                                         <ValidationMessage For="@(() => editingEvent.ShowDate)" class="text-danger small" />
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Duration (HH:MM) <span class="text-danger">*</span></label>
 
                                         <InputText class="form-control"
@@ -855,14 +837,32 @@
                                         {
                                             <div class="text-danger small">@durationError</div>
                                         }
-                                        <ValidationMessage For="@(() => editingEvent.Duration)"class="text-danger small"/>
+                                        <ValidationMessage For="@(() => editingEvent.Duration)" class="text-danger small" />
                                     </div>
 
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Ticket Price (₹)<span class="text-danger">*</span></label>
+                                        <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
+                                        <ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Event Image</label>
+                                        <InputFile OnChange="HandleImageSelected" class="form-control" />
+                                        @if (!string.IsNullOrEmpty(editingEvent.ImageUrl))
+                                        {
+                                            <img src="@editingEvent.ImageUrl" alt="Preview" class="mt-2 rounded shadow-sm border" width="120" />
+                                        }
+                                        @*<ValidationMessage For="@(() => editingEvent.ImageUrl)" />*@
+                                    </div>
+
+                                    @*</div>*@
                                 </div>
                             </div>
 
                             <!-- Location Info -->
-                            <div class="card shadow-sm mb-2">
+                            <div class="card shadow-sm mb-0">
                                 <div class="card-header  text-dark fw-bold">
                                     Location Details
                                 </div>
@@ -896,43 +896,34 @@
                             </div>
 
                             <!-- Ticket and Image Info -->
-                            <div class="card shadow-sm mb-2">
+                            <!--<div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
                                     Tickets & Image
                                 </div>
                                 <div class="card-body row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">Ticket Price (₹)<span class="text-danger">*</span></label>
-                                        <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
-                                        <ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />
-                                    </div>
+                                    
 
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">Event Image</label>
-                                        <InputFile OnChange="HandleImageSelected" class="form-control" />
-                                        @if (!string.IsNullOrEmpty(editingEvent.ImageUrl))
-                                        {
-                                            <img src="@editingEvent.ImageUrl" alt="Preview" class="mt-2 rounded shadow-sm border" width="120" />
-                                        }
-                                        @*<ValidationMessage For="@(() => editingEvent.ImageUrl)" />*@
-                                    </div>
+                                   
                                 </div>
-                            </div>
+                            </div>-->
 
                             <!-- Description -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
                                     Description
                                 </div>
-                                <div class="card-body">
-                                    <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="3" placeholder="Write a short description..." />
+                                <div class="card-body border-0">
+                                    <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="4" placeholder="Write a short description..." />
                                     <ValidationMessage For="@(() => editingEvent.Description)" class="text-danger small" />
                                 </div>
                                 <!-- Footer -->
-                                <div class=" d-flex justify-content-end align-items-center">
-                                    <button class="btn btn-outline-secondary m-2 shadow-lg" @onclick="() => showEventModal = false">Cancel</button>
+                                <div class=" d-flex justify-content-end align-items-center gap-3">
+                                    <button class="btn btn-outline-secondary m-2 shadow-lg"
+                                            style="padding:5px 20px ; font-size:18px"
+                                            @onclick="() => showEventModal = false">Cancel</button>
                                     <button class="btn btn-danger m-2 shadow-lg"
-                                            disabled="@(!string.IsNullOrWhiteSpace(durationError))">*
+                                            style="padding:5px 35px ; font-size:20px"
+                                            disabled="@(!string.IsNullOrWhiteSpace(durationError))">
                                         Save
                                     </button>
 
