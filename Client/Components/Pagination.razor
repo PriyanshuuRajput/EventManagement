@@ -2,18 +2,18 @@
     <ul class="pagination pagination-sm ">
 
         <li class="page-item @(Page == 1 ? "disabled" : "")">
-            <button class="page-link" @onclick="Previous">Previous</button>
+            <button class="page-link btn" @onclick="Previous">Previous</button>
         </li>
 
-        @*@for (int i = 1; i <= TotalPages; i++)
+        @for (int i = 1; i <= TotalPages; i++)
         {
             <li class="page-item @(i == Page ? "active" : "")">
-                <button class="page-link" @onclick="() => SetPage(i)">@i</button>
+                <button class="page-link btn" @onclick="() => SetPage(i)">@i</button>
             </li>
-        }*@
+        }
 
         <li class="page-item @(Page == TotalPages ? "disabled" : "")">
-            <button class="page-link" @onclick="Next">Next</button>
+            <button class="page-link btn" @onclick="Next">Next</button>
         </li>
 
     </ul>
@@ -47,7 +47,8 @@
 
     private async Task SetPage(int page)
     {
-        Page = page;
+
         await PageChanged.InvokeAsync(Page);
+        Page = page;
     }
 }

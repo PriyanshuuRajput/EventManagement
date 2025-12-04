@@ -194,6 +194,8 @@
         try
         {
             events = await Http.GetFromJsonAsync<List<EventDto>>("https://localhost:7239/api/Events/approved") ?? new List<EventDto>();
+
+            events = events.Where(e => e.ShowDate.Date >= DateTime.Today).ToList();
             filteredEvents = events.ToList();
         }
         catch
@@ -300,6 +302,7 @@
         filteredEvents = events
             .Where(ev =>
                 IsEventInSelectedDate(ev.ShowDate) &&
+                ev.ShowDate.Date>=DateTime.Today &&
                 (selectedCategories.Count == 0 || selectedCategories.Contains(ev.EventType)) &&
                 (string.IsNullOrEmpty(selectedCity) || ev.CityName == selectedCity) &&
                 ev.TicketPrice >= minPrice && ev.TicketPrice <= maxPrice)

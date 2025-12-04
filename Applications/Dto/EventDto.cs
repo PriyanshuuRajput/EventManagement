@@ -14,7 +14,7 @@ namespace Applications.Dto
         public string Title { get; set; } = string.Empty;
 
         //[Required(ErrorMessage = "Event type is required.")]
-        [StringLength(20, ErrorMessage = "Event type must be 20 characters.")]
+        //[StringLength(20, ErrorMessage = "Event type must be 20 characters.")]
         public string? EventType { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Description is required.")]
@@ -23,7 +23,7 @@ namespace Applications.Dto
 
 
         [StringLength(50)]
-        //[Required(ErrorMessage = "Genre is required.")]
+        [Required(ErrorMessage = "Genre is required.")]
 
         public string? Genre { get; set; } = string.Empty;
 
@@ -38,6 +38,8 @@ namespace Applications.Dto
         [Required(ErrorMessage = "Show date is required.")]
         [DataType(DataType.DateTime)]
         public DateTime ShowDate { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a venue")]
         public int VenueId { get; set; }
 
         public string? VenueName { get; set; }
@@ -50,7 +52,7 @@ namespace Applications.Dto
 
 
 
-        [Required(ErrorMessage = "Ticket price is required.")]
+        //[Required(ErrorMessage = "Ticket price is required.")]
         [Range(0, 10000, ErrorMessage = "Ticket price must be between 0 and 10,000.")]
         public decimal TicketPrice { get; set; }
 
