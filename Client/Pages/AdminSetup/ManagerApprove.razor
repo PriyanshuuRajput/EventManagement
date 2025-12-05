@@ -474,7 +474,7 @@
 
         <nav>
             <ul class="pagination pagination-sm mb-0">
-                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <li class="page-item me-1 @(currentPage == 1 ? "disabled" : "")">
                     <button class="page-link btn  " @onclick="PrevPage">Previous</button>
                 </li>
                 @for (int i = 1; i <= TotalPages; i++)
@@ -483,7 +483,7 @@
                         <button class="page-link btn" @onclick="() => GoToPage(i)">@i</button>
                     </li>
                 }
-                <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
+                <li class="page-item  ms-1 @(currentPage == TotalPages ? "disabled" : "")">
                     <button class="page-link btn   " @onclick="NextPage">Next</button>
                 </li>
             </ul>

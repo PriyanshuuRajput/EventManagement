@@ -32,8 +32,36 @@ namespace Applications.Dto
         public string Language { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Event duration is required.")]
-        public TimeSpan Duration { get; set; } = TimeSpan.FromHours(1);
+        public TimeSpan Duration { get; set; } = TimeSpan.Zero;
 
+
+        [Required(ErrorMessage = "Duration is required.")]
+        public string DurationInput
+        {
+            get
+            {
+                if (Duration == TimeSpan.Zero)
+                    return string.Empty;
+
+                return Duration.ToString(@"hh\:mm");
+            }
+            set
+            {
+                // Try to convert 
+                if (TimeSpan.TryParse(value, out var parsed))
+                {
+                    Duration = parsed;      // Save the converted value
+                    DurationError = null;   // Clear the error
+                }
+                else
+                {
+                    // Save an error message (Blazor will show it)
+                    DurationError = "Invalid duration format";
+                }
+            }
+        }
+        // This holds the error for Blazor to display
+        public string? DurationError { get; set; }
 
         [Required(ErrorMessage = "Show date is required.")]
         [DataType(DataType.DateTime)]

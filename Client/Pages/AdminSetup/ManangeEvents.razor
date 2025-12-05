@@ -853,14 +853,15 @@
                                         <label class="form-label fw-bold">Duration (HH:MM) <span class="text-danger">*</span></label>
 
                                         <InputText class="form-control"
-                                                   @bind-Value="durationInput"
-                                                   @oninput="e => ValidateDuration(e.Value?.ToString() ?? string.Empty)" />
+                                                   @bind-Value="editingEvent.DurationInput" />
 
-                                        @if (!string.IsNullOrEmpty(durationError))
-                                        {
-                                            <div class="text-danger small">@durationError</div>
-                                        }
                                         <ValidationMessage For="@(() => editingEvent.Duration)" class="text-danger small" />
+
+                                        @if (!string.IsNullOrEmpty(editingEvent.DurationError))
+                                        {
+                                            <div class="text-danger small">@editingEvent.DurationError</div>
+                                        }
+
                                     </div>
 
 
@@ -953,8 +954,7 @@
                                         Cancel
                                     </button>
                                     <button class="btn btn-danger m-2 shadow-lg"
-                                            style="padding:5px 35px ; font-size:20px"
-                                            disabled="@(!string.IsNullOrWhiteSpace(durationError))">
+                                            style="padding:5px 35px ; font-size:20px">
                                         Save
                                     </button>
 
@@ -1162,8 +1162,8 @@
     private Guid? selectedStateFilter;
     private string citySearch = string.Empty;
 
-    private string durationInput = string.Empty;
-    private string? durationError;
+    //private string durationInput = string.Empty;
+    //private string? durationError;
     private IBrowserFile? selectedImageFile;
 
     private bool showDeleteModal = false;
@@ -1193,20 +1193,20 @@
     }
 
 
-    private void ValidateDuration(string value)
-    {
-        durationInput = value;
+    //private void ValidateDuration(string value)
+    //{
+    //    durationInput = value;
 
 
-        if (!TimeSpan.TryParse(durationInput, out var _))
-        {
-            durationError = "Enter valid duration in HH:mm format (e.g., 02:30)";
-        }
-        else
-        {
-        durationError = null;
-        }
-    }
+    //    if (!TimeSpan.TryParse(durationInput, out var _))
+    //    {
+    //        durationError = "Enter valid duration in HH:mm format (e.g., 02:30)";
+    //    }
+    //    else
+    //    {
+    //        durationError = null;
+    //    }
+    //}
 
     protected override async Task OnInitializedAsync()
     {
@@ -1292,35 +1292,35 @@
         showEventModal = true;
     }
 
-    private bool ConvertDuration()
-    {
-        durationError = string.Empty;
+    //private bool ConvertDuration()
+    //{
+    //    durationError = string.Empty;
 
-        if (!TimeSpan.TryParse(durationInput, out var ts))
-        {
-            durationError = "Invalid format. Use HH:mm (e.g., 01:30).";
-            return false;
-        }
+    //    if (!TimeSpan.TryParse(durationInput, out var ts))
+    //    {
+    //        durationError = "Invalid format. Use HH:mm (e.g., 01:30).";
+    //        return false;
+    //    }
 
-        if (ts.TotalMinutes < 10)
-        {
-            durationError = "Duration must be at least 10 minutes.";
-            return false;
-        }
+    //    if (ts.TotalMinutes < 10)
+    //    {
+    //        durationError = "Duration must be at least 10 minutes.";
+    //        return false;
+    //    }
 
-        editingEvent.Duration = ts;
-        return true;
-    }
+    //    editingEvent.Duration = ts;
+    //    return true;
+    //}
 
     private async Task SaveEvent(EventDto evt)
     {
         try
         {
-            if (!ConvertDuration())
-            {
-                toastService.ShowError("Invalid duration format. Use HH:mm (e.g., 02:30).");
-                return;
-            }
+            //if (!ConvertDuration())
+            //{
+            //    toastService.ShowError("Invalid duration format. Use HH:mm (e.g., 02:30).");
+            //    return;
+            //}
             if (string.IsNullOrWhiteSpace(editingEvent.EventType) &&
     string.IsNullOrWhiteSpace(editingEvent.Genre))
             {
@@ -1905,10 +1905,10 @@
 
         eventTypeError = null;
         genreError = null;
-        durationError = null;
+        //durationError = null;
 
 
-        durationInput = string.Empty;
+        //durationInput = string.Empty;
 
 
         selectedImageFile = null;
