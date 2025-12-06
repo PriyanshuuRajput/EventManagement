@@ -65,13 +65,13 @@ else
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <p><strong> Date:</strong> @eventDetails.ShowDate.ToString("MMMM dd, yyyy")</p>
-                                <p><strong> Time:</strong> @eventDetails.ShowDate.ToString("hh:mm tt")</p>
-                                <p><strong> Venue:</strong> @eventDetails.VenueName, @eventDetails.CityName</p>
+                                <p><strong> Event Date:</strong> @eventDetails.ShowDate.ToString("MMMM dd, yyyy")</p>
+                                <p><strong> Event Time:</strong> @eventDetails.ShowDate.ToString("hh:mm tt")</p>
+                                <p><strong> Event Venue:</strong> @eventDetails.VenueName, @eventDetails.CityName</p>
                             </div>
                             <div class="col-md-6">
                                 <p><strong> Language:</strong> @eventDetails.Language</p>
-                                <p><strong> Duration of Event:</strong> @eventDetails.Duration.Hours hr @eventDetails.Duration.Minutes min</p>
+                                <p><strong> Event Duration:</strong> @eventDetails.Duration.Hours hr @eventDetails.Duration.Minutes min</p>
                                 @*<p><strong>🧾 Created At:</strong> @eventDetails.CreatedAt.ToString("dd MMM yyyy hh:mm tt")</p>*@
                             </div>
                         </div>
@@ -90,7 +90,7 @@ else
 
 
                         <p class="small text-muted mb-3">
-                            Submitted on: <strong>@eventDetails.CreatedAt.ToString("dd MMM yyyy")</strong>
+                            Event Created On: <strong>@eventDetails.CreatedAt.ToString("dd MMM yyyy")</strong>
                         </p>
 
 

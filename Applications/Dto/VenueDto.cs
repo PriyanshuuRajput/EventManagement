@@ -19,7 +19,7 @@ namespace Applications.Dto
         [Range(1, 100000, ErrorMessage = "Capacity must be greater than 0.")]
         public int Capacity { get; set; }
 
-        [Required(ErrorMessage = "CityId is required.")]
+        [Required(ErrorMessage = "City is required.")]
         public int CityId { get; set; }
 
         public string CityName { get; set; } = string.Empty;

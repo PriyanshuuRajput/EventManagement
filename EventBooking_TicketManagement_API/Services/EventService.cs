@@ -31,6 +31,7 @@ namespace EventBooking_TicketManagement_API.Services
                 Language = ev.Language,
                 Duration = ev.Duration,
                 ShowDate = ev.ShowDate,
+                VenueId = ev.VenueId,
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 CityName = ev.Venue?.City?.CityName ?? string.Empty,
                 TicketPrice = ev.TicketPrice,

@@ -8,13 +8,13 @@ namespace Applications.Dto
     {
         public int Id { get; set; }
 
-        [Display(Name = "Event Name")]
-        [Required(ErrorMessage = "Event title is required.")]
+        //[Display(Name = "Event Name")]
+        [Required(ErrorMessage = "Event name is required.")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 50 characters.")]
         public string Title { get; set; } = string.Empty;
 
         //[Required(ErrorMessage = "Event type is required.")]
-        [StringLength(20, ErrorMessage = "Event type must be 20 characters.")]
+        //[StringLength(20, ErrorMessage = "Event type must be 20 characters.")]
         public string? EventType { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Description is required.")]
@@ -23,7 +23,7 @@ namespace Applications.Dto
 
 
         [StringLength(50)]
-        //[Required(ErrorMessage = "Genre is required.")]
+        [Required(ErrorMessage = "Genre is required.")]
 
         public string? Genre { get; set; } = string.Empty;
 
@@ -31,13 +31,43 @@ namespace Applications.Dto
         [Required(ErrorMessage = "Language is required.")]
         public string Language { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Event duration is required.")]
-        public TimeSpan Duration { get; set; } = TimeSpan.FromHours(1);
+        //[Required(ErrorMessage = "Event Duration is required.")]
+        public TimeSpan Duration { get; set; } = TimeSpan.Zero;
 
+
+        [Required(ErrorMessage = "Event duration is required.")]
+        public string DurationInput
+        {
+            get
+            {
+                if (Duration == TimeSpan.Zero)
+                    return string.Empty;
+
+                return Duration.ToString(@"hh\:mm");
+            }
+            set
+            {
+                // Try to convert 
+                if (TimeSpan.TryParse(value, out var parsed))
+                {
+                    Duration = parsed;      // Save the converted value
+                    DurationError = null;   // Clear the error
+                }
+                else
+                {
+                    // Save an error message (Blazor will show it)
+                    DurationError = "Invalid duration format";
+                }
+            }
+        }
+        // This holds the error for Blazor to display
+        public string? DurationError { get; set; }
 
         [Required(ErrorMessage = "Show date is required.")]
         [DataType(DataType.DateTime)]
         public DateTime ShowDate { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a venue")]
         public int VenueId { get; set; }
 
         public string? VenueName { get; set; }
@@ -50,7 +80,7 @@ namespace Applications.Dto
 
 
 
-        [Required(ErrorMessage = "Ticket price is required.")]
+        //[Required(ErrorMessage = "Ticket price is required.")]
         [Range(0, 10000, ErrorMessage = "Ticket price must be between 0 and 10,000.")]
         public decimal TicketPrice { get; set; }
 
