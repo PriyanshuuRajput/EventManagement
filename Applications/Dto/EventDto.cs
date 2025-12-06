@@ -8,8 +8,8 @@ namespace Applications.Dto
     {
         public int Id { get; set; }
 
-        [Display(Name = "Event Name")]
-        [Required(ErrorMessage = "Event title is required.")]
+        //[Display(Name = "Event Name")]
+        [Required(ErrorMessage = "Event name is required.")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 50 characters.")]
         public string Title { get; set; } = string.Empty;
 
@@ -31,11 +31,11 @@ namespace Applications.Dto
         [Required(ErrorMessage = "Language is required.")]
         public string Language { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Event duration is required.")]
+        //[Required(ErrorMessage = "Event Duration is required.")]
         public TimeSpan Duration { get; set; } = TimeSpan.Zero;
 
 
-        [Required(ErrorMessage = "Duration is required.")]
+        [Required(ErrorMessage = "Event duration is required.")]
         public string DurationInput
         {
             get

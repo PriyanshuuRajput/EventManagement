@@ -550,7 +550,7 @@
                                             </p>
 
                                             <!-- PRICE - Gets highlighted on hover -->
-                                            <h5 class="fw-bold mt-3 mb-3 ms-2 price-box text-dark">
+                                            <h5 class="fw-bold mt-3 mb-3 ms-4 price-box text-dark">
                                                 ₹@evt.TicketPrice.ToString("N2")
                                             </h5>
 
@@ -626,7 +626,7 @@
                                         <th>Venue Name</th>
                                         <th>Address</th>
                                         <th>Capacity</th>
-                                        @*<th>Events</th>*@
+                                        <th>Events</th>
                                         <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
@@ -659,7 +659,7 @@
                                                     <small class="text-muted">@v.Address</small>
                                                 </td>
                                                 <td class="fw-semibold">@v.Capacity.ToString("N0")</td>
-                                                @*<td>@v.EventCount</td>*@
+                                                <td>@v.EventCount</td>
                                                 <td class="text-center">
                                                     <div class="btn-group btn-group-sm">
                                                         <button class="btn btn-outline-warning" @onclick="() => EditVenue(v)">
@@ -717,7 +717,7 @@
                                                     </h5>
                                                     <p class="text-muted small mb-1">@c.StateName, @c.CountryName</p>
                                                 </div>
-                                                <span class="badge bg-success-subtle text-success fw-medium">Active</span>
+                                                <span class="badge bg-success-subtle text-success " style="padding:6px 12px ; font-size:10px ; font-weight:700" >Active</span>
                                             </div>
 
 
@@ -726,10 +726,10 @@
                                                     <p class="mb-0 small text-muted">Venues</p>
                                                     <h6 class="fw-bold mb-0">@c.VenueCount</h6>
                                                 </div>
-                                                <div class="flex-fill p-2 border rounded bg-light ms-2">
+                                                @*<div class="flex-fill p-2 border rounded bg-light ms-2">
                                                     <p class="mb-0 small text-muted">Events</p>
                                                     <h6 class="fw-bold mb-0">@c.EventCount</h6>
-                                                </div>
+                                                </div>*@
                                             </div>
 
                                             <div class="d-flex justify-content-between">
@@ -855,7 +855,7 @@
                                         <InputText class="form-control"
                                                    @bind-Value="editingEvent.DurationInput" />
 
-                                        <ValidationMessage For="@(() => editingEvent.Duration)" class="text-danger small" />
+                                        <ValidationMessage For="@(() => editingEvent.DurationInput)" class="text-danger small" />
 
                                         @if (!string.IsNullOrEmpty(editingEvent.DurationError))
                                         {
@@ -947,14 +947,19 @@
                                     <ValidationMessage For="@(() => editingEvent.Description)" class="text-danger small" />
                                 </div>
                                 <!-- Footer -->
-                                <div class=" d-flex justify-content-end align-items-center gap-3">
-                                    <button class="btn btn-outline-secondary m-2 shadow-lg"
+                                <div class=" d-flex justify-content-end align-items-center gap-3 mb-2">
+                                    <button class="btn btn-outline-secondary m-2 "
                                             style="padding:5px 20px ; font-size:18px"
                                             @onclick="CancelEventModal">
                                         Cancel
                                     </button>
-                                    <button class="btn btn-danger m-2 shadow-lg"
-                                            style="padding:5px 35px ; font-size:20px">
+                                    <button class="btn btn-danger m-2 "
+                                            style="padding:5px 35px ; font-size:20px"
+                                            disabled="@isProcessing">
+                                        @if(isProcessing)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2"></span>
+                                        }
                                         Save
                                     </button>
 
@@ -980,17 +985,18 @@
                         <div class="modal-content border-0 custom-modal-content">
                             <div class="modal-header border-0">
                                 <h5 class="modal-title">@((editingVenue?.Id != 0 ? "Edit Venue" : "Add Venue"))</h5>
-                                <button type="button" class="btn-close" @onclick="() => showVenueModal = false"></button>
+                                @*<button type="button" class="btn-close" @onclick="() => showVenueModal = false"></button>*@
                             </div>
                             <div class="modal-body">
-                                <EditForm Model="editingVenue" OnValidSubmit="async () => await SaveVenue(editingVenue)">
+                                <EditForm Model="editingVenue" OnValidSubmit="async ()=>await SaveVenue(editingVenue)">
                                     <DataAnnotationsValidator />
                                     <div class="mb-2">
-                                        <label>Name</label>
+                                        <label>Name<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingVenue.VenueName" class="form-control" />
+                                        <ValidationMessage For="@(()=>editingVenue.VenueName)"class="text-danger small" />
                                     </div>
                                     <div class="mb-2">
-                                        <label>City</label>
+                                        <label>City<span class="text-danger">*</span></label>
                                         <select class="form-select" @bind="editingVenue.CityId">
                                             <option value="">Select City</option>
                                             @foreach (var city in citiesList)
@@ -998,21 +1004,32 @@
                                                 <option value="@city.Id">@city.CityName</option>
                                             }
                                         </select>
+                                        <ValidationMessage For="@(()=>editingVenue.CityId)"class="text-danger small"  />
                                     </div>
                                     <div class="mb-2">
-                                        <label>Address</label>
+                                        <label>Address<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingVenue.Address" class="form-control" />
+                                        <ValidationMessage For="@(()=>editingVenue.Address)"class="text-danger small"  />
                                     </div>
                                     <div class="mb-2">
-                                        <label>Capacity</label>
+                                        <label>Capacity<span class="text-danger">*</span></label>
                                         <InputNumber @bind-Value="editingVenue.Capacity" class="form-control" />
+                                        <ValidationMessage For="@(()=>editingVenue.Capacity)" class="text-danger small"  />
                                     </div>
+                                    <div class="modal-footer">
+                                <button class="btn btn-secondary" @onclick="() => showVenueModal = false">Cancel</button>
+                                <button class="btn btn-danger"
+                                        disabled="@isProcessing">
+                                    @if (isProcessing)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    Save
+                                </button>
+                            </div>
                                 </EditForm>
                             </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-secondary" @onclick="() => showVenueModal = false">Cancel</button>
-                                <button class="btn btn-danger" @onclick="async () => await SaveVenue(editingVenue)">Save</button>
-                            </div>
+                            
                         </div>
                     </div>
                 </div>
@@ -1025,7 +1042,7 @@
                         <div class="modal-content border-0 custom-modal-content">
                             <div class="modal-header border-0">
                                 <h5 class="modal-title">@((editingCity?.Id != 0 ? "Edit City" : "Add City"))</h5>
-                                <button type="button" class="btn-close" @onclick="() => showCityModal = false"></button>
+                                @*<button type="button" class="btn-close" @onclick="() => showCityModal = false"></button>*@
                             </div>
 
                             <div class="modal-body">
@@ -1133,6 +1150,7 @@
     private bool showEventModal = false;
     private bool isAdmin = false;
     private bool isManager = false;
+    private bool isProcessing = false;
 
     private EventDto editingEvent = new();
 
@@ -1234,6 +1252,7 @@
 
         CalculateVenueEventCounts();
         CalculateCityCounts();
+        CalculateVenueEventCounts();
         filteredVenues = venues.ToList();
 
     }
@@ -1250,12 +1269,14 @@
         Events = await AdminService.GetAllEventsAsync();
         FilteredEvents = Events;
         CalculateCityCounts();
+        CalculateVenueEventCounts();
     }
 
     private async Task LoadManagerEvents()
     {
         Events = await Http.GetFromJsonAsync<List<EventDto>>("api/ManagerEvent/my-events");
         FilteredEvents = Events!;
+        CalculateVenueEventCounts();
     }
 
     private void ShowAddEventModal()
@@ -1314,6 +1335,8 @@
 
     private async Task SaveEvent(EventDto evt)
     {
+        isProcessing = true;
+        StateHasChanged();
         try
         {
             //if (!ConvertDuration())
@@ -1412,6 +1435,11 @@
         {
             toastService.ShowError("Error: " + ex.Message);
             Console.WriteLine("Save Event Error: " + ex);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
         }
     }
 
@@ -1524,15 +1552,34 @@
 
     private async Task SaveVenue(VenueDto v)
     {
-        if (v.Id != 0)
-            await AdminService.UpdateVenueAsync(v.Id, v);
-        else
-            await AdminService.AddVenueAsync(v);
+        isProcessing = true;
+        StateHasChanged();
 
-        await LoadVenues();
-        CalculateCityCounts();
-        showVenueModal = false;
+        try
+        {
+            if (v.Id != 0)
+                await AdminService.UpdateVenueAsync(v.Id, v);
+            else
+                await AdminService.AddVenueAsync(v);
+
+            await LoadVenues();
+            CalculateCityCounts();
+
+            showVenueModal = false; 
+            toastService.ShowSuccess("Venue saved successfully.");
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error saving venue: {ex.Message}");
+            Console.WriteLine("SaveVenue Error: " + ex);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
     }
+
 
 
     private async Task DeleteVenue(int id)
@@ -1844,6 +1891,7 @@
             city.EventCount = Events.Count(e => e.CityId == city.Id);
         }
     }
+
     private void CalculateVenueEventCounts()
     {
         foreach (var venue in venues)

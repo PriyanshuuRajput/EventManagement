@@ -172,7 +172,12 @@ namespace EventBooking.Client.Services
         {
             await AddAuthHeaderAsync();
             var response = await _httpClient.PostAsJsonAsync("api/venues", dto);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Server Error: {error}");
+            }
+
         }
 
         public async Task UpdateVenueAsync(int id, VenueDto dto)

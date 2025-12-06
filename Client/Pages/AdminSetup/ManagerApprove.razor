@@ -261,7 +261,7 @@
 
 
     <h3 class="fw-bold mt-3" style="font-size:30px">Managers</h3>
-    <p class="text-muted mt-0">Review new manager signups and manage existing managers...</p>
+    @*<p class="text-muted mt-0">Review new manager signups and manage existing managers...</p>*@
 
     <div class="row mb-3 align-items-center">
 
@@ -315,9 +315,9 @@
             </button>
 
         </div>
-            <button class="btn btn-outline-danger px-3" @onclick="OpenAddModal">
-                + Add Manager
-            </button>
+        <button class="btn btn-outline-danger px-3" @onclick="OpenAddModal">
+            <i class="bi bi-plus-circle me-1"></i> Add Manager
+        </button>
     </div>
 
 
@@ -510,7 +510,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow-lg border-0 custom-modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold">Add New Manager</h5>
+                    <h3 class="modal-title fw-bold">Add New Manager</h3>
                 </div>
                 <div class="modal-body">
 
