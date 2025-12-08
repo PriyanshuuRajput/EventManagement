@@ -100,6 +100,7 @@
         if (isProcessing)
             return;
         isProcessing = true;
+        StateHasChanged();
         var http = new HttpClient();
 
         var response = await http.PostAsJsonAsync("https://localhost:7239/api/Account/login", loginModel);
@@ -150,6 +151,7 @@
         Navigation.NavigateTo("/", true);
 
         isProcessing = false;
+        StateHasChanged();
     }
 
     private async Task OnCancelClicked() => await OnCancel.InvokeAsync();

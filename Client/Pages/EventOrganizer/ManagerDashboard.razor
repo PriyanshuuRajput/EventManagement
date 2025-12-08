@@ -27,6 +27,37 @@
         text-overflow: ellipsis;
     }
 
+
+    /* BACKDROP */
+    .side-panel-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(2px);
+        z-index: 50;
+        animation: fadeIn .2s ease-out;
+    }
+
+    /* RIGHT SLIDING PANEL */
+    .side-panel {
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 560px;
+        height: 100%;
+        background: #ffffffeb;
+        backdrop-filter: blur(12px);
+        padding: 20px;
+        /*        box-shadow: -8px 0px 20px 0px #fcbaba;*/
+        z-index: 60;
+        animation: slideIn .5s ease-out;
+        overflow-y: auto;
+    }
+
+@@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+}
     /* ====== FOOTER BANNER ====== */
     .promo-banner {
         background: linear-gradient(to right, #fff, #f8f9fa);
@@ -56,9 +87,9 @@
         </div>
 
         @*<button class="btn btn-outline-danger  shadow rounded-3 px-3"
-                @onclick="CreateEvent">
-            <i class="bi bi-plus-lg me-1"></i> Manage Event
-        </button>*@
+                    @onclick="CreateEvent">
+                <i class="bi bi-plus-lg me-1"></i> Manage Event
+            </button>*@
     </div>
 
     <!-- SUMMARY CARDS -->
@@ -148,14 +179,14 @@
                     @onclick="() => SetStatusFilter(EventStatus.Pending)">
                 Pending
             </button>
-            <button class="btn btn-sm @(activeStatusFilter == EventStatus.AdminApproved ? "btn-info text-white" : "btn-outline-secondary") rounded-3"
+            <button class="btn btn-sm @(activeStatusFilter == EventStatus.AdminApproved ? "btn-success text-white" : "btn-outline-secondary") rounded-3"
                     @onclick="() => SetStatusFilter(EventStatus.AdminApproved)">
                 Approved
             </button>
             @*<button class="btn btn-sm @(activeStatusFilter == EventStatus.PaymentConfirmed ? "btn-success" : "btn-outline-secondary") rounded-3"
-                    @onclick="() => SetStatusFilter(EventStatus.PaymentConfirmed)">
-                Published
-            </button>*@
+                        @onclick="() => SetStatusFilter(EventStatus.PaymentConfirmed)">
+                    Published
+                </button>*@
             <button class="btn btn-sm @(activeStatusFilter == EventStatus.Rejected ? "btn-danger" : "btn-outline-secondary") rounded-3"
                     @onclick="() => SetStatusFilter(EventStatus.Rejected)">
                 Rejected
@@ -172,10 +203,10 @@
                     <th style="width:160px">Event</th>
                     <th>Description</th>
                     <th style="width:150px;">Show Date</th>
-                    <th style="width:150px;">Location</th>
+                    <th style="width:150px;">Address</th>
                     <th style="width:100px">Tickets</th>
                     <th style="width:100px">Revenue</th>
-                    <th style="width:100px">Amount</th>
+                    @*<th style="width:100px">Amount</th>*@
                     <th>Status</th>
                 </tr>
             </thead>
@@ -183,7 +214,7 @@
             <tbody>
                 @foreach (var ev in PagedItems)
                 {
-                    <tr @onclick="()=> GoToEvent(ev.Id)" style="cursor:pointer;">
+                    <tr @onclick="() => OpenSidePanel(ev)" style="cursor:pointer;">
 
                         <!-- Image -->
                         <td>
@@ -195,12 +226,12 @@
 
                         <!-- Event Info -->
                         <td>
-                            <div class="fw-semibold" data-bs-toggle="tooltip"data-placement="top" title="@ev.Title">@ev.Title</div>
+                            <div class="truncate-text small fw-semibold" data-bs-toggle="tooltip" data-placement="top" title="@ev.Title">@ev.Title</div>
                             <div class="small text-muted ">@ev.EventType </div>
                             <div class="small text-muted ">@ev.Language</div>
                         </td>
 
-                        <td class=" truncate-text small  fw-semibold text-muted" data-bs-toggle="tooltip" data-placement="top" title="@ev.Description">@ev.Description</td>
+                        <td class=" truncate-text small  fw-semibold " data-bs-toggle="tooltip" data-placement="top" title="@ev.Description">@ev.Description</td>
 
                         <!-- Date -->
                         <td>
@@ -225,35 +256,36 @@
                         <!-- Revenue -->
                         <td>₹@(ev.SoldTickets * ev.TicketPrice)</td>
 
-                        <td><span class="badge rounded-3 bg-light text-dark p-2 shadow-sm">₹@ev.EventAmount</span></td>
+                        @*<td><span class="badge rounded-3 bg-light text-dark p-2 shadow-sm">₹@ev.EventAmount</span></td>*@
 
                         <!-- Status -->
                         <td>
                             @if (ev.Status == EventStatus.Pending)
                             {
-                                <span class="badge p-2 rounded-2 text-dark bg-warning"
-                                      style="background:#fff3cd;">
-                                     Pending
+                                <span class="badge rounded-2 text-dark bg-warning"
+                                      style="background:#fff3cd; padding:12px 12px">
+                                    Pending
                                 </span>
                             }
                             else if (ev.Status == EventStatus.AdminApproved)
                             {
-                                <span class="badge p-2 rounded-2 text-white bg-success">
-                                     Approved & Published
+                                <span class="badge rounded-2 text-white bg-success"
+                                      style="padding:12px 12px">
+                                    Approved & Published
                                 </span>
                             }
                             @*else if (ev.Status == EventStatus.PaymentConfirmed)
-                            {
-                                <span class="badge px-2 rounded-2 text-white"
-                                      style="background: #30b075; ">
-                                    <i class="bi bi-check-circle-fill"></i> Published
-                                </span>
-                            }*@
+                                {
+                                    <span class="badge px-2 rounded-2 text-white"
+                                          style="background: #30b075; ">
+                                        <i class="bi bi-check-circle-fill"></i> Published
+                                    </span>
+                                }*@
                             else if (ev.Status == EventStatus.Rejected)
                             {
                                 <span class="badge p-2 rounded-2 text-white"
-                                      style="background:#dc3545;">
-                                    <i class="bi bi-x-circle"></i> Rejected 
+                                      style="background:#dc3545; padding:12px 12px">
+                                    <i class="bi bi-x-circle"></i> Rejected
                                 </span>
                             }
                         </td>
@@ -263,6 +295,163 @@
             </tbody>
         </table>
     </div>
+
+
+
+    <!---Right Side PAnel -->
+    @if (showSidePanel)
+    {
+        <!-- BACKDROP -->
+        <div class="side-panel-backdrop" @onclick="CloseSidePanel"></div>
+
+        <!-- SIDE PANEL -->
+<div class="side-panel shadow-lg">
+
+    <div class="d-flex justify-content-between align-items-center mb-3 p-3 border-bottom">
+        <h4 class="fw-bold m-0">@selectedEvent.Title</h4>
+        <button class="btn-close" @onclick="CloseSidePanel"></button>
+    </div>
+
+    <div class="p-3">
+
+        <!-- Event Image -->
+        <div class="position-relative mb-3">
+            <img src="@selectedEvent.ImageUrl"
+                 class="rounded-3 shadow-sm"
+                 style="width:100%; height:190px; object-fit:cover;" />
+            <div class="position-absolute d-flex gap-2"
+                 style="bottom:2px; left:4px;">
+
+                <span class="badge bg-secondary-subtle text-dark px-3 py-2">
+                    @selectedEvent.EventType
+                </span>
+
+                <span class="badge bg-secondary-subtle  text-dark px-3 py-2">
+                    @selectedEvent.Genre
+                </span>
+
+            </div>
+            <div class="position-absolute"
+                 style="bottom:2px; right:4px;">
+
+                <span class="badge bg-secondary-subtle text-dark px-3 py-2">
+                    @selectedEvent.Language
+                </span>
+
+            </div>
+        </div>
+        <!-- Event Description -->
+        <div class="mb-3">
+            <h6 class="fw-bold mt-4">
+                Description
+            </h6>
+            <p style="white-space:pre-wrap;">
+                @if (!readMore)
+                {
+                    @((selectedEvent.Description?.Length > 180)
+            ? selectedEvent.Description.Substring(0, 180) + "..."
+            : selectedEvent.Description)
+                }
+                else
+                {
+                    @selectedEvent.Description
+                }
+            </p>
+
+            @if (selectedEvent.Description?.Length > 180)
+            {
+                <button class="btn btn-link p-0"
+                        style="font-size:14px; text-decoration:none; color:#dc3545"
+                        @onclick="() => readMore = !readMore">
+
+                    @if (!readMore)
+                    {
+                        <span>Read More...</span>
+                    }
+                    else
+                    {
+                        <span>Read Less...</span>
+                    }
+                </button>
+            }
+        </div>
+
+
+        <div class=" row g-3 mb-2">
+            <!-- Schedule Card -->
+            <div class=" col-6 ">
+                <div class="bg-light border rounded-3 p-2 shadow-sm  text-center">
+                    <h6 class=" text-secondary small">
+                        @*<i class="bi bi-calendar-event me-2 text-danger"></i>*@
+                        Schedule
+                    </h6>
+
+                    <h4 class="small m-2"> @selectedEvent.ShowDate.ToString("dd MMM yyyy")</h4>
+                    <h4 class=" small m-2"> @selectedEvent.Duration.Hours hr @selectedEvent.Duration.Minutes min</h4>
+                </div>
+            </div>
+            <!-- Venue Card -->
+            <div class="col-6 ">
+                <div class="bg-light border rounded-3 p-2 shadow-sm text-center">
+                    <h6 class="text-secondary small">
+                        @*<i class="bi bi-geo-alt-fill me-2 text-danger"></i>*@
+                        Venue / Address 
+                    </h6>
+
+                    <h4 class="small m-2">@selectedEvent.VenueName</h4>
+                    <h4 class="small m-2">@selectedEvent.Address</h4>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Tickets & Revenue -->
+        <div class="row g-3 mb-3">
+
+            <div class="col-6">
+                <div class="bg-light border rounded-3 shadow-sm p-2 text-center">
+                    <h6 class="text-secondary small">Tickets Sold</h6>
+                    <h4 class="fw-bold text-danger">
+                        @selectedEvent.SoldTickets
+                        <span class="text-muted">/ @selectedEvent.TotalTickets</span>
+                    </h4>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="bg-white border rounded-3 shadow-sm p-2 text-center">
+                    <h6 class="text-secondary small">Revenue</h6>
+                    <h4 class="fw-bold text-success">₹@(selectedEvent.TicketPrice * selectedEvent.SoldTickets)</h4>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Status Badge -->
+        @*<div class="mt-2">
+            <h6 class="fw-bold text-secondary mb-2">
+                <i class="bi bi-info-circle-fill me-2 text-primary"></i>Status
+            </h6>
+
+            @if (selectedEvent.Status == EventStatus.Pending)
+            {
+                <span class="badge bg-warning text-dark p-2 px-3">Pending Approval</span>
+            }
+            else if (selectedEvent.Status == EventStatus.AdminApproved)
+            {
+                <span class="badge bg-success text-white p-2 px-3">Approved & Published</span>
+            }
+            else if (selectedEvent.Status == EventStatus.Rejected)
+            {
+                <span class="badge bg-danger text-white p-2 px-3">Rejected</span>
+            }
+        </div>*@
+    </div>
+</div>
+ }
+
+
+
 
     <!-- Pagination -->
     <div class="d-flex justify-content-between align-items-center ">
@@ -298,140 +487,153 @@
     </div>
 </div>
 
-@code {
+        @code {
 
-    private List<ManagerEventDto> managerEvents = new();
+            private List<ManagerEventDto> managerEvents = new();
+            private bool showSidePanel = false;
+            private ManagerEventDto selectedEvent = null!;
+            private bool readMore = false;
 
-    private string _searchText = "";
 
-    private string searchText
-    {
-        get => _searchText;
-        set
-        {
-            _searchText = value;
-            UpdateSuggestions();
-            currentPage = 1;
+
+            private string _searchText = "";
+
+            private string searchText
+            {
+                get => _searchText;
+                set
+                {
+                    _searchText = value;
+                    UpdateSuggestions();
+                    currentPage = 1;
+                }
+            }
+
+            private EventStatus? activeStatusFilter = null;
+            private bool showSuggestions = false;
+            private List<ManagerEventDto> Suggestions = new();
+
+
+            private int currentPage = 1;
+            private int pageSize = 10;
+            private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
+
+            protected override async Task OnInitializedAsync()
+            {
+                try
+                {
+                    managerEvents = await Http.GetFromJsonAsync<List<ManagerEventDto>>("api/ManagerEvent/my-events");
+                }
+                catch
+                {
+                    managerEvents = new();
+                }
+
+            }
+
+
+            private void UpdateSuggestions()
+            {
+                if (string.IsNullOrWhiteSpace(searchText))
+                {
+                    Suggestions.Clear();
+                    return;
+                }
+
+                string q = searchText.ToLower();
+
+                Suggestions = managerEvents
+                    .Where(e =>
+                        (e.Title?.ToLower().Contains(q) ?? false) ||
+                        (e.EventType?.ToLower().Contains(q) ?? false) ||
+                        (e.VenueName?.ToLower().Contains(q) ?? false) ||
+                        (e.Address?.ToLower().Contains(q) ?? false) ||
+                        (e.Language?.ToLower().Contains(q) ?? false)
+                    )
+                    .Take(5)
+                    .ToList();
+
+                showSuggestions = Suggestions.Any();
+            }
+            private void SelectSuggestion(ManagerEventDto e)
+            {
+                searchText = e.Title;
+                showSuggestions = false;
+            }
+            private async Task HideSuggestionsDelayed()
+            {
+                await Task.Delay(150);
+                showSuggestions = false;
+                StateHasChanged();
+            }
+
+
+
+            private IEnumerable<ManagerEventDto> FilteredItems =>
+        managerEvents
+        .Where(e =>
+           (activeStatusFilter == null || e.Status == activeStatusFilter) &&
+           (string.IsNullOrWhiteSpace(searchText) ||
+               e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+               (e.VenueName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+               (e.Address ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+               (e.EventType ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
+        ).OrderByDescending(e => e.CreatedAt);
+
+
+            private IEnumerable<ManagerEventDto> PagedItems =>
+                FilteredItems.Skip((currentPage - 1) * pageSize).Take(pageSize);
+
+
+            private void SetStatusFilter(EventStatus? s)
+            {
+                activeStatusFilter = s;
+                currentPage = 1;
+            }
+
+
+            private void PageSizeChanged(ChangeEventArgs e)
+            {
+                if (int.TryParse(e.Value?.ToString() ?? "10", out var sz))
+                {
+                    pageSize = sz;
+                    currentPage = 1;
+                }
+            }
+
+            private void PrevPage()
+            {
+                if (currentPage > 1) currentPage--;
+            }
+
+            private void NextPage()
+            {
+                if (currentPage < TotalPages) currentPage++;
+            }
+
+            private void OpenSidePanel(ManagerEventDto ev)
+            {
+                selectedEvent = ev;
+                showSidePanel = true;
+            }
+            private void CloseSidePanel()
+            {
+                showSidePanel = false;
+                selectedEvent = null;
+            }
+
+
+            private void GoToPage(int page)
+            {
+                if (page == currentPage)
+                {
+                    StateHasChanged();
+                    return;
+                }
+                currentPage = page;
+                StateHasChanged();
+            }
+
+
+            //private void CreateEvent() => Nav.NavigateTo("/manage-events");
         }
-    }
-
-    private EventStatus? activeStatusFilter = null;
-    private bool showSuggestions = false;
-    private List<ManagerEventDto> Suggestions = new();
-
-
-    private int currentPage = 1;
-    private int pageSize = 10;
-    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            managerEvents = await Http.GetFromJsonAsync<List<ManagerEventDto>>("api/ManagerEvent/my-events");
-        }
-        catch
-        {
-            managerEvents = new();
-        }
-
-    }
-
-
-    private void UpdateSuggestions()
-    {
-        if (string.IsNullOrWhiteSpace(searchText))
-        {
-            Suggestions.Clear();
-            return;
-        }
-
-        string q = searchText.ToLower();
-
-        Suggestions = managerEvents
-            .Where(e =>
-                (e.Title?.ToLower().Contains(q) ?? false) ||
-                (e.EventType?.ToLower().Contains(q) ?? false) ||
-                (e.VenueName?.ToLower().Contains(q) ?? false) ||
-                (e.Address?.ToLower().Contains(q) ?? false) ||
-                (e.Language?.ToLower().Contains(q) ?? false)
-            )
-            .Take(5)
-            .ToList();
-
-        showSuggestions = Suggestions.Any();
-    }
-    private void SelectSuggestion(ManagerEventDto e)
-    {
-        searchText = e.Title;
-        showSuggestions = false;
-    }
-    private async Task HideSuggestionsDelayed()
-    {
-        await Task.Delay(150);
-        showSuggestions = false;
-        StateHasChanged();
-    }
-
-
-
-    private IEnumerable<ManagerEventDto> FilteredItems =>
-managerEvents
-.Where(e =>
-   (activeStatusFilter == null || e.Status == activeStatusFilter) &&
-   (string.IsNullOrWhiteSpace(searchText) ||
-       e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-       (e.VenueName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-       (e.Address ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-       (e.EventType ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
-).OrderByDescending(e => e.CreatedAt);
-
-
-    private IEnumerable<ManagerEventDto> PagedItems =>
-        FilteredItems.Skip((currentPage - 1) * pageSize).Take(pageSize);
-
-
-    private void SetStatusFilter(EventStatus? s)
-    {
-        activeStatusFilter = s;
-        currentPage = 1;
-    }
-
-
-    private void PageSizeChanged(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString() ?? "10", out var sz))
-        {
-            pageSize = sz;
-            currentPage = 1;
-        }
-    }
-
-    private void PrevPage()
-    {
-        if (currentPage > 1) currentPage--;
-    }
-
-    private void NextPage()
-    {
-        if (currentPage < TotalPages) currentPage++;
-    }
-
-    private void GoToEvent(int id)
-    {
-        Nav.NavigateTo($"/manager-event-details/{id}");
-    }
-    private void GoToPage(int page)
-    {
-        if (page == currentPage)
-        {
-            StateHasChanged();
-            return;
-        }
-        currentPage = page;
-        StateHasChanged();
-    }
-
-
-    //private void CreateEvent() => Nav.NavigateTo("/manage-events");
-}

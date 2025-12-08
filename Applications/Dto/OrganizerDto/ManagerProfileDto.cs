@@ -51,6 +51,7 @@ namespace Applications.Dto.OrganizerDto
 
         [Required(ErrorMessage = "City is required.")]
         public int CityId { get; set; }
+
         [Required(ErrorMessage = "State is required")]
         public Guid? StateId { get; set; }
         [Required(ErrorMessage = "Country is required")]

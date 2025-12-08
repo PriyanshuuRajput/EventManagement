@@ -127,11 +127,14 @@
             <span>EventiGO</span>
         </a>
 
-        <!-- Search bar -->
+        @if (userRole != "Manager")
+        {
+         <!---Search bar    -->
         <form class="d-none d-lg-flex mx-auto w-50">
             <input class="form-control me-2" type="search"
                    placeholder="Search for Movies, Events, Plays, Sports" aria-label="Search">
-        </form>
+        </form>   
+        }
 
         <!-- Right Section: Profile/Login + Dashboard -->
         <div class="d-flex align-items-center " style="margin-right:30px">
@@ -216,7 +219,7 @@
         <li class="nav-item">
             <NavLink class="nav-link" href="/offers">Offers</NavLink>
         </li>
-        @if (userRole != "Admin")
+        @if (userRole != "Admin" && userRole!="Manager")
         {
         <li class="nav-item">
             <a class="nav-link list-show" @onclick="ManagerSignup">List Your Show</a>

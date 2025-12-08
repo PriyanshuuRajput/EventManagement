@@ -7,11 +7,12 @@
 @using Applications.Dto.OrganizerDto
 @using System.Net.Http.Headers
 @using System.ComponentModel.DataAnnotations
+@attribute [Authorize(Roles="Manager")]
 
 
 <style>
 
-        html, body {
+    html, body {
         overflow: hidden !important;
     }
 
@@ -20,8 +21,8 @@
         display: flex;
         justify-content: space-between;
         position: relative;
-        /*        margin-bottom: 20px;*/
-/*        padding: 5px 0;*/
+        margin-bottom: 30px;
+        padding: 5px 0;
     }
 
     .stepper-line {
@@ -81,14 +82,21 @@
         color: #3b3a3f;
     }
 
-    .step-section {
-        /*        height: calc(100vh - 100px);*/
-        display: flex;
+    /*.step-section {*/
+    /*        height: calc(100vh - 100px);*/
+    /*display: flex;
         justify-content: center;
-        align-items: center;
-/*        overflow: hidden !important;*/
-        overflow-y:auto;
+        align-items: center;*/
+    /*        overflow: hidden !important;*/
+    /*overflow-y:auto;
         padding: 0;
+    }*/
+    .step-section {
+        height: calc(100vh - 160px);
+        overflow-y: auto;
+        padding: 0;
+    }
+
     }
 
     .form-card {
@@ -97,9 +105,9 @@
         padding: 26px 30px;
         box-shadow: 0px 8px 20px rgba(0,0,0,0.06);
         margin: auto;
-        /*        max-height: 85vh;
+        max-height: calc(100vh - 200px);
         overflow-y: auto;
-        border-radius: 14px;*/
+        border-radius: 14px;
     }
 
         .form-card .mb-3 {
@@ -232,27 +240,27 @@
 
 </div>
 
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger">@errorMessage</div>
-
-}
-
-
-<EditForm Model="@model" OnValidSubmit="Submit">
-    <DataAnnotationsValidator />
-
-
-    @if (currentStep == 1)
+@*@if (!string.IsNullOrEmpty(errorMessage))
     {
-        <div class="step-section d-flex justify-content-center">
+        <div class="alert alert-danger">@errorMessage</div>
+
+    }*@
+
+
+@if (currentStep == 1)
+{
+
+    <EditForm Model="@model">
+        <DataAnnotationsValidator />
+
+        <div class="step-section d-flex justify-content-center mt-4">
             <div class="form-card">
 
                 <div class="row">
                     <div class="col-6 mb-3">
                         <label class="form-label">First Name <span class="text-danger">*</span></label>
                         <InputText class="pretty-input" @bind-Value="model.FirstName" />
-                        <ValidationMessage For="@(()=>model.FirstName)" />
+                        <ValidationMessage For="@(()=>model.FirstName)" class="text-danger small" />
                     </div>
 
                     <div class="col-6 mb-3">
@@ -264,7 +272,7 @@
                     <div class="col-12 mb-3">
                         <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
                         <InputText class="pretty-input" maxlength="10" @bind-Value="model.Mobile" />
-                        <ValidationMessage For="@(()=>model.Mobile)" />
+                        <ValidationMessage For="@(()=>model.Mobile)" class="text-danger small" />
                     </div>
                 </div>
 
@@ -274,20 +282,20 @@
                     <div class="col-12 mb-3">
                         <label class="form-label">Old Password <span class="text-danger">*</span></label>
                         <InputText type="password" class="pretty-input" @bind-Value="model.OldPassword" />
-                        <ValidationMessage For="@(()=>model.OldPassword)" />
+                        <ValidationMessage For="@(()=>model.OldPassword)" class="text-danger samll" />
 
                     </div>
 
                     <div class="col-6 mb-3">
                         <label class="form-label">New Password <span class="text-danger">*</span></label>
                         <InputText type="password" class="pretty-input" @bind-Value="model.NewPassword" />
-                        <ValidationMessage For="@(()=>model.NewPassword)" />
+                        <ValidationMessage For="@(()=>model.NewPassword)" class="text-danger small" />
                     </div>
 
                     <div class="col-6 mb-3">
                         <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
                         <InputText type="password" class="pretty-input" @bind-Value="model.ConfirmPassword" />
-                        <ValidationMessage For="@(()=>model.ConfirmPassword)" />
+                        <ValidationMessage For="@(()=>model.ConfirmPassword)" class="text-danger small" />
                     </div>
                 </div>
 
@@ -299,11 +307,16 @@
 
             </div>
         </div>
-    }
+    </EditForm>
+}
 
 
-    @if (currentStep == 2)
-    {
+@if (currentStep == 2)
+{
+
+    <EditForm Model="@model">
+        <DataAnnotationsValidator />
+
         <div class="step-section d-flex justify-content-center">
             <div class="form-card">
                 <div class="row">
@@ -321,7 +334,7 @@
                         <div class="mb-3">
                             <label class="form-label">Pan number</label>
                             <InputText class="pretty-input" @bind-Value="model.PAN" />
-                            <ValidationMessage For="@(()=>model.PAN)" />
+                            <ValidationMessage For="@(()=>model.PAN)" class="text-danger small" />
                         </div>
 
                         <!-- Alternate Email -->
@@ -347,8 +360,7 @@
                                     <img src="@model.Image" alt="Profile Image"
                                          style="height:100px;width:100px;object-fit:cover;border-radius:0;border:2px solid #ddd;" />
 
-                                    <button type="button"
-                                            class="btn btn-sm btn-danger mt-2" style=" margin-left: 30px"
+                                    <button class="btn btn-sm btn-danger mt-2" style=" margin-left: 30px"
                                             @onclick="RemoveImage">
                                         Remove Image
                                     </button>
@@ -381,7 +393,7 @@
                                     <i class="bi @(isCountryOpen ? "bi-chevron-up" : "bi-chevron-down")"></i>
                                 </span>
 
-                                <ValidationMessage For="@(() => model.CountryId)" />
+                                <ValidationMessage For="@(() => model.CountryId)" class="text-danger small" />
 
                             </div>
                         </div>
@@ -408,7 +420,7 @@
                                 </span>
                             </div>
 
-                            <ValidationMessage For="@(() => model.StateId)" />
+                            <ValidationMessage For="@(() => model.StateId)" class="text-danger small " />
 
 
                         </div>
@@ -418,7 +430,7 @@
                         <div class="mb-3">
                             <label class="form-label">Address <span class="text-danger">*</span></label>
                             <InputText class="pretty-input" @bind-Value="model.Address" />
-                            <ValidationMessage For="@(() => model.Address)" />
+                            <ValidationMessage For="@(() => model.Address)" class="text-danger small" />
 
                         </div>
                     </div>
@@ -427,34 +439,70 @@
 
                 <div class="d-flex justify-content-between mt-4">
                     <button class="btn btn-secondary" @onclick="PrevStep">Back</button>
-        <button class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>
+                    <button class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>
 
                     @*<button type="button" class="btn btn-secondary" @onclick="PrevStep">Back</button>
-                    <button type="button" class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>*@
+                        <button type="button" class="btn btn-outline-danger px-4" @onclick="NextStep">Next</button>*@
 
                 </div>
 
             </div>
         </div>
-    }
+    </EditForm>
+}
 
 
 
 
-    @if (currentStep == 3)
-    {
+@if (currentStep == 3)
+{
+
+    <EditForm Model="@model">
+        <DataAnnotationsValidator />
+
         <div class="step-section d-flex justify-content-center">
             <div class="form-card">
-                <div class="list-group mb-3 ">
-                    <div class="list-group-item"><span class="fw-semibold">Name:</span> @model.ManagerName</div>
-                    <div class="list-group-item"><span class="fw-semibold">Mobile number:</span> @model.Mobile</div>
-                    <div class="list-group-item"><span class="fw-semibold">Alternate email: </span>@model.AlternateEmail</div>
-                    @*<div class="list-group-item"><span class="fw-semibold">Email:</span> @email</div>*@
-                    <div class="list-group-item"><span class="fw-semibold">Pan number:</span> @model.PAN</div>
-                    <div class="list-group-item"><span class="fw-semibold">Organization name:</span> @model.OrganizationName</div>
-                    <div class="list-group-item"><span class="fw-semibold">Address: </span>@model.Address</div>
+
+                <div class="row align-items-start mb-4">
+
+                    <!-- LEFT: IMAGE -->
+                    <div class="col-4 text-start p-0">
+                        @if (!string.IsNullOrEmpty(model.Image))
+                        {
+                            <img src="@model.Image"
+                                 alt="Profile Image"
+                                 style="height:230px;width:170px;object-fit:cover;border-radius:8px;border:3px solid #ddd;" />
+                        }
+                        else
+                        {
+                            <div class="text-muted small mt-4">No profile image</div>
+                        }
+                    </div>
+
+                    <!-- RIGHT: DETAILS -->
+                    <div class="col-8">
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <span class="fw-semibold">Name:</span> @model.ManagerName
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <span class="fw-semibold">Mobile:</span> @model.Mobile
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <span class="fw-semibold">Alternate email:</span> @model.AlternateEmail
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <span class="fw-semibold">PAN:</span> @model.PAN
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <span class="fw-semibold">Organization:</span> @model.OrganizationName
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <span class="fw-semibold">Address:</span> @model.Address
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Terms -->
                 <div class="form-check mb-4">
                     <InputCheckbox class="form-check-input" @bind-Value="model.AcceptTerms" />
                     <label class="form-check-label ms-2">
@@ -462,28 +510,36 @@
                     </label>
                 </div>
 
-                <div class="d-flex justify-content-between">
-                    <button class="btn btn-secondary" @onclick="PrevStep">Back</button>
-                    @*<button type="button" class="btn btn-secondary" @onclick="PrevStep">Back</button>*@
-
-                    <button class="btn btn-danger px-4"
-                            @onclick="Submit"
-                            disabled="@(model.AcceptTerms == false)">
-                        Submit
-                    </button>
-
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-secondary" @onclick="PrevStep">Back</button>
+                <button type="submit" class="btn btn-danger px-4"
+                        @onclick="Submit"
+                        disabled="@(!model.AcceptTerms || isSubmitting)">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <span>Submitting...</span>
+                    }
+                    else
+                    {
+                        <span>Submit</span>
+                    }
+                </button>
                 </div>
-
             </div>
+
         </div>
-    }
 
-</EditForm>
+    </EditForm>
+        }
 
 
 
-@code {
-    private ManagerProfileDto model = new();
+
+
+    @code {
+private ManagerProfileDto model = new();
     //private EditContext editContext;
     //private ValidationMessageStore messageStore;
 
@@ -500,6 +556,8 @@
     bool isStateOpen = false;
     bool show = false;
     public bool AcceptTerms { get; set; }
+    bool isSubmitting = false;
+
 
 
     List<StateDto> states = new();
@@ -803,15 +861,17 @@
         model.Image = null;
     }
 
-
-
-
     private async Task Submit()
     {
-        errorMessage = null;
+        if (!model.AcceptTerms) return;
+
+        isSubmitting = true;
+        StateHasChanged();
 
         try
         {
+            errorMessage = null;
+
             string token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
 
             if (string.IsNullOrWhiteSpace(token))
@@ -819,9 +879,8 @@
                 token = await SessionStorage.GetItemAsync<string>("authToken");
             }
 
-
             Http.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", token);
+                new AuthenticationHeaderValue("Bearer", token);
 
             var response = await Http.PostAsJsonAsync(
                 "api/ManagerEvent/manager-changepassword-profilesetup",
@@ -837,17 +896,17 @@
             {
                 errorMessage = await response.Content.ReadAsStringAsync();
             }
-
-
-
         }
         catch (Exception ex)
         {
             errorMessage = ex.Message;
         }
+
+        isSubmitting = false;
+        StateHasChanged();
     }
 
 
 
 
-}
+    }

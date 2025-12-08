@@ -244,12 +244,10 @@ namespace EventBooking_TicketManagement_API.Services
                             <p><b>Title:</b> {ev.Title}</p>
                             <p><b>Manager:</b>{managerName}</p>
                             <p><b>Date:</b> {ev.ShowDate:dd MMM yyyy HH:mm}</p>
-                            <p>Please review and approve/reject this event in the admin dashboard.</p>
+                            <p>Please review and approve/reject this event .</p>
                             <p>
                                 <a href ='{approvalUrl}' style ='color:#fff; background-color:#d9534f;padding:10px 15px ; border-radius:6px; text-decoration:none;'>Review Event</a>
-                            </p>
-                            <hr/>
-                            <small>This Link opens the Admin Dashboard for event verification</small>";
+                            </p>";
 
             await _emailService.SendEmailAsync(adminEmail, subject, body);
 
@@ -307,7 +305,7 @@ namespace EventBooking_TicketManagement_API.Services
             var body = $@"
         <h2>Good news!</h2>
         <p>Dear {ev.ManagerName ?? "Manager"},</p>
-        <p>Your event <strong>{ev.Title}</strong> has been approved by the admin and is now visible to users.</p>
+        <p>Your event <strong>{ev.Title}</strong> has been approved by the EventiGo and is now visible to all.</p>
         <p><b>Ticket price:</b> ₹{ev.TicketPrice:N2}</p>
         <p><b>Total Tickets:</b> {ev.TotalTickets}</p>
         <p>If a payment or finalization is required (payment of event amount), you'll receive further instructions.</p>
@@ -339,7 +337,7 @@ namespace EventBooking_TicketManagement_API.Services
         <p><b>What you can do:</b></p>
         <ul>
             <li>Edit the event (adjust ticket price or offered amount) and resubmit for approval.</li>
-            <li>Or contact the admin if you need details about the rejection.</li>
+            <li>Or contact the EventiGo if you need details about the rejection.</li>
         </ul>
         <p>When you're ready, update your event and submit again from your dashboard.</p>
         <hr/>

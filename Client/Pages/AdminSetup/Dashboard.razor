@@ -34,7 +34,7 @@
         min-width: 260px;
         width: calc(25% - 20px);
         cursor: pointer;
-        transition: 0.3s ease;
+        transition: 0.1s ease;
     }
 
         .dashboard-card:hover {
@@ -469,6 +469,27 @@
                 <i class="bi bi-calendar-plus me-1"></i>  Manage Managers
             </button>
         </div>*@
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page">Home</li>
+        </ol>
+    </nav>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Library</li>
+        </ol>
+    </nav>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Home</a></li>
+            <li class="breadcrumb-item"><a href="#">Library</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Data</li>
+        </ol>
+    </nav>
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h3 class="fw-bold text-dark mb-0" style="font-size:30px">
             <i class="bi bi-speedometer2 me-2"></i>
@@ -485,7 +506,7 @@
                 @foreach (var card in SummaryCards)
                 {
                     <div class="dashboard-card " style="background-color: #fceeee"
-                        @onclick="()=> NavigateTo(card.Route)">
+                         @onclick="()=> NavigateTo(card.Route)">
 
 
                         <i class="@card.Icon dashboard-icon-bg"></i>
@@ -568,10 +589,9 @@
 
 
     <!-- Search Bar -->
+    <!--<!--<div class="d-flex align-items-center gap-3" style="max-width: 50%; min-width: 300px;">
 
-        <!--<!--<div class="d-flex align-items-center gap-3" style="max-width: 50%; min-width: 300px;">
-
-            <!-- Checkbox (Single Line) -->
+        <!-- Checkbox (Single Line) -->
     <!--<div class="form-check m-0 d-flex align-items-center">--><!---->
     <!---->@*<input class="form-check-input me-2 mb-1"
         type="checkbox"
@@ -600,35 +620,35 @@
     <!--</div>-->
     <!--</div>-->
     <!-- Search Bar + Date Picker -->
-<div class="d-flex align-items-center gap-3 flex-wrap">
-    <!-- SEARCH BAR -->
-    <div style="width: 300px;">
-        <div class="input-group shadow-sm">
-            <span class="input-group-text bg-white">
-                <i class="bi bi-search"></i>
-            </span>
-            <input class="form-control"
-                   placeholder="Search ..."
-                   @bind="SearchTerm"
-                   @bind:event="oninput" />
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <!-- SEARCH BAR -->
+        <div style="width: 300px;">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input class="form-control"
+                       placeholder="Search ..."
+                       @bind="SearchTerm"
+                       @bind:event="oninput" />
+            </div>
         </div>
-    </div>
 
-    <!-- DATE PICKER NEXT TO IT -->
-    <div class="ui calendar" id="singleDatePicker" style="width: 200px;">
-        <div class="ui input left icon shadow-sm">
-            <i class="calendar icon"></i>
-            <input type="text"
-                   id="selectedDateInput"
-                   placeholder="Choose Date"
-                   readonly />
+        <!-- DATE PICKER NEXT TO IT -->
+        <div class="ui calendar" id="singleDatePicker" style="width: 200px;">
+            <div class="ui input left icon shadow-sm">
+                <i class="calendar icon"></i>
+                <input type="text"
+                       id="selectedDateInput"
+                       placeholder="Choose Date"
+                       readonly />
+            </div>
         </div>
+        <button class="btn btn-danger ms-2 shadow-sm" style="padding:6px 14px" title="clear"
+                @onclick="ClearFilters">
+            <i class="bi bi-arrow-clockwise fw-bold"></i>
+        </button>
     </div>
-    <button class="btn btn-danger ms-2 shadow-sm" style="padding:6px 14px"title="clear"
-            @onclick="ClearFilters">
-        <i class="bi bi-arrow-clockwise fw-bold"></i>
-</button>
-</div>
 
 
     <!-- FILTER BUTTONS (Always Below) -->
@@ -663,9 +683,9 @@
     <!--Events table-->
     <div class="card mb-4 border-0 rounded-0">
         <!--<div class="card-header d-flex justify-content-between align-items-center text-white bg-danger rounded-top-3">
-    <h6 class="fw-bold mb-0">Recent Events</h6>-->
+        <h6 class="fw-bold mb-0">Recent Events</h6>-->
         @*<input class="form-control form-control-sm shadow-sm " placeholder=" Search event, manager, city..."
-        @bind="SearchTerm" @bind:event="oninput" style="width: 300px;" />*@
+            @bind="SearchTerm" @bind:event="oninput" style="width: 300px;" />*@
 
         <!--</div>-->
         <div class="card-body p-0">
@@ -686,88 +706,88 @@
                     <tbody class="table-fade @(fadeClass)">
                         @if (!filteredEvents.Any())
                         {
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
-                                No events found
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    No events found
+                                </td>
+                            </tr>
                         }
                         else
                         {
-                        @foreach (var evt in filteredEvents)
+                            @foreach (var evt in filteredEvents)
                             {
-                        <tr>
-                            @*<tr class="@(evt.Status == EventStatus.Pending ? "pending-row" : "")"
-                            @onclick="() => OnRowClick(evt)">*@
+                                <tr>
+                                    @*<tr class="@(evt.Status == EventStatus.Pending ? "pending-row" : "")"
+                                        @onclick="() => OnRowClick(evt)">*@
 
-                            <!-- Event Name -->
-                            <td>
-                                <div class="event-title">@evt.Title</div>
-                                <div class="event-sub">@evt.EventType</div>
-                            </td>
+                                    <!-- Event Name -->
+                                    <td>
+                                        <div class="event-title">@evt.Title</div>
+                                        <div class="event-sub">@evt.EventType</div>
+                                    </td>
 
-                            <!-- Manager -->
-                            <td class="event-title">
-                                @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Unknown" : evt.ManagerName)
-                            </td>
+                                    <!-- Manager -->
+                                    <td class="event-title">
+                                        @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Unknown" : evt.ManagerName)
+                                    </td>
 
-                            <!-- Address -->
-                            <td>
-                                <div class="event-title">@evt.VenueName</div>
-                                <div class="event-sub">@evt.CityName</div>
-                            </td>
+                                    <!-- Address -->
+                                    <td>
+                                        <div class="event-title">@evt.VenueName</div>
+                                        <div class="event-sub">@evt.CityName</div>
+                                    </td>
 
-                            <!-- Event Date -->
-                            <td>
-                                <div class="event-title">@evt.ShowDate.ToString("dd-MMM-yyyy")</div>
-                                <div class="event-sub">@evt.ShowDate.ToString("hh:mm tt")</div>
-                            </td>
+                                    <!-- Event Date -->
+                                    <td>
+                                        <div class="event-title">@evt.ShowDate.ToString("dd-MMM-yyyy")</div>
+                                        <div class="event-sub">@evt.ShowDate.ToString("hh:mm tt")</div>
+                                    </td>
 
-                            <!-- Created -->
-                            <td class="event-sub">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
+                                    <!-- Created -->
+                                    <td class="event-sub">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
 
-                            <!-- Price -->
-                            <td>
-                                <span class="price-badge d-flex justify-content-center align-items-center">₹ @evt.EventAmount</span>
-                            </td>
+                                    <!-- Price -->
+                                    <td>
+                                        <span class="price-badge d-flex justify-content-center align-items-center">₹ @evt.EventAmount</span>
+                                    </td>
 
-                            <!-- Status -->
+                                    <!-- Status -->
 
-                            <td>
-                                @if (evt.Status == EventStatus.Pending)
+                                    <td>
+                                        @if (evt.Status == EventStatus.Pending)
                                         {
-                                @*<a class="status-badge text-white bg-warning "
-                                   style="cursor:pointer; padding:8px 14px"
-                                   @onclick="(() => EventApprove(evt.Id))">
-                                    Pending
-                                </a>*@
-                                <div class=" pending-wrapper">
-                                    <span class="status-badge bg-warning text-white pending-label" style="padding:6px 13px">
-                                        Pending
-                                    </span>
+                                            @*<a class="status-badge text-white bg-warning "
+                                                   style="cursor:pointer; padding:8px 14px"
+                                                   @onclick="(() => EventApprove(evt.Id))">
+                                                    Pending
+                                                </a>*@
+                                            <div class=" pending-wrapper">
+                                                <span class="status-badge bg-warning text-white pending-label" style="padding:6px 13px">
+                                                    Pending
+                                                </span>
 
-                                    <!-- HOVER (Approve Button) -->
-                                    <button class="btn btn-danger btn-sm approve-btn "
-                                            style="padding:6px 13px"
-                                            @onclick="(() => EventApprove(evt.Id))">
-                                        Approve
-                                    </button>
+                                                <!-- HOVER (Approve Button) -->
+                                                <button class="btn btn-danger btn-sm approve-btn "
+                                                        style="padding:6px 13px"
+                                                        @onclick="(() => EventApprove(evt.Id))">
+                                                    Approve
+                                                </button>
 
-                                </div>
+                                            </div>
                                         }
                                         else if (evt.Status == EventStatus.AdminApproved)
                                         {
-                                <span class="status-badge text-white bg-success">Approved</span>
+                                            <span class="status-badge text-white bg-success">Approved</span>
                                         }
                                         else
                                         {
-                                <span class="status-badge  text-white bg-danger">Rejected</span>
+                                            <span class="status-badge  text-white bg-danger">Rejected</span>
                                         }
-                            </td>
+                                    </td>
 
 
-                        </tr>
-                        }
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
