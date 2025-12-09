@@ -71,15 +71,18 @@ namespace EventBooking.Client.Services
 
             content.Add(new StringContent(dto.Title ?? ""), "Title");
             content.Add(new StringContent(dto.EventType ?? ""), "EventType");
-            //content.Add(new StringContent(dto.Description ?? ""), "Description");
+            content.Add(new StringContent(dto.Description ?? ""), "Description");
             content.Add(new StringContent(dto.Genre ?? ""), "Genre");
-            //content.Add(new StringContent(dto.Language ?? ""), "Language");
+            content.Add(new StringContent(dto.Language ?? ""), "Language");
 
             // Duration must be in correct TimeSpan format ("hh:mm:ss")
             content.Add(new StringContent(dto.Duration.ToString(@"hh\:mm\:ss")), "Duration");
 
-            //  ShowDate should be in "yyyy-MM-ddTHH:mm:ss" ISO format
-            content.Add(new StringContent(dto.ShowDate.ToString("yyyy-MM-ddTHH:mm:ss")), "ShowDate");
+            content.Add(new StringContent(dto.StartDateOnly.ToString("yyyy-MM-dd")), "StartDateOnly");
+            content.Add(new StringContent(dto.StartTime.ToString(@"hh\:mm")), "StartTime");
+
+            content.Add(new StringContent(dto.EndDateOnly?.ToString("yyyy-MM-dd") ?? ""), "EndDateOnly");
+            content.Add(new StringContent(dto.EndTime.ToString(@"hh\:mm")), "EndTime");
 
             //  VenueId and CityId are integers
             content.Add(new StringContent(dto.VenueId.ToString()), "VenueId");
@@ -123,7 +126,12 @@ namespace EventBooking.Client.Services
             content.Add(new StringContent(dto.Genre ?? ""), "Genre");
             content.Add(new StringContent(dto.Language ?? ""), "Language");
             content.Add(new StringContent(dto.Duration.ToString(@"hh\:mm\:ss")), "Duration");
-            content.Add(new StringContent(dto.ShowDate.ToString("yyyy-MM-ddTHH:mm:ss")), "ShowDate");
+            content.Add(new StringContent(dto.StartDateOnly.ToString("yyyy-MM-dd")), "StartDateOnly");
+            content.Add(new StringContent(dto.StartTime.ToString(@"hh\:mm")), "StartTime");
+
+            content.Add(new StringContent(dto.EndDateOnly?.ToString("yyyy-MM-dd") ?? ""), "EndDateOnly");
+            content.Add(new StringContent(dto.EndTime.ToString(@"hh\:mm")), "EndTime");
+
             content.Add(new StringContent(dto.VenueId.ToString()), "VenueId");
 
             if (dto.CityId.HasValue)

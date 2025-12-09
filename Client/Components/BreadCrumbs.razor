@@ -1,0 +1,47 @@
+﻿   <style>
+    .my-breadcrumb .breadcrumb 
+    {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 6px;
+    }
+
+    .my-breadcrumb .breadcrumb-item 
+    {
+        white-space: nowrap;
+        display: inline-flex !important;
+        align-items: center;
+    }
+    .breadcrumb-item a 
+    {
+           text-decoration: none;
+           color: #dc3545 !important;
+           transition: 0.2s ease;
+    }
+
+</style>
+
+ <nav arial-label ="breadcrumb" class="my-breadcrumb">
+        <ol class="breadcrumb mb-4 d-flex flex-row align-items-center">
+            @foreach(var b in Items)
+            {
+                if(b.IsActive)
+                    {
+                    <li class="breadcrumb-item active" aria-current="">@b.Label</li>
+
+                    }
+                 else
+                {
+                    <li class="breadcrumb-item">
+                        <a href="@b.Url">@b.Label</a>
+                    </li>
+                    }
+            }
+        </ol>
+    </nav>
+
+
+@code{
+    [Parameter]
+    public List<BreadCrumbItemDto> Items { get; set; } = new();
+}

@@ -28,7 +28,8 @@ namespace Domains.Entities
 
         public TimeSpan Duration { get; set; }
 
-        public DateTime ShowDate { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal TicketPrice { get; set; }

@@ -257,6 +257,7 @@
 
 
     @*<BlazoredToast ToastId="mainToast" Settings="ToastSettings" />*@
+    <BreadCrumbs Items="@breadcrumbsItems"/>
 
 
 
@@ -666,7 +667,7 @@
                             <div>
                                 <div class="event-title">@ev.Title</div>
                                 <small class="text-muted">
-                                    @ev.ShowDate.ToString("dd MMM yyyy")
+                                    @ev.StartDate.ToString("dd MMM yyyy")
                                 </small>
                             </div>
                         </div>
@@ -764,6 +765,12 @@
     private int currentPage = 1;
     private int pageSize = 5;
     private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
+
+    private List<BreadCrumbItemDto> breadcrumbsItems = new()
+    {
+        new BreadCrumbItemDto ("Dashboard","/admin-dashboard"),
+        new BreadCrumbItemDto ("Managers","/managers", true),
+    };
 
 
     protected override async Task OnInitializedAsync()
@@ -979,10 +986,10 @@
 .Where(m =>
     string.IsNullOrWhiteSpace(SearchTerm) ||
     (m.Title ?? "").Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-    m.ShowDate.ToString("dd MM yyyy")
+    m.StartDate.ToString("dd MM yyyy")
         .Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
 )
-.OrderByDescending(m => m.ShowDate)
+.OrderByDescending(m => m.StartDate)
 .Skip((currentPage - 1) * pageSize)
 .Take(pageSize);
 

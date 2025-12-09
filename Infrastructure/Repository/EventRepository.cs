@@ -125,7 +125,7 @@ namespace Infrastructures.Repository
                     .ThenInclude(v => v.City)
                       .Include(e => e.Managers)
         .ThenInclude(m => m.User)
-                .OrderByDescending(e => e.ShowDate)
+                .OrderByDescending(e => e.StartDate)
                 .ToListAsync();
         }
 
@@ -170,7 +170,11 @@ namespace Infrastructures.Repository
 
             if (req.DateFilter.HasValue)
             {
-                query = query.Where(x => x.ShowDate.Date == req.DateFilter.Value.Date);
+                query = query.Where(e =>
+                                    e.StartDate.Date <= req.DateFilter.Value.Date &&
+                                    e.EndDate.Date >= req.DateFilter.Value.Date
+                );
+
             }
 
             var totalCount = await query.CountAsync();

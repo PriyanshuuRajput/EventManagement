@@ -214,11 +214,12 @@
             <tbody>
                 @foreach (var ev in PagedItems)
                 {
-                    <tr @onclick="() => OpenSidePanel(ev)" style="cursor:pointer;">
+                    <tr @key = "ev.Id" @onclick="() => OpenSidePanel(ev)" style="cursor:pointer;">
 
                         <!-- Image -->
                         <td>
-                            <img src="@ev.ImageUrl"
+                            <img @key= "@ev.ImageUrl"
+                                 src="@ev.ImageUrl"
                                  class="rounded-3 border"
                                  style="width:85px; height:55px; object-fit:cover;"
                                  alt="No Img" />
@@ -235,7 +236,7 @@
 
                         <!-- Date -->
                         <td>
-                            <div><i class="bi bi-calendar me-1"></i> @ev.ShowDate.ToString("dd MMM yyyy")</div>
+                            <div><i class="bi bi-calendar me-1"></i> @ev.StartDateOnly.ToString("dd MMM yyyy")</div>
                             <div class="small text-muted">
                                 <i class="bi bi-clock me-2"></i> @ev.Duration.Hours hr @ev.Duration.Minutes min
                             </div>
@@ -386,7 +387,7 @@
                         Schedule
                     </h6>
 
-                    <h4 class="small m-2"> @selectedEvent.ShowDate.ToString("dd MMM yyyy")</h4>
+                    <h4 class="small m-2"> @selectedEvent.StartDateOnly.ToString("dd MMM yyyy")</h4>
                     <h4 class=" small m-2"> @selectedEvent.Duration.Hours hr @selectedEvent.Duration.Minutes min</h4>
                 </div>
             </div>
