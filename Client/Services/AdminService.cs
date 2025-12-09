@@ -71,9 +71,9 @@ namespace EventBooking.Client.Services
 
             content.Add(new StringContent(dto.Title ?? ""), "Title");
             content.Add(new StringContent(dto.EventType ?? ""), "EventType");
-            content.Add(new StringContent(dto.Description ?? ""), "Description");
+            //content.Add(new StringContent(dto.Description ?? ""), "Description");
             content.Add(new StringContent(dto.Genre ?? ""), "Genre");
-            content.Add(new StringContent(dto.Language ?? ""), "Language");
+            //content.Add(new StringContent(dto.Language ?? ""), "Language");
 
             // Duration must be in correct TimeSpan format ("hh:mm:ss")
             content.Add(new StringContent(dto.Duration.ToString(@"hh\:mm\:ss")), "Duration");
@@ -115,8 +115,8 @@ namespace EventBooking.Client.Services
 
             using var content = new MultipartFormDataContent();
 
-            // 🔹 Match property names exactly with EventDto
-            content.Add(new StringContent(dto.Id.ToString()), "Id");
+            //// 🔹 Match property names exactly with EventDto
+            //content.Add(new StringContent(dto.Id.ToString()), "Id");
             content.Add(new StringContent(dto.Title ?? ""), "Title");
             content.Add(new StringContent(dto.EventType ?? ""), "EventType");
             content.Add(new StringContent(dto.Description ?? ""), "Description");
@@ -143,7 +143,7 @@ namespace EventBooking.Client.Services
 
             var response = await _httpClient.PutAsync($"api/events/update/{id}", content);
 
-            // ✅ Print out backend validation errors for debugging
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();

@@ -504,13 +504,16 @@
 
                                             <p class="text-muted small">@evt.EventType</p>
 
+                                            @if (isAdmin)
+                                            {
                                             <!--Manager Name -->
                                             <span class="badge bg-light text-danger border fw-bold small mb-2 d-inline-flex align-items-center"
                                                   style="font-size:15px">
                                                 <i class="bi bi-person-fill me-1"></i>
                                                 @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Unknown" : evt.ManagerName)
                                             </span>
-
+                                            }
+                                                            
                                             <!-- DATE & TIME -->
                                             <div class="d-flex justify-content-between text-center mb-3 gap-3">
                                                 <div class="flex-fill p-2 border rounded bg-light">
@@ -665,7 +668,7 @@
                                                         <button class="btn btn-outline-warning" @onclick="() => EditVenue(v)">
                                                             <i class="bi bi-pencil-square"></i>
                                                         </button>
-                                                        <button class="btn btn-outline-danger" @onclick="() => DeleteVenue(v.Id)">
+                                                        <button class="btn btn-outline-danger" @onclick="() => OpenDeleteModal(v.Id)">
                                                             <i class="bi bi-trash"></i>
                                                         </button>
                                                     </div>
@@ -736,7 +739,7 @@
                                                 <button class="btn btn-light w-50 me-1" @onclick="() => EditCity(c)">
                                                     <i class="bi bi-pencil-square me-1 text-warning"></i>Edit
                                                 </button>
-                                                <button class="btn btn-outline-danger w-50" @onclick="() => DeleteCity(c.Id)">
+                                                <button class="btn btn-outline-danger w-50" @onclick="() => OpenDeleteCityModal(c.Id)">
                                                     <i class="bi bi-trash me-1"></i>Delete
                                                 </button>
                                             </div>
@@ -827,9 +830,9 @@
 
 
                                     <div class="col-md-4">
-                                        <label class="form-label fw-bold">Language<span class="text-danger">*</span></label>
+                                        <label class="form-label fw-bold">Language</label>
                                         <InputText @bind-Value="editingEvent.Language" class="form-control" />
-                                        <ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />
+                                        @*<ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />*@
                                     </div>
                                     @*</div>*@
 
@@ -944,7 +947,7 @@
                                 </div>
                                 <div class="card-body border-0">
                                     <InputTextArea @bind-Value="editingEvent.Description" class="form-control" rows="4" placeholder="Write a short description..." />
-                                    <ValidationMessage For="@(() => editingEvent.Description)" class="text-danger small" />
+                                    @*<ValidationMessage For="@(() => editingEvent.Description)" class="text-danger small" />*@
                                 </div>
                                 <!-- Footer -->
                                 <div class=" d-flex justify-content-end align-items-center gap-3 mb-2">
@@ -1107,7 +1110,21 @@
                             </div>
 
                             <div class="modal-body">
-                                <p>Are you sure you want to delete this event permanently?</p>
+                                <p>
+                                    @if (deleteType == "event")
+                                    {
+                                        <text>Are you sure you want to delete this event permanently?</text>
+                                    }
+                                    else if (deleteType == "venue")
+                                    {
+                                        <text>Are you sure you want to delete this venue permanently?</text>
+                                    }
+                                    else if(deleteType == "city")
+                                    {
+                                        <text> Are you sure you want to delete this city permanently? </text>
+                                    }
+                                </p>
+
                             </div>
 
                             <div class="modal-footer">
@@ -1185,7 +1202,10 @@
     private IBrowserFile? selectedImageFile;
 
     private bool showDeleteModal = false;
+    private string deleteType = "";
     private int deleteEventId;
+    private int deleteVenueId;
+    private int deleteCityId;
 
     private string? eventTypeError;
     private string? genreError;
@@ -1446,6 +1466,7 @@
 
     private void OpenDeleteModal(int id)
     {
+        deleteType = "event";
         deleteEventId = id;
         showDeleteModal = true;
     }
@@ -1457,9 +1478,17 @@
 
     private async Task DeleteConfirmed()
     {
-        await DeleteEvent(deleteEventId);
+        if (deleteType == "event")
+            await DeleteEvent(deleteEventId);
+
+        if (deleteType == "venue")
+            await DeleteVenue(deleteVenueId);
+        if (deleteType == "city")
+            await DeleteCity(deleteCityId);
+
         showDeleteModal = false;
     }
+
 
     private async Task DeleteEvent(int eventId)
     {
@@ -1565,7 +1594,7 @@
             await LoadVenues();
             CalculateCityCounts();
 
-            showVenueModal = false; 
+            showVenueModal = false;
             toastService.ShowSuccess("Venue saved successfully.");
         }
         catch (Exception ex)
@@ -1581,6 +1610,12 @@
     }
 
 
+    private void OpenVenueDeleteModal(int id)
+    {
+        deleteType = "venue";
+        deleteVenueId =id;
+        showDeleteModal = true;
+    }
 
     private async Task DeleteVenue(int id)
     {
@@ -1663,6 +1698,14 @@
             toastService.ShowError($"Unexpected error: {ex.Message}");
         }
     }
+
+    private void OpenDeleteCityModal(int id )
+        {
+        deleteType = "city";
+        deleteCityId = id;
+        showDeleteModal = true;
+
+        }
 
 
     private async Task DeleteCity(int id)

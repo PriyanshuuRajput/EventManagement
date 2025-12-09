@@ -574,7 +574,13 @@
                 <div class="modal-footer">
                     @if (PendingManagers.Status == "Pending")
                     {
-                        <button class="btn btn-success" @onclick="() => Approve(PendingManagers.Id)">Approve</button>
+                        <button class="btn btn-success" @onclick="() => Approve(PendingManagers.Id)"
+                                disabled="@isProcessing">
+                            @if (isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }Approve
+                        </button>
                         <button class="btn btn-danger" @onclick="() => Reject(PendingManagers.Id)">Reject</button>
                     }
 
@@ -846,6 +852,7 @@
 
     private async Task Approve(int id)
     {
+        isProcessing = true;
         var response = await Http.PostAsync($"api/admin/approve-manager/{id}", null);
 
         if (response.IsSuccessStatusCode)
@@ -857,6 +864,7 @@
             toast.ShowError("Error approving manager");
         }
 
+        isProcessing = false;
         await Reload();
         CloseModal();
     }
@@ -1019,7 +1027,7 @@
             return;
 
         if (page == currentPage)
-            return; 
+            return;
 
         currentPage = page;
     }

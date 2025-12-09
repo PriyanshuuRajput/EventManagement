@@ -6,6 +6,16 @@
 @attribute [Authorize(Roles ="Admin")]
 
 <style>
+    /* Smooth Zoom Animation for Modal */
+    .custom-modal-content {
+        border-radius: 16px !important;
+        border: none !important;
+        animation: scaleIn 0.25s ease-out;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
     .event-banner {
         border-radius: 15px;
         height: 350px;
@@ -116,17 +126,31 @@ else
             <i class="bi bi-info-circle me-2"></i>Pending approval action required.
         </div>*@
 
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-outline-danger fw-semibold py-2"
-                                    @onclick="ApproveEvent"
-                                    disabled="@isApproved">
-                                @(!isApproved ? "Approve Event" : "Approved")
-                            </button>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-danger fw-semibold py-2"
+                                @onclick="ApproveEvent"
+                                disabled="@isApproving">
 
-                            <button class="btn btn-outline-secondary fw-semibold py-2" @onclick="ShowRejectModal">
-                                Reject Event
-                            </button>
-                        </div>
+                            @if (!isApproving)
+                            {
+                                <span>Approve Event</span>
+                            }
+                            else
+                            {
+                                <span>
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    Approving...
+                                </span>
+                            }
+                        </button>
+                        <button class="btn btn-outline-secondary fw-semibold py-2"
+                                @onclick="ShowRejectModal"
+                                disabled="@isRejecting">
+                            Reject Event
+                        </button>
+
+
+                    </div>
                     </div>
                 </div>
             </div>
@@ -136,20 +160,36 @@ else
 
 @if (showRejectModal)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5)">
+    <div class=" modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);animation: fadein 0.3s ease-out ">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-sm">
-                <div class="modal-header border border-danger text-dark">
-                    <h5 class="modal-title">Reject Event</h5>
+            <div class="modal-content custom-modal-content">
+
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold " style="font-size:20px">Reject Event</h5>
                     <button type="button" class="btn-close btn-close-white" @onclick="() => showRejectModal = false"></button>
                 </div>
                 <div class="modal-body">
-                    <label class="form-label fw-semibold">Reason for rejection</label>
+                    <label class="form-label">Reason</label>
                     <textarea class="form-control" rows="3" @bind="rejectionReason" placeholder="Enter reason..."></textarea>
                 </div>
                 <div class="modal-footer">
                     @*<button class="btn btn-outline-secondary" @onclick="() => showRejectModal = false">Cancel</button>*@
-                    <button class="btn btn-outline-danger" @onclick="RejectEvent">Reject</button>
+                    <button class="btn btn-outline-danger" @onclick="RejectEvent" disabled="@isRejecting">
+
+                        @if (!isRejecting)
+                        {
+                            <span>Reject</span>
+                        }
+                        else
+                        {
+                            <span>
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                Rejecting...
+                            </span>
+                        }
+
+                    </button>
+
                 </div>
             </div>
         </div>
@@ -162,8 +202,11 @@ else
     private EventDto? eventDetails;
     private ManagerEventDto? evt;
     private bool showRejectModal = false;
+    private bool isRejecting = false;
+
     private string rejectionReason = string.Empty;
     private bool isApproved = false;
+    private bool isApproving = false;
     private decimal? finalAmount = null;
 
 
@@ -186,6 +229,9 @@ else
 
     private async Task ApproveEvent()
     {
+        isApproving = true;
+        StateHasChanged();
+
         try
         {
             var response = await Http.PostAsync(
@@ -195,6 +241,7 @@ else
             {
                 isApproved = true;
                 await JS.InvokeVoidAsync("showToast", "success", "Event approved successfully!");
+
                 await Task.Delay(1000);
                 Nav.NavigateTo("/admin-dashboard", forceLoad: true);
             }
@@ -208,7 +255,12 @@ else
         {
             await JS.InvokeVoidAsync("showToast", "error", $"Error: {ex.Message}");
         }
+        finally
+        {
+            isApproving = false;
+        }
     }
+
 
     private void ShowRejectModal() => showRejectModal = true;
 
@@ -216,21 +268,32 @@ else
     {
         if (string.IsNullOrWhiteSpace(rejectionReason))
         {
-            await JS.InvokeVoidAsync("showToast","info","Please enter a reason before rejecting.");
+            await JS.InvokeVoidAsync("showToast", "info", "Please enter a reason before rejecting.");
             return;
         }
+
+        isRejecting = true;
+        StateHasChanged();
 
         try
         {
             await Http.PostAsJsonAsync($"api/Admin/reject/{eventId}", new { Reason = rejectionReason });
-            await JS.InvokeVoidAsync("showToast","error","Event rejected successfully!");
+
+            await JS.InvokeVoidAsync("showToast", "error", "Event rejected successfully!");
+
             await Task.Delay(1000);
+
             showRejectModal = false;
-            Nav.NavigateTo("/admin-dashboard" , forceLoad:true);
+            Nav.NavigateTo("/admin-dashboard", forceLoad: true);
         }
         catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("showToast","error",$"Error rejecting: {ex.Message}");
+            await JS.InvokeVoidAsync("showToast", "error", $"Error rejecting: {ex.Message}");
+        }
+        finally
+        {
+            isRejecting = false;
         }
     }
+
 }
