@@ -175,8 +175,9 @@ namespace EventBooking_TicketManagement_API.Controllers
 
             }
 
+            var isAdmin = User.IsInRole("Admin");
             // ---- Update event ----
-            await _eventService.UpdateEventAsync(id, dto);
+            await _eventService.UpdateEventAsync(id, dto, isAdmin);
 
             return Ok(new { message = "Event updated successfully", dto });
         }

@@ -19,7 +19,7 @@ namespace Applications.Dto
 
         //[Required(ErrorMessage = "Description is required.")]
         //[StringLength(1000, MinimumLength = 3)]
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; } = "";
 
 
         [StringLength(50)]
@@ -29,7 +29,7 @@ namespace Applications.Dto
 
         //[StringLength(50)]
         //[Required(ErrorMessage = "Language is required.")]
-        public string Language { get; set; } = string.Empty;
+        public string? Language { get; set; } = "";
 
         //[Required(ErrorMessage = "Event Duration is required.")]
         public TimeSpan Duration { get; set; } = TimeSpan.Zero;
@@ -63,9 +63,18 @@ namespace Applications.Dto
         // This holds the error for Blazor to display
         public string? DurationError { get; set; }
 
-        [Required(ErrorMessage = "Show date is required.")]
-        [DataType(DataType.DateTime)]
-        public DateTime ShowDate { get; set; }
+        public DateTime StartDateOnly { get; set; } = DateTime.Today;
+        public TimeSpan StartTime { get; set; } = new TimeSpan(18, 0, 0);
+
+        public DateTime? EndDateOnly { get; set; }
+        public TimeSpan EndTime { get; set; } = new TimeSpan(18, 0, 0);
+
+        // Computed final values
+        public DateTime StartDate => StartDateOnly.Date + StartTime;
+
+        public DateTime EndDate =>
+            (EndDateOnly ?? StartDateOnly).Date + EndTime;
+
 
         [Range(1, int.MaxValue, ErrorMessage = "Please select a venue")]
         public int VenueId { get; set; }

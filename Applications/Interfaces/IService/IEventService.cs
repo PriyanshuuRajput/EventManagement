@@ -8,7 +8,7 @@ namespace Applications.Interfaces.IService
         Task<IEnumerable<EventDto>> GetAllEventsAsync();
         Task<EventDto?> GetEventByIdAsync(int id);
         Task AddEventAsync(EventDto dto);
-        Task UpdateEventAsync(int id, EventDto dto);
+        Task UpdateEventAsync(int id, EventDto dto, bool isAdmin);
         Task DeleteEventAsync(int id);
         Task<IEnumerable<SeatDto>> GetSeatsByEventIdAsync(int eventId);
         Task<EventDto> CreateEventAsync(ManagerEventDto mdto, int managerId, string managerName);

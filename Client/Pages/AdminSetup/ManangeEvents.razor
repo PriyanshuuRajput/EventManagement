@@ -317,23 +317,27 @@
 
 <div class="container-fluid px-4">
 
+    <!---BreadCrumbs-->
+
+    <BreadCrumbs Items="@breadcrumbItems"/>
+
     <!-- ====== NAV TABS ====== -->
     <ul class="nav nav-pills mt-4 mb-3 gap-3" id="adminTabs">
         <li class="nav-item">
             <button class="nav-link @(activeTab == "events" ? "active" : "")"
-                    @onclick='() => activeTab = "events"'>
+                    @onclick='() => ChangeTab("events")'>
                 Events
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link @(activeTab == "venues" ? "active" : "")"
-                    @onclick='() => activeTab = "venues"'>
+                    @onclick='() => ChangeTab("venues")'>
                 Venues
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link @(activeTab == "cities" ? "active" : "")"
-                    @onclick='() => activeTab = "cities"'>
+                    @onclick='() => ChangeTab("cities")'>
                 Cities
             </button>
         </li>
@@ -518,11 +522,11 @@
                                             <div class="d-flex justify-content-between text-center mb-3 gap-3">
                                                 <div class="flex-fill p-2 border rounded bg-light">
                                                     <p class="text-muted m-0 small">Date</p>
-                                                    <h6 class="fw-semibold">@evt.ShowDate.ToString("dd-MMM")</h6>
+                                                    <h6 class="fw-semibold">@evt.StartDateOnly.ToString("dd-MMM")</h6>
                                                 </div>
                                                 <div class="flex-fill p-2 border rounded bg-light">
                                                     <p class="text-muted m-0 small">Time</p>
-                                                    <h6 class="fw-semibold">@evt.ShowDate.ToString("hh:mm tt")</h6>
+                                                    <h6 class="fw-semibold">@evt.StartDateOnly.ToString("hh:mm tt")</h6>
                                                 </div>
                                             </div>
 
@@ -532,24 +536,24 @@
                                             <div class="mb-2">
                                                 <!-- Venue Name -->
                                                 <div class="small fw-semibold text-dark">
-                                                    <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                                                    <i class="bi bi-geo-alt-fill text-danger "></i>
                                                     @evt.VenueName
                                                 </div>
                                                 <!-- City -->
-                                                <div class="small text-muted ms-4">
+                                                <div class="small text-muted" style="margin-left:20px">
                                                     @evt.CityName
                                                 </div>
                                             </div>
 
                                             <!-- DURATION -->
                                             <p class="small text-muted mb-1">
-                                                <i class="bi bi-clock me-1 text-danger"></i>
+                                                <i class="bi bi-clock  text-danger" style="margin-right:2px"></i>
                                                 @(evt.Duration.ToString(@"hh\h\ mm\m"))
                                             </p>
 
                                             <!-- LANGUAGE -->
                                             <p class="small text-muted mb-2">
-                                                <i class="bi bi-translate me-1 text-danger"></i>@evt.Language
+                                                <i class="bi bi-translate text-danger " style="margin-right:5px"></i>@evt.Language
                                             </p>
 
                                             <!-- PRICE - Gets highlighted on hover -->
@@ -783,7 +787,9 @@
                     </div>
 
                     <div class="drawer-body">
-                        <EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">
+                        @*<EditForm Model="editingEvent" OnValidSubmit="async () => await SaveEvent(editingEvent)" OnInvalidSubmit="HandleInvalidSubmit">*@
+                        <EditForm Model="editingEvent" OnValidSubmit="SaveEvent">
+
                             @*<ValidationSummary />*@
                             <DataAnnotationsValidator />
 
@@ -839,18 +845,56 @@
 
                                     <!-- Date and Time Info -->
                                     @*<div class="card shadow-sm mb-2">
-                                <div class="card-header text-dark fw-bold">
-                                    Event Schedule
-                                </div>*@
+        <div class="card-header text-dark fw-bold">
+            Event Schedule
+        </div>*@
                                     @*<div class="card-body row g-3">*@
+                                    <!--<div class="col-md-4">
+        <label class="form-label fw-bold">Event Date & Time<span class="text-danger">*</span></label>
+        <input type="datetime-local"
+               @bind="editingEvent.StartDate"
+               class="form-control"
+               min="@DateTime.Now.ToString("yyyy-MM-ddTTHH:mm")" />-->
+                                    @*<ValidationMessage For="@(() => editingEvent.ShowDate)" class="text-danger small" />*@
+                                    <!--</div>-->
+                                    <!-- Start Date -->
                                     <div class="col-md-4">
-                                        <label class="form-label fw-bold">Event Date & Time<span class="text-danger">*</span></label>
-                                        <input type="datetime-local"
-                                               @bind="editingEvent.ShowDate"
+                                        <label class="form-label fw-bold">Start Date<span class="text-danger">*</span></label>
+                                        <input type="date"
                                                class="form-control"
-                                               min="@DateTime.Now.ToString("yyyy-MM-ddTTHH:mm")" />
-                                        @*<ValidationMessage For="@(() => editingEvent.ShowDate)" class="text-danger small" />*@
+                                               @bind="editingEvent.StartDateOnly"
+                                               min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                                     </div>
+
+                                    <!-- Start Time -->
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Start Time<span class="text-danger">*</span></label>
+                                        <input type="time"
+                                               class="form-control"
+                                               value="@editingEvent.StartTime.ToString(@"hh\:mm")"
+                                               @oninput="e => editingEvent.StartTime = TimeSpan.Parse(e.Value!.ToString())" />
+
+                                    </div>
+
+                                    <!-- End Date (OPTIONAL) -->
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">End Date <span class="text-muted">(optional)</span></label>
+                                        <input type="date"
+                                               class="form-control"
+                                               @bind="editingEvent.EndDateOnly"
+                                               min="@editingEvent.StartDateOnly.ToString("yyyy-MM-dd")" />
+                                    </div>
+
+                                    <!-- End Time (OPTIONAL) -->
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">End Time <span class="text-muted">(optional)</span></label>
+                                        <input type="time"
+                                               class="form-control"
+                                               value="@editingEvent.EndTime.ToString(@"hh\:mm")"
+                                               @oninput="e => editingEvent.EndTime = TimeSpan.Parse(e.Value!.ToString())" />
+
+                                    </div>
+
 
                                     <div class="col-md-4">
                                         <label class="form-label fw-bold">Duration (HH:MM) <span class="text-danger">*</span></label>
@@ -908,38 +952,38 @@
 
                             <!-- Location Info -->
                             @*<div class="card shadow-sm mb-0">
-                        <div class="card-header  text-dark fw-bold">
-                            Location Details
-                        </div>
-                        <div class="card-body row g-3">*@
+            <div class="card-header  text-dark fw-bold">
+                Location Details
+            </div>
+            <div class="card-body row g-3">*@
 
 
                             @*<div class="col-md-6">
-                            <label class="form-label fw-bold">City<span class="text-danger">*</span></label>
-                            <InputSelect @bind-Value="editingEvent.CityId" class="form-select" @onchange="OnCityChanged">
-                                <option value="0">-- Select City --</option>
-                                @foreach (var city in citiesList)
-                                {
-                                    <option value="@city.Id">@city.CityName</option>
-                                }
-                            </InputSelect>
+                <label class="form-label fw-bold">City<span class="text-danger">*</span></label>
+                <InputSelect @bind-Value="editingEvent.CityId" class="form-select" @onchange="OnCityChanged">
+                    <option value="0">-- Select City --</option>
+                    @foreach (var city in citiesList)
+                    {
+                        <option value="@city.Id">@city.CityName</option>
+                    }
+                </InputSelect>
 
-                            <ValidationMessage For="@(() => editingEvent.CityId)" />
-                        </div>*@
+                <ValidationMessage For="@(() => editingEvent.CityId)" />
+            </div>*@
                             @*</div>
-                        </div>*@
+            </div>*@
 
                             <!-- Ticket and Image Info -->
                             <!--<div class="card shadow-sm mb-2">
-                        <div class="card-header  text-dark fw-bold">
-                            Tickets & Image
-                        </div>
-                        <div class="card-body row g-3">
+            <div class="card-header  text-dark fw-bold">
+                Tickets & Image
+            </div>
+            <div class="card-body row g-3">
 
 
 
-                        </div>
-                    </div>-->
+            </div>
+        </div>-->
                             <!-- Description -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
@@ -950,16 +994,16 @@
                                     @*<ValidationMessage For="@(() => editingEvent.Description)" class="text-danger small" />*@
                                 </div>
                                 <!-- Footer -->
-                                <div class=" d-flex justify-content-end align-items-center gap-3 mb-2">
+                                <div class=" d-flex justify-content-end align-items-center gap-1 mb-2">
                                     <button class="btn btn-outline-secondary m-2 "
-                                            style="padding:5px 20px ; font-size:18px"
+                                            style="padding:4px 16px ; font-size:18px"
                                             @onclick="CancelEventModal">
                                         Cancel
                                     </button>
                                     <button class="btn btn-danger m-2 "
-                                            style="padding:5px 35px ; font-size:20px"
+                                            style="padding:5px 23px ; font-size:18px"
                                             disabled="@isProcessing">
-                                        @if(isProcessing)
+                                        @if (isProcessing)
                                         {
                                             <span class="spinner-border spinner-border-sm me-2"></span>
                                         }
@@ -1210,6 +1254,37 @@
     private string? eventTypeError;
     private string? genreError;
 
+    private List<BreadCrumbItemDto> breadcrumbItems = new();
+    private void BreadCrumb()
+    {
+        var dashboardUrl = isManager ? "/manager-profile" : "/admin-dashboard";
+
+        breadcrumbItems = new()
+    {
+        new BreadCrumbItemDto("Dashboard", dashboardUrl),
+
+        new BreadCrumbItemDto(
+            activeTab switch
+            {
+                "events" => "Events",
+                "venues" => "Venues",
+                "cities" => "Cities",
+                _ => "Events"
+            },
+            "/manage-events",
+            true
+        )
+    };
+    }
+
+    private void ChangeTab( string tab)
+    {
+        activeTab = tab;
+        BreadCrumb();
+
+
+    }
+
 
     private string managerSearch = string.Empty;
 
@@ -1273,6 +1348,7 @@
         CalculateVenueEventCounts();
         CalculateCityCounts();
         CalculateVenueEventCounts();
+        BreadCrumb();
         filteredVenues = venues.ToList();
 
     }
@@ -1308,7 +1384,7 @@
         if (rounded < now)
             rounded = rounded.AddHours(1);
 
-        editingEvent.ShowDate = rounded;
+        editingEvent.StartDateOnly = rounded;
         showEventModal = true;
     }
 
@@ -1325,7 +1401,10 @@
             VenueId = evt.VenueId,
             TicketPrice = evt.TicketPrice,
             ImageUrl = evt.ImageUrl,
-            ShowDate = evt.ShowDate,
+            StartDateOnly = evt.StartDateOnly,
+            StartTime = evt.StartTime,
+            EndDateOnly = evt.EndDateOnly,
+            EndTime = evt.EndTime,
             Duration = evt.Duration,
             CityId = evt.CityId
         };
@@ -1353,25 +1432,132 @@
     //    return true;
     //}
 
-    private async Task SaveEvent(EventDto evt)
+    //private async Task SaveEvent(EventDto evt)
+    //{
+    //    isProcessing = true;
+    //    StateHasChanged();
+    //    try
+    //    {
+    //        //if (!ConvertDuration())
+    //        //{
+    //        //    toastService.ShowError("Invalid duration format. Use HH:mm (e.g., 02:30).");
+    //        //    return;
+    //        //}
+    //        if (string.IsNullOrWhiteSpace(editingEvent.EventType) &&
+    //            string.IsNullOrWhiteSpace(editingEvent.Genre))
+    //        {
+    //            ValidateTypeGenre();
+    //            toastService.ShowError("Please fill at least EventType or Genre.");
+    //            return;
+    //        }
+
+
+    //        var content = new MultipartFormDataContent();
+
+    //        content.Add(new StringContent(evt.Title ?? ""), "Title");
+    //        content.Add(new StringContent(evt.EventType ?? ""), "EventType");
+    //        content.Add(new StringContent(evt.Description ?? ""), "Description");
+    //        content.Add(new StringContent(evt.Genre ?? ""), "Genre");
+    //        content.Add(new StringContent(evt.Language ?? ""), "Language");
+
+    //        if (evt.VenueId > 0)
+    //            content.Add(new StringContent(evt.VenueId.ToString()), "VenueId");
+
+    //        if (evt.CityId.HasValue && evt.CityId > 0)
+    //            content.Add(new StringContent(evt.CityId.Value.ToString()), "CityId");
+
+    //        content.Add(new StringContent(evt.Duration.ToString(@"hh\:mm\:ss")), "Duration");
+    //        content.Add(new StringContent(evt.ShowDate.ToString("yyyy-MM-ddTHH:mm:ss")), "ShowDate");
+    //        content.Add(new StringContent(evt.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
+
+    //        // IMAGE
+    //        if (selectedImageFile != null)
+    //        {
+    //            var stream = selectedImageFile.OpenReadStream(10_000_000);
+    //            var fileContent = new StreamContent(stream);
+    //            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedImageFile.ContentType);
+    //            content.Add(fileContent, "ImageFile", selectedImageFile.Name);
+    //        }
+    //        else if (evt.Id > 0)
+    //        {
+    //            content.Add(new StringContent(evt.ImageUrl ?? ""), "ImageUrl");
+    //        }
+
+
+    //        // MANAGER FLOW
+
+    //        if (isManager)
+    //        {
+    //            HttpResponseMessage response;
+
+    //            if (evt.Id > 0)
+    //                response = await Http.PutAsync($"api/ManagerEvent/update/{evt.Id}", content);
+    //            else
+    //                response = await Http.PostAsync("api/ManagerEvent/create", content);
+
+    //            string body = await response.Content.ReadAsStringAsync();
+
+    //            if (!response.IsSuccessStatusCode)
+    //            {
+    //                toastService.ShowError(body);
+    //                return;
+    //            }
+
+    //            toastService.ShowSuccess("Event saved successfully.");
+    //            await LoadManagerEvents();
+
+    //            showEventModal = false;
+    //            selectedImageFile = null;
+    //            return;
+    //        }
+
+
+    //        // ADMIN FLOW
+
+    //        if (isAdmin)
+    //        {
+    //            if (evt.Id > 0)
+    //                await AdminService.UpdateEventAsync(evt.Id, evt, selectedImageFile);
+    //            else
+    //                await AdminService.AddEventAsync(evt, selectedImageFile);
+
+    //            toastService.ShowSuccess("Event saved successfully!");
+
+    //            await LoadAdminEvents();
+
+    //            showEventModal = false;
+    //            selectedImageFile = null;
+    //            return;
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        toastService.ShowError("Error: " + ex.Message);
+    //        Console.WriteLine("Save Event Error: " + ex);
+    //    }
+    //    finally
+    //    {
+    //        isProcessing = false;
+    //        StateHasChanged();
+    //    }
+    //}
+
+    private async Task SaveEvent()
     {
         isProcessing = true;
         StateHasChanged();
+
         try
         {
-            //if (!ConvertDuration())
-            //{
-            //    toastService.ShowError("Invalid duration format. Use HH:mm (e.g., 02:30).");
-            //    return;
-            //}
-            if (string.IsNullOrWhiteSpace(editingEvent.EventType) &&
-    string.IsNullOrWhiteSpace(editingEvent.Genre))
+            var evt = editingEvent;  // ← USE THE REAL MODEL HERE
+
+            if (string.IsNullOrWhiteSpace(evt.EventType) &&
+                string.IsNullOrWhiteSpace(evt.Genre))
             {
                 ValidateTypeGenre();
                 toastService.ShowError("Please fill at least EventType or Genre.");
                 return;
             }
-
 
             var content = new MultipartFormDataContent();
 
@@ -1388,24 +1574,25 @@
                 content.Add(new StringContent(evt.CityId.Value.ToString()), "CityId");
 
             content.Add(new StringContent(evt.Duration.ToString(@"hh\:mm\:ss")), "Duration");
-            content.Add(new StringContent(evt.ShowDate.ToString("yyyy-MM-ddTHH:mm:ss")), "ShowDate");
+            content.Add(new StringContent(evt.StartDate.ToString("o")), "StartDate");
+            content.Add(new StringContent(evt.EndDate.ToString("o")), "EndDate");
+
+
             content.Add(new StringContent(evt.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
 
-            // IMAGE
             if (selectedImageFile != null)
             {
                 var stream = selectedImageFile.OpenReadStream(10_000_000);
                 var fileContent = new StreamContent(stream);
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedImageFile.ContentType);
+                fileContent.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue(selectedImageFile.ContentType);
+
                 content.Add(fileContent, "ImageFile", selectedImageFile.Name);
             }
-            else if (evt.Id > 0)
+            else
             {
                 content.Add(new StringContent(evt.ImageUrl ?? ""), "ImageUrl");
             }
-
-
-            // MANAGER FLOW
 
             if (isManager)
             {
@@ -1416,8 +1603,7 @@
                 else
                     response = await Http.PostAsync("api/ManagerEvent/create", content);
 
-                string body = await response.Content.ReadAsStringAsync();
-
+                var body = await response.Content.ReadAsStringAsync();
                 if (!response.IsSuccessStatusCode)
                 {
                     toastService.ShowError(body);
@@ -1426,14 +1612,10 @@
 
                 toastService.ShowSuccess("Event saved successfully.");
                 await LoadManagerEvents();
-
                 showEventModal = false;
                 selectedImageFile = null;
                 return;
             }
-
-
-            // ADMIN FLOW
 
             if (isAdmin)
             {
@@ -1443,9 +1625,7 @@
                     await AdminService.AddEventAsync(evt, selectedImageFile);
 
                 toastService.ShowSuccess("Event saved successfully!");
-
                 await LoadAdminEvents();
-
                 showEventModal = false;
                 selectedImageFile = null;
                 return;
@@ -1454,7 +1634,6 @@
         catch (Exception ex)
         {
             toastService.ShowError("Error: " + ex.Message);
-            Console.WriteLine("Save Event Error: " + ex);
         }
         finally
         {
@@ -1700,12 +1879,12 @@
     }
 
     private void OpenDeleteCityModal(int id )
-        {
+    {
         deleteType = "city";
         deleteCityId = id;
         showDeleteModal = true;
 
-        }
+    }
 
 
     private async Task DeleteCity(int id)
@@ -1874,16 +2053,16 @@
 
         return selectedDateFilter switch
         {
-            "today" => events.Where(e => e.ShowDate.Date == today),
-            "tomorrow" => events.Where(e => e.ShowDate.Date == tomorrow),
+            "today" => events.Where(e => e.StartDateOnly.Date == today),
+            "tomorrow" => events.Where(e => e.StartDateOnly.Date == tomorrow),
             "weekend" => events.Where(e =>
-                e.ShowDate.Date == saturday ||
-                e.ShowDate.Date == sunday),
+                e.StartDateOnly.Date == saturday ||
+                e.StartDateOnly.Date == sunday),
 
             "custom" when customStartDate.HasValue && customEndDate.HasValue =>
                 events.Where(e =>
-                    e.ShowDate.Date >= customStartDate.Value.Date &&
-                    e.ShowDate.Date <= customEndDate.Value.Date),
+                    e.StartDateOnly.Date >= customStartDate.Value.Date &&
+                    e.StartDateOnly.Date <= customEndDate.Value.Date),
 
             _ => events
         };

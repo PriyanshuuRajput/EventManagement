@@ -457,7 +457,7 @@
 </style>
 
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-1">
 
     <!--Header-->
     @*<div class="d-flex justify-content-between align-items-center mb-4">
@@ -470,26 +470,10 @@
             </button>
         </div>*@
 
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item active" aria-current="page">Home</li>
-        </ol>
-    </nav>
+    <!--BreadCrumbs-->
 
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Library</li>
-        </ol>
-    </nav>
+    <BreadCrumbs Items ="@breadcrumbItems"/>
 
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Home</a></li>
-            <li class="breadcrumb-item"><a href="#">Library</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Data</li>
-        </ol>
-    </nav>
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h3 class="fw-bold text-dark mb-0" style="font-size:30px">
             <i class="bi bi-speedometer2 me-2"></i>
@@ -739,8 +723,8 @@
 
                                     <!-- Event Date -->
                                     <td>
-                                        <div class="event-title">@evt.ShowDate.ToString("dd-MMM-yyyy")</div>
-                                        <div class="event-sub">@evt.ShowDate.ToString("hh:mm tt")</div>
+                                        <div class="event-title">@evt.StartDate.ToString("dd-MMM-yyyy")</div>
+                                        <div class="event-sub">@evt.StartDate.ToString("hh:mm tt")</div>
                                     </td>
 
                                     <!-- Created -->
@@ -849,7 +833,7 @@
                                     <div class="card-body">
                                         <h5 class="fw-bold text-primary">@evt.Title</h5>
                                         <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
-                                        <p class="mb-1"><strong>Date:</strong> @evt.ShowDate.ToString("dd MMM yyyy")</p>
+                                        <p class="mb-1"><strong>Date:</strong> @evt.StartDate.ToString("dd MMM yyyy")</p>
                                         <p class="mb-0"><strong>Ticket Price:</strong> @evt.TicketPrice.ToString("C")</p>
                                     </div>
                                 </div>
@@ -886,7 +870,7 @@
                                     <div class="card-body">
                                         <h5 class="fw-bold text-secondary">@evt.Title</h5>
                                         <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
-                                        <p class="mb-1"><strong>Date:</strong> @evt.ShowDate.ToString("dd MMM yyyy")</p>
+                                        <p class="mb-1"><strong>Date:</strong> @evt.StartDate.ToString("dd MMM yyyy")</p>
                                         <p class="mb-0"><strong>Price:</strong> ₹@evt.TicketPrice.ToString()</p>
                                     </div>
                                 </div>
@@ -969,10 +953,18 @@
     private int BookingsCount = 0;
     private int CurrentEvents = 0;
 
-    private List<EventDto> OngoingEvents => Events.Where(e => e.ShowDate <= DateTime.Today && e.ShowDate.AddDays(1) >= DateTime.Today).ToList();
-    private List<EventDto> UpcomingEvents => Events.Where(e => e.ShowDate > DateTime.Today && e.ShowDate <= DateTime.Today.AddDays(10)).ToList();
+    private List<EventDto> OngoingEvents =>Events.Where(e =>e.Status == EventStatus.AdminApproved && e.StartDate.Date == DateTime.Today).ToList();
+
+    private List<EventDto> UpcomingEvents => Events.Where(e => e.Status == EventStatus.AdminApproved && e.StartDate.Date == DateTime.Today.AddDays(10)).ToList();
 
     private List<(string Title, string Icon, int Value,string color, string Route)> SummaryCards = new();
+
+    private List<BreadCrumbItemDto> breadcrumbItems = new()
+    {
+        new BreadCrumbItemDto("Home","/admin-dashboard"),
+        new BreadCrumbItemDto("Dashboard","/admin-dashboard", true)
+    };
+
 
 
     private void SetStatus(string status)
@@ -986,7 +978,9 @@
         Events = await adminService.GetAllEventsAsync();
         BookingsCount = 0;
         Managers = await adminService.GetAllManagersAsync();
-        CurrentEvents = Events.Count(e => e.ShowDate >= DateTime.Today);
+        CurrentEvents = Events.Count( e => e.Status == EventStatus.AdminApproved && e.StartDate.Date >= DateTime.Today
+        );
+
 
         SummaryCards = new()
 {

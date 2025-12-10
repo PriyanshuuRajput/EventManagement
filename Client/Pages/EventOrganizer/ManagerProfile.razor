@@ -539,374 +539,374 @@
 
 
     @code {
-private ManagerProfileDto model = new();
-    //private EditContext editContext;
-    //private ValidationMessageStore messageStore;
+        private ManagerProfileDto model = new();
+        //private EditContext editContext;
+        //private ValidationMessageStore messageStore;
 
 
 
-    string? errorMessage;
-    string? email;
-    string? uploadError;
+        string? errorMessage;
+        string? email;
+        string? uploadError;
 
 
-    int currentStep = 1;
+        int currentStep = 1;
 
-    bool isCountryOpen = false;
-    bool isStateOpen = false;
-    bool show = false;
-    public bool AcceptTerms { get; set; }
-    bool isSubmitting = false;
-
-
-
-    List<StateDto> states = new();
-    List<CountryDto> countries = new();
-    [CascadingParameter] public MainLayout? Layout { get; set; }
+        bool isCountryOpen = false;
+        bool isStateOpen = false;
+        bool show = false;
+        public bool AcceptTerms { get; set; }
+        bool isSubmitting = false;
 
 
 
+        List<StateDto> states = new();
+        List<CountryDto> countries = new();
+        [CascadingParameter] public MainLayout? Layout { get; set; }
 
 
-    private string GetLineWidth()
-    {
-        return currentStep switch
+
+
+
+        private string GetLineWidth()
         {
-            1 => "0%",
-            2 => "50%",
-            3 => "100%",
-            _ => "0%"
-        };
-    }
-
-
-
-    protected override async Task OnInitializedAsync()
-    {
-
-        email = await JS.InvokeAsync<string>("localStorage.getItem", "email");
-        countries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
-
-    }
-    //protected override async Task OnInitializedAsync()
-    //{
-
-    //    model = new ManagerProfileDto();
-    //    editContext = new EditContext(model);
-    //    messageStore = new ValidationMessageStore(editContext);
-
-    //    email = await JS.InvokeAsync<string>("localStorage.getItem", "email");
-    //    countries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
-    //}
-
-    void ToggleCountryDropdown()
-    {
-        isCountryOpen = !isCountryOpen;
-    }
-
-    void CloseCountryDropdown()
-    {
-        isCountryOpen = false;
-    }
-
-    void ToggleStateDropdown()
-    {
-        isStateOpen = !isStateOpen;
-    }
-
-    void CloseStateDropdown()
-    {
-        isStateOpen = false;
-    }
-
-    private async Task OnCountryChanged(ChangeEventArgs e)
-    {
-
-        if (Guid.TryParse(e?.Value?.ToString(), out var gid))
-        {
-            model.CountryId = gid;
-        }
-        else
-        {
-            model.CountryId = Guid.Empty;
-        }
-
-        // load states for this country
-        states = await Http.GetFromJsonAsync<List<StateDto>>($"api/State/by-country/{model.CountryId}");
-
-        // reset state selection
-        model.StateId = Guid.Empty;
-
-        // ensure validation UI updates (clear country/state messages)
-        var countryField = new FieldIdentifier(model, nameof(model.CountryId));
-        var stateField = new FieldIdentifier(model, nameof(model.StateId));
-
-    }
-
-
-
-    private bool ValidateStep1()
-    {
-        errorMessage = null;
-
-
-        if (string.IsNullOrWhiteSpace(model.FirstName) ||
-            string.IsNullOrWhiteSpace(model.Mobile) ||
-            string.IsNullOrWhiteSpace(model.OldPassword) ||
-            string.IsNullOrWhiteSpace(model.NewPassword) ||
-            string.IsNullOrWhiteSpace(model.ConfirmPassword))
-        {
-            errorMessage = "All required fields must be filled.";
-            return false;
-        }
-
-        if (model.NewPassword.Length < 6)
-        {
-            errorMessage = "New password must be at least 6 characters long.";
-            return false;
-        }
-
-        if (model.NewPassword != model.ConfirmPassword)
-        {
-            errorMessage = "New and confirm passwords do not match.";
-            return false;
-        }
-
-
-        return true;
-    }
-
-    //private bool ValidateStep1()
-    //{
-    //    messageStore.Clear();
-    //    bool isValid = editContext.Validate();
-
-    //    if (!isValid)
-    //        return false;
-
-    //    if (model.NewPassword != model.ConfirmPassword)
-    //    {
-    //        messageStore.Add(() => model.ConfirmPassword, "Passwords do not match.");
-    //        editContext.NotifyValidationStateChanged();
-    //        return false;
-    //    }
-
-    //    return true;
-    //}
-
-    private bool ValidateStep2()
-    {
-        errorMessage = null;
-
-        if (model.CountryId == Guid.Empty ||
-            model.StateId == Guid.Empty ||
-            string.IsNullOrWhiteSpace(model.Address))
-        {
-            errorMessage = "All required fields must be filled.";
-            return false;
-        }
-
-        // Alternate email cannot match login email
-        if (!string.IsNullOrWhiteSpace(model.AlternateEmail) &&
-            !string.IsNullOrWhiteSpace(email) &&
-            model.AlternateEmail.Trim().ToLower() == email.Trim().ToLower())
-        {
-            errorMessage = "Alternate email cannot be the same as your login email.";
-            return false;
-        }
-
-        return true;
-    }
-
-
-
-    private bool ValidateProperties(string[] properties, ValidationContext context, List<ValidationResult> results)
-    {
-        bool valid = true;
-
-        foreach (var prop in properties)
-        {
-            context.MemberName = prop;
-            var value = model.GetType().GetProperty(prop)?.GetValue(model);
-
-            if (!Validator.TryValidateProperty(value, context, results))
+            return currentStep switch
             {
-                valid = false;
-            }
+                1 => "0%",
+                2 => "50%",
+                3 => "100%",
+                _ => "0%"
+            };
         }
 
-        return valid;
-    }
-
-    //private bool ValidateStep2()
-    //{
-    //    messageStore.Clear();
-
-    //    bool valid = true;
-
-    //    if (model.CountryId == Guid.Empty)
-    //    {
-    //        messageStore.Add(() => model.CountryId, "Country is required.");
-    //        valid = false;
-    //    }
-
-    //    if (model.StateId == Guid.Empty)
-    //    {
-    //        messageStore.Add(() => model.StateId, "State is required.");
-    //        valid = false;
-    //    }
-
-    //    if (string.IsNullOrWhiteSpace(model.Address))
-    //    {
-    //        messageStore.Add(() => model.Address, "Address is required.");
-    //        valid = false;
-    //    }
-
-    //    editContext.NotifyValidationStateChanged();
-    //    return valid;
-    //}
 
 
-    private async Task NextStep()
-    {
-        bool valid = currentStep switch
+        protected override async Task OnInitializedAsync()
         {
-            1 => ValidateStep1(),
-            2 => ValidateStep2(),
-            _ => true
-        };
 
-        if (!valid) return;
+            email = await JS.InvokeAsync<string>("localStorage.getItem", "email");
+            countries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
 
-        if (currentStep == 1)
-            model.ManagerName = $"{model.FirstName} {model.LastName}";
+        }
+        //protected override async Task OnInitializedAsync()
+        //{
 
-        if (currentStep == 2)
+        //    model = new ManagerProfileDto();
+        //    editContext = new EditContext(model);
+        //    messageStore = new ValidationMessageStore(editContext);
+
+        //    email = await JS.InvokeAsync<string>("localStorage.getItem", "email");
+        //    countries = await Http.GetFromJsonAsync<List<CountryDto>>("api/countries");
+        //}
+
+        void ToggleCountryDropdown()
         {
-            var st = states.FirstOrDefault(s => s.Id == model.StateId)?.Name;
-            var cn = countries.FirstOrDefault(c => c.Id == model.CountryId)?.Name;
-            model.Address = $"{model.Address} {st} {cn}";
+            isCountryOpen = !isCountryOpen;
         }
 
-        currentStep++;
-        await Task.CompletedTask;
-    }
-
-    //private async Task NextStep()
-    //{
-    //    bool valid = currentStep switch
-    //    {
-    //        1 => ValidateStep1(),
-    //        2 => ValidateStep2(),
-    //        _ => true
-    //    };
-
-    //    if (!valid)
-    //        return;
-
-    //    if (currentStep == 1)
-    //        model.ManagerName = $"{model.FirstName} {model.LastName}";
-
-    //    if (currentStep == 2)
-    //    {
-    //        var st = states.FirstOrDefault(s => s.Id == model.StateId)?.Name;
-    //        var cn = countries.FirstOrDefault(c => c.Id == model.CountryId)?.Name;
-    //        model.Address = $"{model.Address} {st} {cn}";
-    //    }
-
-    //    currentStep++;
-    //}
-
-
-
-    private Task PrevStep()
-    {
-        currentStep--;
-        return Task.CompletedTask;
-    }
-
-    private async Task HandleImageUpload(InputFileChangeEventArgs e)
-    {
-        uploadError = null;
-        var file = e.File;
-
-        var allowedFormats = new[] { "image/jpeg", "image/png", "image/jpeg" };
-
-        if (!allowedFormats.Contains(file.ContentType))
+        void CloseCountryDropdown()
         {
-            uploadError = "Only Jpeg or Png images are allowed.";
-
-            return;
+            isCountryOpen = false;
         }
 
-        long maxSize = 2 * 1024 * 1024;
-        if (file.Size > maxSize)
+        void ToggleStateDropdown()
         {
-            uploadError = "Image size must be less than 2 Mb.";
+            isStateOpen = !isStateOpen;
         }
 
-        using var stream = file.OpenReadStream(maxAllowedSize: maxSize);
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-
-        var bytes = ms.ToArray();
-
-        model.Image = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
-
-
-
-    }
-    private void RemoveImage()
-    {
-        model.Image = null;
-    }
-
-    private async Task Submit()
-    {
-        if (!model.AcceptTerms) return;
-
-        isSubmitting = true;
-        StateHasChanged();
-
-        try
+        void CloseStateDropdown()
         {
-            errorMessage = null;
+            isStateOpen = false;
+        }
 
-            string token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        private async Task OnCountryChanged(ChangeEventArgs e)
+        {
 
-            if (string.IsNullOrWhiteSpace(token))
+            if (Guid.TryParse(e?.Value?.ToString(), out var gid))
             {
-                token = await SessionStorage.GetItemAsync<string>("authToken");
-            }
-
-            Http.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", token);
-
-            var response = await Http.PostAsJsonAsync(
-                "api/ManagerEvent/manager-changepassword-profilesetup",
-                model
-            );
-
-            if (response.IsSuccessStatusCode)
-            {
-                await JS.InvokeVoidAsync("localStorage.setItem", "IsProfileComplete", "true");
-                Nav.NavigateTo("/manager-profile", true);
+                model.CountryId = gid;
             }
             else
             {
-                errorMessage = await response.Content.ReadAsStringAsync();
+                model.CountryId = Guid.Empty;
             }
+
+            // load states for this country
+            states = await Http.GetFromJsonAsync<List<StateDto>>($"api/State/by-country/{model.CountryId}");
+
+            // reset state selection
+            model.StateId = Guid.Empty;
+
+            // ensure validation UI updates (clear country/state messages)
+            var countryField = new FieldIdentifier(model, nameof(model.CountryId));
+            var stateField = new FieldIdentifier(model, nameof(model.StateId));
+
         }
-        catch (Exception ex)
+
+
+
+        private bool ValidateStep1()
         {
-            errorMessage = ex.Message;
+            errorMessage = null;
+
+
+            if (string.IsNullOrWhiteSpace(model.FirstName) ||
+                string.IsNullOrWhiteSpace(model.Mobile) ||
+                string.IsNullOrWhiteSpace(model.OldPassword) ||
+                string.IsNullOrWhiteSpace(model.NewPassword) ||
+                string.IsNullOrWhiteSpace(model.ConfirmPassword))
+            {
+                errorMessage = "All required fields must be filled.";
+                return false;
+            }
+
+            if (model.NewPassword.Length < 6)
+            {
+                errorMessage = "New password must be at least 6 characters long.";
+                return false;
+            }
+
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                errorMessage = "New and confirm passwords do not match.";
+                return false;
+            }
+
+
+            return true;
         }
 
-        isSubmitting = false;
-        StateHasChanged();
-    }
+        //private bool ValidateStep1()
+        //{
+        //    messageStore.Clear();
+        //    bool isValid = editContext.Validate();
+
+        //    if (!isValid)
+        //        return false;
+
+        //    if (model.NewPassword != model.ConfirmPassword)
+        //    {
+        //        messageStore.Add(() => model.ConfirmPassword, "Passwords do not match.");
+        //        editContext.NotifyValidationStateChanged();
+        //        return false;
+        //    }
+
+        //    return true;
+        //}
+
+        private bool ValidateStep2()
+        {
+            errorMessage = null;
+
+            if (model.CountryId == Guid.Empty ||
+                model.StateId == Guid.Empty ||
+                string.IsNullOrWhiteSpace(model.Address))
+            {
+                errorMessage = "All required fields must be filled.";
+                return false;
+            }
+
+            // Alternate email cannot match login email
+            if (!string.IsNullOrWhiteSpace(model.AlternateEmail) &&
+                !string.IsNullOrWhiteSpace(email) &&
+                model.AlternateEmail.Trim().ToLower() == email.Trim().ToLower())
+            {
+                errorMessage = "Alternate email cannot be the same as your login email.";
+                return false;
+            }
+
+            return true;
+        }
+
+
+
+        private bool ValidateProperties(string[] properties, ValidationContext context, List<ValidationResult> results)
+        {
+            bool valid = true;
+
+            foreach (var prop in properties)
+            {
+                context.MemberName = prop;
+                var value = model.GetType().GetProperty(prop)?.GetValue(model);
+
+                if (!Validator.TryValidateProperty(value, context, results))
+                {
+                    valid = false;
+                }
+            }
+
+            return valid;
+        }
+
+        //private bool ValidateStep2()
+        //{
+        //    messageStore.Clear();
+
+        //    bool valid = true;
+
+        //    if (model.CountryId == Guid.Empty)
+        //    {
+        //        messageStore.Add(() => model.CountryId, "Country is required.");
+        //        valid = false;
+        //    }
+
+        //    if (model.StateId == Guid.Empty)
+        //    {
+        //        messageStore.Add(() => model.StateId, "State is required.");
+        //        valid = false;
+        //    }
+
+        //    if (string.IsNullOrWhiteSpace(model.Address))
+        //    {
+        //        messageStore.Add(() => model.Address, "Address is required.");
+        //        valid = false;
+        //    }
+
+        //    editContext.NotifyValidationStateChanged();
+        //    return valid;
+        //}
+
+
+        private async Task NextStep()
+        {
+            bool valid = currentStep switch
+            {
+                1 => ValidateStep1(),
+                2 => ValidateStep2(),
+                _ => true
+            };
+
+            if (!valid) return;
+
+            if (currentStep == 1)
+                model.ManagerName = $"{model.FirstName} {model.LastName}";
+
+            if (currentStep == 2)
+            {
+                var st = states.FirstOrDefault(s => s.Id == model.StateId)?.Name;
+                var cn = countries.FirstOrDefault(c => c.Id == model.CountryId)?.Name;
+                model.Address = $"{model.Address} {st} {cn}";
+            }
+
+            currentStep++;
+            await Task.CompletedTask;
+        }
+
+        //private async Task NextStep()
+        //{
+        //    bool valid = currentStep switch
+        //    {
+        //        1 => ValidateStep1(),
+        //        2 => ValidateStep2(),
+        //        _ => true
+        //    };
+
+        //    if (!valid)
+        //        return;
+
+        //    if (currentStep == 1)
+        //        model.ManagerName = $"{model.FirstName} {model.LastName}";
+
+        //    if (currentStep == 2)
+        //    {
+        //        var st = states.FirstOrDefault(s => s.Id == model.StateId)?.Name;
+        //        var cn = countries.FirstOrDefault(c => c.Id == model.CountryId)?.Name;
+        //        model.Address = $"{model.Address} {st} {cn}";
+        //    }
+
+        //    currentStep++;
+        //}
+
+
+
+        private Task PrevStep()
+        {
+            currentStep--;
+            return Task.CompletedTask;
+        }
+
+        private async Task HandleImageUpload(InputFileChangeEventArgs e)
+        {
+            uploadError = null;
+            var file = e.File;
+
+            var allowedFormats = new[] { "image/jpeg", "image/png", "image/jpeg" };
+
+            if (!allowedFormats.Contains(file.ContentType))
+            {
+                uploadError = "Only Jpeg or Png images are allowed.";
+
+                return;
+            }
+
+            long maxSize = 2 * 1024 * 1024;
+            if (file.Size > maxSize)
+            {
+                uploadError = "Image size must be less than 2 Mb.";
+            }
+
+            using var stream = file.OpenReadStream(maxAllowedSize: maxSize);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+
+            var bytes = ms.ToArray();
+
+            model.Image = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
+
+
+
+        }
+        private void RemoveImage()
+        {
+            model.Image = null;
+        }
+
+        private async Task Submit()
+        {
+            if (!model.AcceptTerms) return;
+
+            isSubmitting = true;
+            StateHasChanged();
+
+            try
+            {
+                errorMessage = null;
+
+                string token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    token = await SessionStorage.GetItemAsync<string>("authToken");
+                }
+
+                Http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+
+                var response = await Http.PostAsJsonAsync(
+                    "api/ManagerEvent/manager-changepassword-profilesetup",
+                    model
+                );
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("localStorage.setItem", "IsProfileComplete", "true");
+                    Nav.NavigateTo("/manager-profile", true);
+                }
+                else
+                {
+                    errorMessage = await response.Content.ReadAsStringAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+
+            isSubmitting = false;
+            StateHasChanged();
+        }
 
 
 
 
-    }
+}

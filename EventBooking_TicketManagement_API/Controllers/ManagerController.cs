@@ -108,7 +108,9 @@ namespace EventBooking_TicketManagement_API.Controllers
                 using var stream = new FileStream(path, FileMode.Create);
                 await dto.ImageFile.CopyToAsync(stream);
 
-                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{file}";
+                var baseUrl = $"{Request.Scheme}://{Request.Host}".Replace("http://", "https://");
+                dto.ImageUrl = $"{baseUrl}/Uploads/{file}";
+
             }
 
             var venue = await _db.Venues.FindAsync(dto.VenueId);
@@ -180,7 +182,9 @@ namespace EventBooking_TicketManagement_API.Controllers
                 using var stream = new FileStream(filePath, FileMode.Create);
                 await dto.ImageFile.CopyToAsync(stream);
 
-                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/Uploads/{fileName}";
+                var baseUrl = $"{Request.Scheme}://{Request.Host}".Replace("http://", "https://");
+                dto.ImageUrl = $"{baseUrl}/Uploads/{fileName}";
+
             }
             else
             {
@@ -192,11 +196,12 @@ namespace EventBooking_TicketManagement_API.Controllers
                 Id = id,
                 Title = dto.Title,
                 EventType = dto.EventType,
-                Description = dto.Description,
+                Description = dto.Description ?? "",
                 Genre = dto.Genre,
-                Language = dto.Language,
+                Language = dto.Language ?? "",
                 Duration = dto.Duration,
-                ShowDate = dto.ShowDate,
+                StartDateOnly = dto.StartDate,
+                EndDateOnly = dto.EndDate,
                 VenueId = dto.VenueId,
                 CityId = dto.CityId,
                 TicketPrice = dto.TicketPrice,
@@ -209,7 +214,7 @@ namespace EventBooking_TicketManagement_API.Controllers
                 ApprovedAt = existingEvent.ApprovedAt,
                 TotalTickets = existingEvent.TotalTickets,
                 SoldTickets = existingEvent.SoldTickets,
-            });
+            }, false);
 
             return Ok("Event updated successfully.");
         }

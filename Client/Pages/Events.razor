@@ -1,5 +1,5 @@
 ﻿@page "/events"
-@attribute [Authorize]
+
 @inject HttpClient Http
 @inject NavigationManager Nav
 
@@ -130,7 +130,7 @@
                                      class="card-img-top" alt="@ev.Title" style="height:180px; object-fit:cover;" />
                                 <div class="card-body">
                                     <h5 class="card-title">@ev.Title</h5>
-                                    <p class="card-text mb-1"><i class="bi bi-calendar-event me-2"></i>@ev.ShowDate.ToString("dd MMM yyyy")</p>
+                                    <p class="card-text mb-1"><i class="bi bi-calendar-event me-2"></i>@ev.StartDate.ToString("dd MMM yyyy")</p>
         <p class="card-text mb-1"><i class="bi bi-clock me-2"></i>@ev.Duration.ToString(@"hh\:mm")</p>
 
                                     <!--<p class="card-text mb-1">
@@ -195,7 +195,7 @@
         {
             events = await Http.GetFromJsonAsync<List<EventDto>>("https://localhost:7239/api/Events/approved") ?? new List<EventDto>();
 
-            events = events.Where(e => e.ShowDate.Date >= DateTime.Today).ToList();
+            events = events.Where(e => e.StartDate.Date >= DateTime.Today).ToList();
             filteredEvents = events.ToList();
         }
         catch
@@ -301,8 +301,8 @@
     {
         filteredEvents = events
             .Where(ev =>
-                IsEventInSelectedDate(ev.ShowDate) &&
-                ev.ShowDate.Date>=DateTime.Today &&
+                IsEventInSelectedDate(ev.StartDate) &&
+                ev.StartDate.Date>=DateTime.Today &&
                 (selectedCategories.Count == 0 || selectedCategories.Contains(ev.EventType)) &&
                 (string.IsNullOrEmpty(selectedCity) || ev.CityName == selectedCity) &&
                 ev.TicketPrice >= minPrice && ev.TicketPrice <= maxPrice)

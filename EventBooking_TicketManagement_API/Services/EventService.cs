@@ -30,7 +30,8 @@ namespace EventBooking_TicketManagement_API.Services
                 Genre = ev.Genre,
                 Language = ev.Language,
                 Duration = ev.Duration,
-                ShowDate = ev.ShowDate,
+                StartDateOnly = ev.StartDate,
+                EndDateOnly = ev.EndDate,
                 VenueId = ev.VenueId,
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 CityName = ev.Venue?.City?.CityName ?? string.Empty,
@@ -61,7 +62,8 @@ namespace EventBooking_TicketManagement_API.Services
                 Genre = ev.Genre,
                 Language = ev.Language,
                 Duration = ev.Duration,
-                ShowDate = ev.ShowDate,
+                StartDateOnly = ev.StartDate,
+                EndDateOnly = ev.EndDate,
                 VenueId = ev.VenueId,
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 CityName = ev.Venue?.City?.CityName ?? string.Empty,
@@ -85,11 +87,12 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Title = dto.Title,
                 EventType = dto.EventType,
-                Description = dto.Description,
+                Description = dto.Description ?? "",
                 Genre = dto.Genre,
-                Language = dto.Language,
+                Language = dto.Language ?? "",
                 Duration = dto.Duration,
-                ShowDate = dto.ShowDate,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate,
                 VenueId = dto.VenueId,
                 TicketPrice = dto.TicketPrice,
                 ImageUrl = dto.ImageUrl,
@@ -110,24 +113,25 @@ namespace EventBooking_TicketManagement_API.Services
             await _eventRepository.AddAsync(ev);
         }
 
-        public async Task UpdateEventAsync(int id, EventDto dto)
+        public async Task UpdateEventAsync(int id, EventDto dto, bool isAdmin)
         {
             var ev = await _eventRepository.GetByIdAsync(id);
             if (ev == null)
                 throw new KeyNotFoundException($"Event with Id {id} not found.");
 
-            if (ev.Status == EventStatus.AdminApproved)
+            if (ev.Status == EventStatus.AdminApproved && !isAdmin)
                 throw new InvalidOperationException(
                     "This event is already published. Edit requires admin approval."
                 );
 
             ev.Title = dto.Title;
             ev.EventType = dto.EventType;
-            ev.Description = dto.Description;
+            ev.Description = dto.Description ?? "";
             ev.Genre = dto.Genre;
-            ev.Language = dto.Language;
+            ev.Language = dto.Language ?? "";
             ev.Duration = dto.Duration;
-            ev.ShowDate = dto.ShowDate;
+            ev.StartDate = dto.StartDate;
+            ev.EndDate = dto.EndDate;
 
             if (dto.VenueId > 0)
                 ev.VenueId = dto.VenueId;
@@ -178,9 +182,11 @@ namespace EventBooking_TicketManagement_API.Services
 
         public async Task<EventDto> CreateEventAsync(ManagerEventDto mdto, int managerId, string managerName)
         {
-            if (mdto.ShowDate <= DateTime.UtcNow)
-                throw new InvalidOperationException("ShowDate must be in the future.");
+            if (mdto.StartDateOnly <= DateTime.Now)
+                throw new InvalidOperationException("Start Date must be in the future.");
 
+            if (mdto.EndDateOnly < mdto.StartDateOnly)
+                throw new InvalidOperationException("End Date cannot be before Start Date.");
             //var ev = new Event
             //{
             //    Title = mdto.Title,
@@ -210,11 +216,12 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Title = mdto.Title,
                 EventType = mdto.EventType,
-                Description = mdto.Description,
+                Description = mdto.Description ?? "",
                 Genre = mdto.Genre,
-                Language = mdto.Language,
+                Language = mdto.Language ?? "",
                 Duration = mdto.Duration,
-                ShowDate = mdto.ShowDate,
+                StartDate = mdto.StartDateOnly,
+                EndDate = mdto.EndDateOnly,
                 TicketPrice = mdto.TicketPrice,
                 ImageUrl = string.IsNullOrWhiteSpace(mdto.ImageUrl) ? "/Uploads/no-image.png" : mdto.ImageUrl,
                 VenueId = mdto.VenueId,
@@ -243,7 +250,7 @@ namespace EventBooking_TicketManagement_API.Services
                             <h2>New Event pending Approval </h2>
                             <p><b>Title:</b> {ev.Title}</p>
                             <p><b>Manager:</b>{managerName}</p>
-                            <p><b>Date:</b> {ev.ShowDate:dd MMM yyyy HH:mm}</p>
+                            <p><b>Date:</b> {ev.StartDate:dd MMM yyyy HH:mm}</p>
                             <p>Please review and approve/reject this event .</p>
                             <p>
                                 <a href ='{approvalUrl}' style ='color:#fff; background-color:#d9534f;padding:10px 15px ; border-radius:6px; text-decoration:none;'>Review Event</a>
@@ -256,11 +263,12 @@ namespace EventBooking_TicketManagement_API.Services
                 Id = ev.Id,
                 Title = ev.Title,
                 EventType = ev.EventType,
-                Description = ev.Description,
+                Description = ev.Description ?? "",
                 Genre = ev.Genre,
-                Language = ev.Language,
+                Language = ev.Language ?? "",
                 Duration = ev.Duration,
-                ShowDate = ev.ShowDate,
+                StartDateOnly = ev.StartDate,
+                EndDateOnly = ev.EndDate,
                 TicketPrice = ev.TicketPrice,
                 ManagerId = ev.ManagerId,
                 ManagerName = ev.ManagerName,
@@ -359,11 +367,12 @@ namespace EventBooking_TicketManagement_API.Services
             Id = e.Id,
             Title = e.Title,
             EventType = e.EventType,
-            Description = e.Description,
+            Description = e.Description ?? "",
             Genre = e.Genre,
-            Language = e.Language,
+            Language = e.Language ?? "",
             Duration = e.Duration,
-            ShowDate = e.ShowDate,
+            StartDateOnly = e.StartDate,
+            EndDateOnly = e.EndDate,
             TicketPrice = e.TicketPrice,
             ImageUrl = e.ImageUrl,
             VenueName = e.Venue?.VenueName ?? string.Empty,
@@ -396,13 +405,14 @@ namespace EventBooking_TicketManagement_API.Services
                 Id = e.Id,
                 Title = e.Title,
                 EventType = e.EventType,
-                Description = e.Description,
+                Description = e.Description ?? "",
                 Genre = e.Genre,
-                Language = e.Language,
+                Language = e.Language ?? "",
 
 
                 Duration = e.Duration,
-                ShowDate = e.ShowDate,
+                StartDateOnly = e.StartDate,
+                EndDateOnly = e.EndDate,
 
 
                 TicketPrice = e.TicketPrice,
@@ -502,11 +512,12 @@ namespace EventBooking_TicketManagement_API.Services
                 Id = e.Id,
                 Title = e.Title,
                 EventType = e.EventType,
-                Description = e.Description,
+                Description = e.Description ?? "",
                 Genre = e.Genre,
-                Language = e.Language,
+                Language = e.Language ?? "",
                 Duration = e.Duration,
-                ShowDate = e.ShowDate,
+                StartDateOnly = e.StartDate,
+                EndDateOnly = e.EndDate,
                 TicketPrice = e.TicketPrice,
                 ImageUrl = e.ImageUrl,
 
