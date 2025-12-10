@@ -238,7 +238,7 @@
                         <td>
                             <div><i class="bi bi-calendar me-1"></i> @ev.StartDateOnly.ToString("dd MMM yyyy")</div>
                             <div class="small text-muted">
-                                <i class="bi bi-clock me-2"></i> @ev.Duration.Hours hr @ev.Duration.Minutes min
+                                <i class="bi bi-clock me-2"></i> @ev.Duration?.Hours hr @ev.Duration?.Minutes min
                             </div>
                         </td>
 
@@ -388,7 +388,7 @@
                     </h6>
 
                     <h4 class="small m-2"> @selectedEvent.StartDateOnly.ToString("dd MMM yyyy")</h4>
-                    <h4 class=" small m-2"> @selectedEvent.Duration.Hours hr @selectedEvent.Duration.Minutes min</h4>
+                    <h4 class=" small m-2"> @selectedEvent.Duration?.Hours hr @selectedEvent.Duration?.Minutes min</h4>
                 </div>
             </div>
             <!-- Venue Card -->

@@ -25,5 +25,9 @@ namespace Applications.Interfaces.IRepository
 
         Task<PagedResult<Event>> GetPagedEventAsync(PagedRequest req);
 
+
+        Task<Manager?> GetManagerByIdAsync(int id);
+
+
     }
 }

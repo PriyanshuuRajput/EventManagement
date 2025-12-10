@@ -8,59 +8,46 @@ namespace Applications.Dto
     {
         public int Id { get; set; }
 
-        //[Display(Name = "Event Name")]
         [Required(ErrorMessage = "Event name is required.")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 50 characters.")]
         public string Title { get; set; } = string.Empty;
 
-        //[Required(ErrorMessage = "Event type is required.")]
-        //[StringLength(20, ErrorMessage = "Event type must be 20 characters.")]
         public string? EventType { get; set; } = string.Empty;
 
-        //[Required(ErrorMessage = "Description is required.")]
-        //[StringLength(1000, MinimumLength = 3)]
         public string? Description { get; set; } = "";
 
 
         [StringLength(50)]
         [Required(ErrorMessage = "Genre is required.")]
-
         public string? Genre { get; set; } = string.Empty;
-
-        //[StringLength(50)]
-        //[Required(ErrorMessage = "Language is required.")]
         public string? Language { get; set; } = "";
 
-        //[Required(ErrorMessage = "Event Duration is required.")]
-        public TimeSpan Duration { get; set; } = TimeSpan.Zero;
+        public TimeSpan? Duration { get; set; }
 
 
         [Required(ErrorMessage = "Event duration is required.")]
         public string DurationInput
         {
-            get
-            {
-                if (Duration == TimeSpan.Zero)
-                    return string.Empty;
-
-                return Duration.ToString(@"hh\:mm");
-            }
+            get => Duration== null?"":Duration.Value.ToString(@"hh\:mm");
             set
             {
-                // Try to convert 
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    Duration = null;
+                    return;
+                }
+
                 if (TimeSpan.TryParse(value, out var parsed))
                 {
-                    Duration = parsed;      // Save the converted value
-                    DurationError = null;   // Clear the error
+                    Duration = parsed;
+                    DurationError = null;
                 }
                 else
                 {
-                    // Save an error message (Blazor will show it)
-                    DurationError = "Invalid duration format";
+                    DurationError = "Invalid duration format (use HH:mm)";
                 }
             }
         }
-        // This holds the error for Blazor to display
         public string? DurationError { get; set; }
 
         public DateTime StartDateOnly { get; set; } = DateTime.Today;
