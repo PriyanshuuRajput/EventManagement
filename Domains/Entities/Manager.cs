@@ -16,7 +16,7 @@ namespace Domains.Entities
 
         public string Address { get; set; } = string.Empty;
         //public string ContactName { get; set; } = string.Empty;
-        public string Mobile { get; set; } = string.Empty;
+        //public string Mobile { get; set; } = string.Empty;
         public string? Image { get; set; }
 
         //public string Email { get; set; } = string.Empty;

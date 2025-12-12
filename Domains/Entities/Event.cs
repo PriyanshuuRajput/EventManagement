@@ -70,7 +70,7 @@ namespace Domains.Entities
         public bool IsPrizePaid { get; set; } = false;
 
         public DateTime? PrizePaidAt { get; set; }
-        public string ManagerName { get; set; }
+        //public string ManagerName { get; set; }
         public int TotalTickets { get; set; }
         public int SoldTickets { get; set; }
     }

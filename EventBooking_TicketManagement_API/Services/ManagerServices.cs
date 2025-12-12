@@ -54,8 +54,8 @@ namespace EventBooking_TicketManagement_API.Services
             var manager = new Manager
             {
                 UserId = user.Id,
-                ManagerName = "",         // Manager will fill after approval
-                Mobile = "",
+                ManagerName = "",         
+                //Mobile = "",
                 Address = "",
                 IsApproved = false,
                 CreatedAt = DateTime.UtcNow
@@ -189,7 +189,7 @@ namespace EventBooking_TicketManagement_API.Services
 
             manager.ManagerName = dto.ManagerName;
             //manager.Email = dto.Email;
-            manager.Mobile = dto.Mobile;
+            //manager.Mobile = dto.Mobile;
             manager.Address = dto.Address;
             manager.Image = dto.Image;
             manager.IsProfileCompleted = true;
@@ -215,7 +215,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ManagerId = m.Id,
                 ManagerName = m.ManagerName,
                 Email = m.User?.Email ?? "",
-                Mobile = m.Mobile,
+                Mobile = m.User?.PhoneNumber??"",
                 Address = m.Address,
                 Image = m.Image,
                 CreatedAt = m.CreatedAt,

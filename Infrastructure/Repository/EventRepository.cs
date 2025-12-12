@@ -156,7 +156,7 @@ namespace Infrastructures.Repository
                 query = query.Where(x =>
                     x.Title.ToLower().Contains(searchLower) ||
                     x.Venue.VenueName.ToLower().Contains(searchLower) ||
-                    x.ManagerName.ToLower().Contains(searchLower)
+                    x.Managers.User.Username.ToLower().Contains(searchLower)
                 );
             }
 

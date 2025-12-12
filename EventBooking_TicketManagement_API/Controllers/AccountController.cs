@@ -198,7 +198,7 @@ namespace EventBooking_TicketManagement_API.Controllers
                 UserId = user.Id,
                 ManagerName = "",
                 Address = "",
-                Mobile = "",
+                //Mobile = "",
                 IsApproved = false,
                 CreatedAt = DateTime.UtcNow
             };

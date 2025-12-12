@@ -98,7 +98,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ImageUrl = dto.ImageUrl,
 
                 ManagerId = dto.ManagerId,
-                ManagerName = string.IsNullOrWhiteSpace(dto.ManagerName) ? "Unknown Manager" : dto.ManagerName,
+                //ManagerName = string.IsNullOrWhiteSpace(dto.ManagerName) ? "Unknown Manager" : dto.ManagerName,
 
                 Status = EventStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
@@ -148,8 +148,8 @@ namespace EventBooking_TicketManagement_API.Services
             if (dto.ManagerId > 0)
                 ev.ManagerId = dto.ManagerId;
 
-            if (!string.IsNullOrWhiteSpace(dto.ManagerName))
-                ev.ManagerName = dto.ManagerName;
+            //if (!string.IsNullOrWhiteSpace(dto.ManagerName))
+            //    ev.ManagerName = dto.ManagerName;
 
             ev.Status = EventStatus.Pending;
             ev.AdminNote = null;
@@ -187,31 +187,6 @@ namespace EventBooking_TicketManagement_API.Services
 
             if (mdto.EndDateOnly < mdto.StartDateOnly)
                 throw new InvalidOperationException("End Date cannot be before Start Date.");
-            //var ev = new Event
-            //{
-            //    Title = mdto.Title,
-            //    EventType = mdto.EventType,
-            //    Description = mdto.Description,
-            //    Genre = mdto.Genre,
-            //    Language = mdto.Language,
-            //    Duration = mdto.Duration,
-            //    ShowDate = mdto.ShowDate,
-            //    TicketPrice = mdto.TicketPrice,
-            //    ImageUrl = mdto.ImageUrl,
-            //    VenueId = mdto.VenueId,
-
-            //    ManagerId = managerId,
-            //    ManagerName = managerName,
-            //    Status = EventStatus.Pending,
-            //    CreatedAt = DateTime.UtcNow,
-            //    //OfferedEventAmount = mdto.OfferedEventAmount ?? 0m,
-            //    IsPrizePaid = false,
-            //    PrizePaidAt = null,
-            //    EventAmount = 0m,
-
-            //    TotalTickets = mdto.TotalTickets,
-            //    SoldTickets = 0
-            //};
             var ev = new Event
             {
                 Title = mdto.Title,
@@ -227,7 +202,7 @@ namespace EventBooking_TicketManagement_API.Services
                 VenueId = mdto.VenueId,
 
                 ManagerId = managerId,
-                ManagerName = managerName,
+                //ManagerName = managerName,
                 Status = EventStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 IsPrizePaid = false,
@@ -271,7 +246,7 @@ namespace EventBooking_TicketManagement_API.Services
                 EndDateOnly = ev.EndDate,
                 TicketPrice = ev.TicketPrice,
                 ManagerId = ev.ManagerId,
-                ManagerName = ev.ManagerName,
+                ManagerName = ev.Managers?.ManagerName,
                 Status = ev.Status,
                 CreatedAt = ev.CreatedAt,
                 ImageUrl = ev.ImageUrl,
@@ -312,7 +287,7 @@ namespace EventBooking_TicketManagement_API.Services
             var subject = $"Event Approved: {ev.Title}";
             var body = $@"
         <h2>Good news!</h2>
-        <p>Dear {ev.ManagerName ?? "Manager"},</p>
+        <p>Dear {ev.Managers?.ManagerName ?? "Manager"},</p>
         <p>Your event <strong>{ev.Title}</strong> has been approved by the EventiGo and is now visible to all.</p>
         <p><b>Ticket price:</b> ₹{ev.TicketPrice:N2}</p>
         <p><b>Total Tickets:</b> {ev.TotalTickets}</p>
@@ -339,7 +314,7 @@ namespace EventBooking_TicketManagement_API.Services
             string subject = $"Event Rejected:{ev.Title}";
             string body = $@"<h2>Your event was Rejected</h2>
         <
-        < p > Hi {ev.ManagerName ?? "Manager"},</ p >
+        < p > Hi {ev.Managers?.ManagerName ?? "Manager"},</ p >
         < p > Your event <strong>{ev.Title}</strong> was rejected by the admin.</p>
         <p><strong>Reason:</strong> {dto.Reason}</p>
         <p><b>What you can do:</b></p>
@@ -378,7 +353,7 @@ namespace EventBooking_TicketManagement_API.Services
             VenueName = e.Venue?.VenueName ?? string.Empty,
             Capacity = e.Venue?.Capacity ?? 0,
             ManagerId = e.ManagerId,
-            ManagerName = e.ManagerName,
+            ManagerName = e.Managers?.ManagerName??"",
             Status = e.Status,
             AdminNote = e.AdminNote,
             CreatedAt = e.CreatedAt,
@@ -528,7 +503,7 @@ namespace EventBooking_TicketManagement_API.Services
                 Capacity = e.Venue?.Capacity ?? 0,
 
                 ManagerId = e.ManagerId,
-                ManagerName = e.ManagerName,
+                ManagerName = e.Managers?.ManagerName??"",
 
                 Status = e.Status,
                 AdminNote = e.AdminNote,
