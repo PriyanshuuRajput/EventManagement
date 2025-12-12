@@ -54,8 +54,8 @@ namespace EventBooking_TicketManagement_API.Services
             var manager = new Manager
             {
                 UserId = user.Id,
-                ManagerName = "",         // Manager will fill after approval
-                Mobile = "",
+                //ManagerName = "",         // Manager will fill after approval
+                //Mobile = "",
                 Address = "",
                 IsApproved = false,
                 CreatedAt = DateTime.UtcNow
@@ -187,9 +187,9 @@ namespace EventBooking_TicketManagement_API.Services
             user.ChangePassword = false;
 
 
-            manager.ManagerName = dto.ManagerName;
+            manager.User.Username = dto.ManagerName;
             //manager.Email = dto.Email;
-            manager.Mobile = dto.Mobile;
+            //manager.Mobile = dto.Mobile;
             manager.Address = dto.Address;
             manager.Image = dto.Image;
             manager.IsProfileCompleted = true;
@@ -213,9 +213,9 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Id = m.Id,
                 ManagerId = m.Id,
-                ManagerName = m.ManagerName,
+                ManagerName = m.User?.Username ?? "",
                 Email = m.User?.Email ?? "",
-                Mobile = m.Mobile,
+                Mobile = m.User?.PhoneNumber ?? "",
                 Address = m.Address,
                 Image = m.Image,
                 CreatedAt = m.CreatedAt,
@@ -234,7 +234,7 @@ namespace EventBooking_TicketManagement_API.Services
             return pending.Select(m => new ManagerProfileDto
             {
                 Id = m.Id,
-                ManagerName = m.ManagerName,
+                ManagerName = m.User?.Username??"",
                 Email = m.User.Email,
                 Mobile = m.User.PhoneNumber,
                 Address = m.Address,
