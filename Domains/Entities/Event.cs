@@ -26,7 +26,7 @@ namespace Domains.Entities
 
         public string Language { get; set; } = string.Empty;
 
-        public TimeSpan Duration { get; set; }
+        public TimeSpan? Duration { get; set; }
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

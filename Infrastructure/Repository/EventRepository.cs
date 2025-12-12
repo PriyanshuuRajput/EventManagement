@@ -197,5 +197,11 @@ namespace Infrastructures.Repository
             };
         }
 
+
+        public async Task<Manager?> GetManagerByIdAsync(int id)
+        {
+            return await _context.Managers.FirstOrDefaultAsync(m => m.Id == id);
+        }
+
     }
 }

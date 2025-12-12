@@ -76,7 +76,7 @@ namespace EventBooking.Client.Services
             content.Add(new StringContent(dto.Language ?? ""), "Language");
 
             // Duration must be in correct TimeSpan format ("hh:mm:ss")
-            content.Add(new StringContent(dto.Duration.ToString(@"hh\:mm\:ss")), "Duration");
+            content.Add(new StringContent(dto.Duration?.ToString(@"hh\:mm\:ss")??""), "Duration");
 
             content.Add(new StringContent(dto.StartDateOnly.ToString("yyyy-MM-dd")), "StartDateOnly");
             content.Add(new StringContent(dto.StartTime.ToString(@"hh\:mm")), "StartTime");
@@ -91,6 +91,8 @@ namespace EventBooking.Client.Services
 
             content.Add(new StringContent(dto.VenueName ?? ""), "VenueName");
             content.Add(new StringContent(dto.CityName ?? ""), "CityName");
+            content.Add(new StringContent(dto.ManagerId?.ToString() ?? "0"), "ManagerId");
+            content.Add(new StringContent(dto.ManagerName ?? ""), "ManagerName");
 
             // ✅Use invariant culture for price
             content.Add(new StringContent(dto.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
@@ -125,7 +127,7 @@ namespace EventBooking.Client.Services
             content.Add(new StringContent(dto.Description ?? ""), "Description");
             content.Add(new StringContent(dto.Genre ?? ""), "Genre");
             content.Add(new StringContent(dto.Language ?? ""), "Language");
-            content.Add(new StringContent(dto.Duration.ToString(@"hh\:mm\:ss")), "Duration");
+            content.Add(new StringContent(dto.Duration?.ToString(@"hh\:mm\:ss")??""), "Duration");
             content.Add(new StringContent(dto.StartDateOnly.ToString("yyyy-MM-dd")), "StartDateOnly");
             content.Add(new StringContent(dto.StartTime.ToString(@"hh\:mm")), "StartTime");
 
@@ -139,6 +141,9 @@ namespace EventBooking.Client.Services
 
             content.Add(new StringContent(dto.VenueName ?? ""), "VenueName");
             content.Add(new StringContent(dto.CityName ?? ""), "CityName");
+            content.Add(new StringContent(dto.ManagerId?.ToString() ?? "0"), "ManagerId");
+            content.Add(new StringContent(dto.ManagerName ?? ""), "ManagerName");
+
             content.Add(new StringContent(dto.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
 
             // ✅ Handle image file (if provided)
