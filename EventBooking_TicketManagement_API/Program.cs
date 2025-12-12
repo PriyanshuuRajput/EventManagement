@@ -40,6 +40,7 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<ICountryRepository, CountryRepository>();
             builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
+            builder.Services.AddScoped<IEventCategoryRepository, EventCategoryRepository>();
 
             // ---------------------------------------------------------
             // Services
@@ -52,6 +53,7 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<ICountryService, CountryService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IManagerService, ManagerServices>();
+            builder.Services.AddScoped<IEventCategoryService,EventCategoryService>();
 
             // ---------------------------------------------------------
             // Security Services

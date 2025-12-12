@@ -32,6 +32,7 @@ namespace EventBooking_TicketManagement_API.Services
                 Duration = ev.Duration,
                 StartDateOnly = ev.StartDate,
                 EndDateOnly = ev.EndDate,
+                CategorySlug = ev.EventCategory?.Slug,
                 VenueId = ev.VenueId,
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 CityName = ev.Venue?.City?.CityName ?? string.Empty,
@@ -64,6 +65,7 @@ namespace EventBooking_TicketManagement_API.Services
                 Duration = ev.Duration,
                 StartDateOnly = ev.StartDate,
                 EndDateOnly = ev.EndDate,
+                CategorySlug = ev.EventCategory?.Slug,
                 VenueId = ev.VenueId,
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 CityName = ev.Venue?.City?.CityName ?? string.Empty,
@@ -290,6 +292,8 @@ namespace EventBooking_TicketManagement_API.Services
                 Duration = ev.Duration,
                 StartDateOnly = ev.StartDate,
                 EndDateOnly = ev.EndDate,
+                CategorySlug = ev.EventCategory?.Slug,
+
                 TicketPrice = ev.TicketPrice,
                 ManagerId = ev.ManagerId,
                 ManagerName = ev.Managers?.ManagerName??"",
@@ -394,6 +398,7 @@ namespace EventBooking_TicketManagement_API.Services
             Duration = e.Duration,
             StartDateOnly = e.StartDate,
             EndDateOnly = e.EndDate,
+            CategorySlug = e.EventCategory?.Slug,
             TicketPrice = e.TicketPrice,
             ImageUrl = e.ImageUrl,
             VenueName = e.Venue?.VenueName ?? string.Empty,
@@ -434,6 +439,7 @@ namespace EventBooking_TicketManagement_API.Services
                 Duration = e.Duration,
                 StartDateOnly = e.StartDate,
                 EndDateOnly = e.EndDate,
+                CategorySlug = e.EventCategory?.Slug,
 
 
                 TicketPrice = e.TicketPrice,
@@ -539,6 +545,7 @@ namespace EventBooking_TicketManagement_API.Services
                 Duration = e.Duration,
                 StartDateOnly = e.StartDate,
                 EndDateOnly = e.EndDate,
+                CategorySlug = e.EventCategory?.Slug,
                 TicketPrice = e.TicketPrice,
                 ImageUrl = e.ImageUrl,
 

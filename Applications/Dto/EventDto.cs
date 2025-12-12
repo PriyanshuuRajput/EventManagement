@@ -11,6 +11,8 @@ namespace Applications.Dto
         [Required(ErrorMessage = "Event name is required.")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 50 characters.")]
         public string Title { get; set; } = string.Empty;
+        public string? CategorySlug { get; set; }
+        public EventCategory? EventCategory { get; set; }
 
         public string? EventType { get; set; } = string.Empty;
 
