@@ -151,20 +151,11 @@ namespace EventBooking_TicketManagement_API.Services
 
                 end = start.Add(dto.Duration.Value);
             }
-            string managerName = ev.ManagerName; // default to existing
 
             if (dto.ManagerId.HasValue && dto.ManagerId > 0)
             {
-                ev.ManagerId = dto.ManagerId.Value;
-                var manager = await _eventRepository.GetManagerByIdAsync(dto.ManagerId.Value);
-
-                if (manager != null)
-                    managerName = manager.ManagerName;
-                else
-                    managerName = "Unknown";
+                ev.ManagerId = dto.ManagerId.Value;  
             }
-
-            ev.ManagerName = managerName;
 
             ev.Title = dto.Title;
             ev.EventType = dto.EventType;
