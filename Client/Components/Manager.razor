@@ -1,0 +1,162 @@
+﻿@using System.Text.Json
+@inject HttpClient Http
+@inject Blazored.Toast.Services.IToastService toast
+<style>
+    .custom-modal-content {
+        border-radius: 16px !important;
+        border: none !important;
+        animation: scaleIn 0.25s ease-out;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+</style>
+<div class=" modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);animation: fadein 0.3s ease-out ">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 custom-modal-content">
+            <div class="modal-header border-0">
+                <h3 class="modal-title fw-bold">Add New Manager</h3>
+                <button type="button"
+                        class="btn-close"
+                        @onclick="() => OnClose.InvokeAsync()">
+                </button>
+            </div>
+           
+            <div class="modal-body">
+
+                <EditForm Model="NewManager">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email<span class="text-danger">*</span></label>
+
+                        <InputText class="form-control"
+                                   placeholder="Enter email"
+                                   @bind-Value="NewManager.Email" />
+
+                        @if (!string.IsNullOrEmpty(emailError))
+                        {
+                            <div class="text-danger small mt-1">@emailError</div>
+                        }
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                @* <button class="btn btn-secondary" @onclick="CloseAddModal">Cancel</button> *@
+                <button class="btn btn-danger px-4" @onclick="AddManagerAsync" disabled="@isProcessing">
+                    @if (isProcessing)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+Add
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* @code {
+    ManagerSignUpDto NewManager = new ManagerSignUpDto();
+    private string? emailError;
+
+    bool isProcessing = false;
+    bool ShowAddModal = false;
+    bool ShowDeleteConfirm = false;
+    int DeleteId = 0;
+
+    void CloseAddModal()
+    {
+        ShowAddModal = false;
+        NewManager = new ManagerSignUpDto();
+        emailError = null;
+
+    }
+
+    private async Task AddManagerAsync()
+    {
+        if (isProcessing)
+            return;
+
+
+        isProcessing = true;
+        emailError = null;
+        var response = await Http.PostAsJsonAsync($"api/Account/manager-signup/", NewManager);
+        if (response.IsSuccessStatusCode)
+        {
+            toast.ShowSuccess("Manager added successfully!");
+            CloseAddModal();
+        }
+        else
+        {
+            var errorText = await response.Content.ReadAsStringAsync();
+
+            try
+            {
+                using var doc = JsonDocument.Parse(errorText);
+
+                var errors = doc.RootElement.GetProperty("errors");
+                emailError = errors.EnumerateObject().First().Value[0].GetString();
+            }
+            catch
+            {
+                emailError = errorText;
+            }
+
+            toast.ShowError(emailError);
+        }
+
+        isProcessing = false;
+
+
+    }
+
+
+} *@
+
+@code {
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    ManagerSignUpDto NewManager = new();
+    string? emailError;
+    bool isProcessing = false;
+
+    void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+
+    private async Task AddManagerAsync()
+    {
+        if (isProcessing) return;
+
+        isProcessing = true;
+        emailError = null;
+
+        var response = await Http.PostAsJsonAsync("api/Account/manager-signup", NewManager);
+
+        if (response.IsSuccessStatusCode)
+        {
+            toast.ShowSuccess("Manager added successfully!");
+
+            await OnClose.InvokeAsync(); 
+            return;
+        }
+
+        var errorText = await response.Content.ReadAsStringAsync();
+        try
+        {
+            using var doc = JsonDocument.Parse(errorText);
+            var errors = doc.RootElement.GetProperty("errors");
+            emailError = errors.EnumerateObject().First().Value[0].GetString();
+        }
+        catch
+        {
+            emailError = errorText;
+        }
+
+        toast.ShowError(emailError);
+        isProcessing = false;
+    }
+}

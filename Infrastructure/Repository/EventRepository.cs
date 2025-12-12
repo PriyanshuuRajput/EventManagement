@@ -156,7 +156,10 @@ namespace Infrastructures.Repository
                 query = query.Where(x =>
                     x.Title.ToLower().Contains(searchLower) ||
                     x.Venue.VenueName.ToLower().Contains(searchLower) ||
-                    x.Managers.User.Username.ToLower().Contains(searchLower)
+                    (x.Managers != null &&
+ x.Managers.User != null &&
+ x.Managers.User.Username.ToLower().Contains(searchLower))
+
                 );
             }
 
@@ -192,6 +195,12 @@ namespace Infrastructures.Repository
                 PageSize = req.PageSize,
                 Page = req.Page,
             };
+        }
+
+
+        public async Task<Manager?> GetManagerByIdAsync(int id)
+        {
+            return await _context.Managers.FirstOrDefaultAsync(m => m.Id == id);
         }
 
     }

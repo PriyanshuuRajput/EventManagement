@@ -146,6 +146,12 @@
         border: 1px solid rgba(0,0,0,0.1);
     }
 
+    .manager-modal-container {
+        position: fixed;
+        inset: 0;
+        z-index: 5000 !important;
+    }
+
   /* ---------- OVERLAY ---------- */
 .drawer-overlay {
     position: fixed;
@@ -261,7 +267,27 @@
     min-width: 110px;
 }
 
+    .accordion-button {
+        background: #fff !important;
+        font-size: 15px;
+        font-weight: 600;
+        color: #dc3545 !important;
+    }
 
+        .accordion-button:not(.collapsed) {
+            background: #fff !important;
+            box-shadow: none !important;
+        }
+
+    .accordion-item {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .accordion-body {
+        background: #fafafa;
+        border-top: 1px solid #eee;
+    }
 
     @@keyframes fadeIn {
         from {
@@ -514,7 +540,7 @@
                                             <span class="badge bg-light text-danger border fw-bold small mb-2 d-inline-flex align-items-center"
                                                   style="font-size:15px">
                                                 <i class="bi bi-person-fill me-1"></i>
-                                                @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Unknown" : evt.ManagerName)
+                                                @evt.ManagerName
                                             </span>
                                             }
                                                             
@@ -548,7 +574,7 @@
                                             <!-- DURATION -->
                                             <p class="small text-muted mb-1">
                                                 <i class="bi bi-clock  text-danger" style="margin-right:2px"></i>
-                                                @(evt.Duration.ToString(@"hh\h\ mm\m"))
+                                                @(evt.Duration?.ToString(@"hh\h\ mm\m"))
                                             </p>
 
                                             <!-- LANGUAGE -->
@@ -774,6 +800,12 @@
 
                 <!-- Body -->
                 <!--<div class="modal-body bg-light">-->
+                @if (showManagerComponent)
+                {
+                    <div class="manager-modal-container">
+                    <Manager OnClose="HideManagerComponent" />
+                    </div>
+                }
 
                 <div class="drawer-overlay" @onclick="() => showEventModal = false"></div>
 
@@ -784,6 +816,9 @@
                         </h5>
 
                         @*<button class="btn-close" @onclick="() => showEventModal = false"></button>*@
+                        <button class="btn btn-outline-danger me-4" @onclick="ShowManagerComponent" style="padding:2px 16px">
+                            <i class="bi bi-person-fill" style="font-size:18px"></i>
+                        </button>
                     </div>
 
                     <div class="drawer-body">
@@ -799,14 +834,14 @@
                                     General Information
                                 </div>
                                 <div class="card-body row g-3">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label fw-bold">Event Name<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Title" class="form-control" />
                                         <ValidationMessage For="@(() => editingEvent.Title)" class="text-danger small" />
 
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label fw-bold">Event Type<span class="text-muted">(optional)</span></label>
                                         <InputText @bind-Value="editingEvent.EventType"
                                                    class="form-control"
@@ -820,7 +855,7 @@
                                         @*<ValidationMessage For="@(()=>editingEvent.EventType)" class="text-danger small"/>*@
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label fw-bold">Genre<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Genre"
                                                    class="form-control"
@@ -835,90 +870,132 @@
                                     </div>
 
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label fw-bold">Language</label>
                                         <InputText @bind-Value="editingEvent.Language" class="form-control" />
                                         @*<ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />*@
                                     </div>
-                                    @*</div>*@
+
+                                    <!-- ================== EVENT SCHEDULE ACCORDION ================== -->
+                                    <div class="accordion mb-2" id="eventScheduleAccordion">
+
+                                        <div class="accordion-item border-0 shadow-sm">
+                                            <h2 class="accordion-header" id="scheduleHeader">
+                                                <button class="accordion-button py-2 px-3" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#scheduleBody"
+                                                        aria-expanded="true"
+                                                        aria-controls="scheduleBody">
+
+                                                    <span class="fw-bold">Event Date & Time</span>
+                                                </button>
+                                            </h2>
+
+                                            <div id="scheduleBody"
+                                                 class="accordion-collapse collapse show"
+                                                 aria-labelledby="scheduleHeader">
+
+                                                <div class="accordion-body row g-4 align-items-end">
+
+                                                    <!-- EVENT DURATION DROPDOWN -->
+                                                    <div class="col-md-2">
+                                                        <label class="form-label fw-bold">Event Duration</label>
+                                                        <select class="form-select" @bind="eventDay">
+                                                            <option value="single">Single Day</option>
+                                                            <option value="multi">Multiple Days</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <!-- ================== SINGLE DAY ================== -->
+                                                    @if (eventDay == "single")
+                                                    {
+                                                            <!-- Start Date -->
+                                                            <div class="col-md-5">
+                                                            <label class="form-label fw-bold">Date & Time</label>
+                                                                <div class="input-group">
+                                                                <input type="date"
+                                                                       class="form-control"
+                                                                       @bind="editingEvent.StartDateOnly"
+                                                                       min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                                                                <input type="time"
+                                                                       class="form-control"
+                                                                       value="@editingEvent.StartTime.ToString(@"hh\:mm")"
+                                                                       @oninput="e => editingEvent.StartTime = TimeSpan.Parse(e.Value.ToString())" />
+                                                            </div>
+                                                        </div>
+                                                    }
+
+                                                    <!-- ================== MULTIPLE DAYS ================== -->
+                                                    @if (eventDay == "multi")
+                                                    {
+                                                        @* <div class="row g-3 mt-2 align-items-end expand-section"> *@
+
+                                                            <!-- START DATE + TIME (same column) -->
+                                                            <div class="col-md-5">
+                                                                <label class="form-label fw-bold">Start Date & Time</label>
+
+                                                                <div class="input-group">
+                                                                    <input type="date"
+                                                                           class="form-control"
+                                                                           @bind="editingEvent.StartDateOnly" />
+
+                                                                    <input type="time"
+                                                                           class="form-control"
+                                                                           value="@editingEvent.StartTime.ToString(@"hh\:mm")"
+                                                                           @oninput="e => editingEvent.StartTime = TimeSpan.Parse(e.Value!.ToString())" />
+                                                                </div>
+                                                            </div>
 
 
-                                    <!-- Date and Time Info -->
-                                    @*<div class="card shadow-sm mb-2">
-        <div class="card-header text-dark fw-bold">
-            Event Schedule
-        </div>*@
-                                    @*<div class="card-body row g-3">*@
-                                    <!--<div class="col-md-4">
-        <label class="form-label fw-bold">Event Date & Time<span class="text-danger">*</span></label>
-        <input type="datetime-local"
-               @bind="editingEvent.StartDate"
-               class="form-control"
-               min="@DateTime.Now.ToString("yyyy-MM-ddTTHH:mm")" />-->
-                                    @*<ValidationMessage For="@(() => editingEvent.ShowDate)" class="text-danger small" />*@
-                                    <!--</div>-->
-                                    <!-- Start Date -->
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold">Start Date<span class="text-danger">*</span></label>
-                                        <input type="date"
-                                               class="form-control"
-                                               @bind="editingEvent.StartDateOnly"
-                                               min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                                            <!-- END DATE + TIME (same column) -->
+                                                            <div class="col-md-5">
+                                                                <label class="form-label fw-bold">End Date & Time</label>
+
+                                                                <div class="input-group">
+                                                                    <input type="date"
+                                                                           class="form-control"
+                                                                           @bind="editingEvent.EndDateOnly"
+                                                                           min="@editingEvent.StartDateOnly.ToString("yyyy-MM-dd")" />
+
+                                                                    <input type="time"
+                                                                           class="form-control"
+                                                                           value="@editingEvent.EndTime.ToString(@"hh\:mm")"
+                                                                           @oninput="e => editingEvent.EndTime = TimeSpan.Parse(e.Value!.ToString())" />
+                                                                </div>
+                                                            </div>
+                                                    }
+
+                                                </div>
+                                            </div>
+
+                                        </div>
                                     </div>
+                                    @if (eventDay == "multi")
+                                    {
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Duration</label>
 
-                                    <!-- Start Time -->
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold">Start Time<span class="text-danger">*</span></label>
-                                        <input type="time"
-                                               class="form-control"
-                                               value="@editingEvent.StartTime.ToString(@"hh\:mm")"
-                                               @oninput="e => editingEvent.StartTime = TimeSpan.Parse(e.Value!.ToString())" />
+                                            <input class="form-control" disabled
+                                                   value="@GetCalculatedDuration()" />
+                                        </div>
+                                  }
+                                    else
+                                    {
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-bold">Duration (HH:MM)<span class="text-danger">*</span></label>
+                                            <InputText class="form-control"
+                                                       @bind-Value="editingEvent.DurationInput" />
 
-                                    </div>
+                                            @if (!string.IsNullOrEmpty(editingEvent.DurationError))
+                                            {
+                                                <div class="text-danger small">@editingEvent.DurationError</div>
+                                            }
+                                            <ValidationMessage For="@(() => editingEvent.DurationInput)" class="text-danger small" />
+                                        </div>
 
-                                    <!-- End Date (OPTIONAL) -->
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold">End Date <span class="text-muted">(optional)</span></label>
-                                        <input type="date"
-                                               class="form-control"
-                                               @bind="editingEvent.EndDateOnly"
-                                               min="@editingEvent.StartDateOnly.ToString("yyyy-MM-dd")" />
-                                    </div>
-
-                                    <!-- End Time (OPTIONAL) -->
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold">End Time <span class="text-muted">(optional)</span></label>
-                                        <input type="time"
-                                               class="form-control"
-                                               value="@editingEvent.EndTime.ToString(@"hh\:mm")"
-                                               @oninput="e => editingEvent.EndTime = TimeSpan.Parse(e.Value!.ToString())" />
-
-                                    </div>
-
-
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold">Duration (HH:MM) <span class="text-danger">*</span></label>
-
-                                        <InputText class="form-control"
-                                                   @bind-Value="editingEvent.DurationInput" />
-
-                                        <ValidationMessage For="@(() => editingEvent.DurationInput)" class="text-danger small" />
-
-                                        @if (!string.IsNullOrEmpty(editingEvent.DurationError))
-                                        {
-                                            <div class="text-danger small">@editingEvent.DurationError</div>
-                                        }
-
-                                    </div>
-
-
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">Ticket Price (₹)</label>
-                                        <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
-                                        @*<ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />*@
-                                    </div>
-
-                                    <div class="col-md-6">
+                                    }
+                                    <div class="col-md-3">
                                         <label class="form-label fw-bold">Venue<span class="text-danger">*</span></label>
                                         <InputSelect @bind-Value="editingEvent.VenueId" class="form-select" @onchange="OnVenueChanged">
                                             <option value="0">-- Select Venue --</option>
@@ -930,7 +1007,30 @@
 
                                         <ValidationMessage For="@(() => editingEvent.VenueId)" class="text-danger small" />
                                     </div>
+                                    @if(isAdmin) 
+                                    {
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Manager</label>
 
+                                        <InputSelect @bind-Value="editingEvent.ManagerId" class="form-select">
+                                            <option value="0">-- Select Manager --</option>
+
+                                            @foreach (var m in managers)
+                                            {
+                                                <option value="@m.Id">@m.ManagerName</option>
+                                            }
+                                        </InputSelect>
+
+                                        @* <ValidationMessage For="@(() => editingEvent.ManagerId)" class="text-danger small" /> *@
+                                    </div>
+                                    }
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Ticket Price (₹)</label>
+                                        <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
+                                        @*<ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />*@
+                                    </div>
+
+                                    
                                     <div class="col-md-12 d-flex align-items-start gap-3">
                                         <div class="flex-grow-1">
                                             <label class="form-label fw-bold">Event Image</label>
@@ -1196,8 +1296,13 @@
 </div>
 
 
+
 @code {
+
+
     private List<EventDto> Events = new();
+    private List<ManagerProfileDto> managers = new();
+
     private List<EventDto> FilteredEvents = new();
     private List<CountryDto> countries = new();
     private List<CountryDto> _allCountries = new();
@@ -1213,6 +1318,9 @@
     private bool isManager = false;
     private bool isProcessing = false;
 
+    // private bool isMultiDay = false;
+    // private bool isSingleDay = false;
+
     private EventDto editingEvent = new();
 
     private string selectedDateFilter = "all";
@@ -1224,6 +1332,7 @@
     private (decimal min, decimal max)? selectedPriceRange;
 
     private string activeTab = "events";
+    private string eventDay = "single";
 
     private List<VenueDto> venues = new();
     private VenueDto editingVenue = new();
@@ -1306,21 +1415,6 @@
     }
 
 
-    //private void ValidateDuration(string value)
-    //{
-    //    durationInput = value;
-
-
-    //    if (!TimeSpan.TryParse(durationInput, out var _))
-    //    {
-    //        durationError = "Enter valid duration in HH:mm format (e.g., 02:30)";
-    //    }
-    //    else
-    //    {
-    //        durationError = null;
-    //    }
-    //}
-
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthProvider.GetAuthenticationStateAsync();
@@ -1331,7 +1425,19 @@
 
         if (isAdmin)
         {
+            managers = await AdminService.GetAllManagersAsync();
             await LoadAdminEvents();
+            foreach (var m in managers)
+            {
+                if (!string.IsNullOrWhiteSpace(m.ManagerName))
+                    continue;
+                var fullName = $"{m.FirstName} {m.LastName}".Trim();
+
+                m.ManagerName = string.IsNullOrWhiteSpace(fullName)
+                    ? m.Email
+                    : fullName;
+            }
+
         }
         else if (isManager)
         {
@@ -1406,31 +1512,48 @@
             EndDateOnly = evt.EndDateOnly,
             EndTime = evt.EndTime,
             Duration = evt.Duration,
-            CityId = evt.CityId
+            CityId = evt.CityId,
+            ManagerId = evt.ManagerId,
+            ManagerName = evt.ManagerName,
         };
 
         showEventModal = true;
     }
+    private string GetCalculatedDuration()
+    {
+        if (editingEvent.EndDate < editingEvent.StartDate)
+            return "Invalid";
 
-    //private bool ConvertDuration()
-    //{
-    //    durationError = string.Empty;
+        var diff = editingEvent.EndDate - editingEvent.StartDate;
 
-    //    if (!TimeSpan.TryParse(durationInput, out var ts))
-    //    {
-    //        durationError = "Invalid format. Use HH:mm (e.g., 01:30).";
-    //        return false;
-    //    }
+        return $"{diff.Days} Days {diff.Hours} Hours {diff.Minutes} Min";
+    }
 
-    //    if (ts.TotalMinutes < 10)
-    //    {
-    //        durationError = "Duration must be at least 10 minutes.";
-    //        return false;
-    //    }
+    private bool ConvertDurationInput()
+    {
+        editingEvent.DurationError = null;
 
-    //    editingEvent.Duration = ts;
-    //    return true;
-    //}
+        if (string.IsNullOrWhiteSpace(editingEvent.DurationInput))
+        {
+            editingEvent.Duration = null;
+            return true;
+        }
+
+        if (!TimeSpan.TryParse(editingEvent.DurationInput, out var ts))
+        {
+            editingEvent.DurationError = "Invalid format. Use HH:mm (e.g., 02:30).";
+            return false;
+        }
+
+        if (ts.TotalMinutes < 10)
+        {
+            editingEvent.DurationError = "Duration must be at least 10 minutes.";
+            return false;
+        }
+
+        editingEvent.Duration = ts;
+        return true;
+    }
 
     //private async Task SaveEvent(EventDto evt)
     //{
@@ -1549,7 +1672,7 @@
 
         try
         {
-            var evt = editingEvent;  // ← USE THE REAL MODEL HERE
+            var evt = editingEvent;  
 
             if (string.IsNullOrWhiteSpace(evt.EventType) &&
                 string.IsNullOrWhiteSpace(evt.Genre))
@@ -1558,6 +1681,33 @@
                 toastService.ShowError("Please fill at least EventType or Genre.");
                 return;
             }
+            // SINGLE DAY EVENT 
+            if (eventDay == "single")
+            {
+                if (!ConvertDurationInput() || evt.Duration == null || evt.Duration == TimeSpan.Zero)
+                {
+                    toastService.ShowError("Please enter valid duration.");
+                    return;
+                }
+
+                evt.EndDateOnly = evt.StartDateOnly;
+                evt.EndTime = evt.StartTime + evt.Duration.Value;
+            }
+
+            // MULTIPLE DAY EVENT 
+            if (eventDay == "multi")
+            {
+                if (evt.EndDate < evt.StartDate)
+                {
+                    toastService.ShowError("End date cannot be earlier than start date.");
+                    return;
+                }
+
+                evt.Duration = evt.EndDate - evt.StartDate;  // auto duration
+            }
+
+
+
 
             var content = new MultipartFormDataContent();
 
@@ -1573,7 +1723,7 @@
             if (evt.CityId.HasValue && evt.CityId > 0)
                 content.Add(new StringContent(evt.CityId.Value.ToString()), "CityId");
 
-            content.Add(new StringContent(evt.Duration.ToString(@"hh\:mm\:ss")), "Duration");
+            content.Add(new StringContent(evt.Duration?.ToString(@"hh\:mm\:ss")??""), "Duration");
             content.Add(new StringContent(evt.StartDate.ToString("o")), "StartDate");
             content.Add(new StringContent(evt.EndDate.ToString("o")), "EndDate");
 
@@ -1592,6 +1742,26 @@
             else
             {
                 content.Add(new StringContent(evt.ImageUrl ?? ""), "ImageUrl");
+            }
+
+            // MANAGER (Very Important)
+            if (editingEvent.ManagerId.HasValue && editingEvent.ManagerId > 0)
+            {
+                var m = managers.FirstOrDefault(x => x.Id == editingEvent.ManagerId.Value);
+
+                if (m != null)
+                {
+                    editingEvent.ManagerName = m.ManagerName ?? "Unknown";
+                    editingEvent.ManagerEmail = m.Email ?? "";
+                }
+
+                content.Add(new StringContent(editingEvent.ManagerId.Value.ToString()), "ManagerId");
+                content.Add(new StringContent(editingEvent.ManagerName ?? ""), "ManagerName");
+            }
+            else
+            {
+                content.Add(new StringContent("0"), "ManagerId");
+                content.Add(new StringContent(""), "ManagerName");
             }
 
             if (isManager)
@@ -2187,7 +2357,18 @@
         StateHasChanged();
     }
 
+    bool showManagerComponent = false;
 
+    void ShowManagerComponent()
+    {
+        showManagerComponent = true;
+    }
+
+    void HideManagerComponent()
+    {
+        showManagerComponent = false;
+    }
+    
 
 
 }

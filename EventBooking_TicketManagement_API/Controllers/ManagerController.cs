@@ -76,19 +76,6 @@ namespace EventBooking_TicketManagement_API.Controllers
             if (manager.User.ChangePassword)
                 return Unauthorized("Please update your password before creating event.");
 
-            //// Get AdminUser.Id from JWT
-            //var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //if (!int.TryParse(userIdClaim, out var userId))
-            //    return BadRequest("Invalid User Id in token.");
-
-            //// Convert AdminUser.Id -> Manager.Id 
-            //var manager = await _db.Managers.FirstOrDefaultAsync(m => m.UserId == userId);
-            //if (manager == null)
-            //    return BadRequest("Manager profile not found for this user. Please register as manager.");
-
-            //int managerId = manager.Id;
-            //string managerName = manager.ManagerName ?? string.Empty;
-
             // Handle Image Upload
             if (dto.ImageFile != null)
             {

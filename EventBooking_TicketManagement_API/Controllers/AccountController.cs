@@ -196,7 +196,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             var manager = new Manager
             {
                 UserId = user.Id,
-                ManagerName = "",
+                //ManagerName = "",
                 Address = "",
                 //Mobile = "",
                 IsApproved = false,

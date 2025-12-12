@@ -187,7 +187,7 @@ namespace EventBooking_TicketManagement_API.Services
             user.ChangePassword = false;
 
 
-            manager.ManagerName = dto.ManagerName;
+            manager.User.Username = dto.ManagerName;
             //manager.Email = dto.Email;
             //manager.Mobile = dto.Mobile;
             manager.Address = dto.Address;
@@ -213,7 +213,7 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Id = m.Id,
                 ManagerId = m.Id,
-                ManagerName = m.ManagerName,
+                ManagerName = m.User?.Username ?? "",
                 Email = m.User?.Email ?? "",
                 Mobile = m.User?.PhoneNumber??"",
                 Address = m.Address,
@@ -234,7 +234,7 @@ namespace EventBooking_TicketManagement_API.Services
             return pending.Select(m => new ManagerProfileDto
             {
                 Id = m.Id,
-                ManagerName = m.ManagerName,
+                ManagerName = m.User?.Username??"",
                 Email = m.User.Email,
                 Mobile = m.User.PhoneNumber,
                 Address = m.Address,

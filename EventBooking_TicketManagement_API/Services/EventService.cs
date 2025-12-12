@@ -39,7 +39,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
                 ManagerId = ev.ManagerId,
-                ManagerName = ev.Managers?.ManagerName ?? "",
+                ManagerName = ev.Managers?.ManagerName?? string.Empty,
                 EventAmount = ev.EventAmount,
                 OfferedEventAmount = ev.OfferedEventAmount,
                 CreatedAt = ev.CreatedAt,
@@ -71,7 +71,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ImageUrl = ev.ImageUrl,
                 Status = ev.Status,
                 ManagerId = ev.ManagerId,
-                ManagerName = ev.Managers?.ManagerName ?? "Unknown",
+                ManagerName = ev.Managers?.ManagerName??"",
                 AdminNote = ev.AdminNote,
                 OfferedEventAmount = ev.OfferedEventAmount,
                 EventAmount = ev.EventAmount,
@@ -83,6 +83,14 @@ namespace EventBooking_TicketManagement_API.Services
 
         public async Task AddEventAsync(EventDto dto)
         {
+            string managerName = "Unknown";
+
+            if (dto.ManagerId.HasValue && dto.ManagerId > 0)
+            {
+                var manager = await _eventRepository.GetManagerByIdAsync(dto.ManagerId.Value);
+                if (manager != null)
+                    managerName = manager.ManagerName;
+            }
             var ev = new Event
             {
                 Title = dto.Title,
@@ -124,14 +132,49 @@ namespace EventBooking_TicketManagement_API.Services
                     "This event is already published. Edit requires admin approval."
                 );
 
+            DateTime start = dto.StartDateOnly.Date + dto.StartTime;
+            DateTime end;
+
+            // MULTI-DAY EVENT
+            if (dto.EndDateOnly != null)
+            {
+                end = dto.EndDateOnly.Value.Date + dto.EndTime;
+
+                if (end < start)
+                    throw new InvalidOperationException("End Date & Time cannot be before Start.");
+            }
+            else
+            {
+                // SINGLE-DAY EVENT → Duration REQUIRED
+                if (dto.Duration == TimeSpan.Zero)
+                    throw new InvalidOperationException("Duration is required for single-day events.");
+
+                end = start.Add(dto.Duration.Value);
+            }
+            string managerName = ev.ManagerName; // default to existing
+
+            if (dto.ManagerId.HasValue && dto.ManagerId > 0)
+            {
+                ev.ManagerId = dto.ManagerId.Value;
+                var manager = await _eventRepository.GetManagerByIdAsync(dto.ManagerId.Value);
+
+                if (manager != null)
+                    managerName = manager.ManagerName;
+                else
+                    managerName = "Unknown";
+            }
+
+            ev.ManagerName = managerName;
+
             ev.Title = dto.Title;
             ev.EventType = dto.EventType;
             ev.Description = dto.Description ?? "";
             ev.Genre = dto.Genre;
             ev.Language = dto.Language ?? "";
             ev.Duration = dto.Duration;
-            ev.StartDate = dto.StartDate;
-            ev.EndDate = dto.EndDate;
+
+            ev.StartDate = start;
+            ev.EndDate = end;
 
             if (dto.VenueId > 0)
                 ev.VenueId = dto.VenueId;
@@ -144,12 +187,6 @@ namespace EventBooking_TicketManagement_API.Services
                 ev.ImageUrl = dto.ImageUrl;
 
             }
-
-            if (dto.ManagerId > 0)
-                ev.ManagerId = dto.ManagerId;
-
-            //if (!string.IsNullOrWhiteSpace(dto.ManagerName))
-            //    ev.ManagerName = dto.ManagerName;
 
             ev.Status = EventStatus.Pending;
             ev.AdminNote = null;
@@ -181,12 +218,28 @@ namespace EventBooking_TicketManagement_API.Services
 
 
         public async Task<EventDto> CreateEventAsync(ManagerEventDto mdto, int managerId, string managerName)
-        {
-            if (mdto.StartDateOnly <= DateTime.Now)
-                throw new InvalidOperationException("Start Date must be in the future.");
+        { 
+            DateTime start = mdto.StartDateOnly.Date + mdto.StartTime;
 
-            if (mdto.EndDateOnly < mdto.StartDateOnly)
-                throw new InvalidOperationException("End Date cannot be before Start Date.");
+            DateTime end;
+
+            // MULTI-DAY EVENT
+            if (mdto.EndDateOnly != null)
+            {
+                end = mdto.EndDateOnly.Value.Date + mdto.EndTime;
+
+                if (end < start)
+                    throw new InvalidOperationException("End Date & Time cannot be before Start.");
+            }
+            else
+            {
+                // SINGLE-DAY EVENT → Duration REQUIRED
+                if (mdto.Duration == null || mdto.Duration == TimeSpan.Zero)
+                    throw new InvalidOperationException("Duration is required for single-day events.");
+
+                end = start.Add(mdto.Duration.Value);
+            }
+
             var ev = new Event
             {
                 Title = mdto.Title,
@@ -195,10 +248,14 @@ namespace EventBooking_TicketManagement_API.Services
                 Genre = mdto.Genre,
                 Language = mdto.Language ?? "",
                 Duration = mdto.Duration,
-                StartDate = mdto.StartDateOnly,
-                EndDate = mdto.EndDateOnly,
+
+                StartDate = start,
+                EndDate = end,
+
                 TicketPrice = mdto.TicketPrice,
-                ImageUrl = string.IsNullOrWhiteSpace(mdto.ImageUrl) ? "/Uploads/no-image.png" : mdto.ImageUrl,
+                ImageUrl = string.IsNullOrWhiteSpace(mdto.ImageUrl)
+                             ? "/Uploads/no-image.png"
+                             : mdto.ImageUrl,
                 VenueId = mdto.VenueId,
 
                 ManagerId = managerId,
@@ -206,11 +263,9 @@ namespace EventBooking_TicketManagement_API.Services
                 Status = EventStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 IsPrizePaid = false,
-                PrizePaidAt = null,
                 EventAmount = 0m,
                 TotalTickets = mdto.TotalTickets,
                 SoldTickets = 0,
-                // Capacity = mdto.Venue?.Capacity ?? 0,
                 OfferedEventAmount = mdto.OfferedEventAmount ?? 0m
             };
 
@@ -246,7 +301,7 @@ namespace EventBooking_TicketManagement_API.Services
                 EndDateOnly = ev.EndDate,
                 TicketPrice = ev.TicketPrice,
                 ManagerId = ev.ManagerId,
-                ManagerName = ev.Managers?.ManagerName,
+                ManagerName = ev.Managers?.ManagerName??"",
                 Status = ev.Status,
                 CreatedAt = ev.CreatedAt,
                 ImageUrl = ev.ImageUrl,
@@ -418,7 +473,7 @@ namespace EventBooking_TicketManagement_API.Services
                 CreatedAt = e.CreatedAt,
                 ManagerId = e.ManagerId,
                 Capacity = e.Venue?.Capacity ?? 0,
-                //ManagerName = e.Manager != null ? e.Manager.Username : string.Empty
+                ManagerName = e.Managers?.ManagerName ?? ""
             });
         }
 
