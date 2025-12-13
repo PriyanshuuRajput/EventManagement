@@ -18,11 +18,11 @@ namespace Domains.Entities
 
         public string Title { get; set; } = string.Empty;
 
-        public string EventType { get; set; } = string.Empty;
+        //public string EventType { get; set; } = string.Empty;
 
         public string Description { get; set; } = string.Empty;
 
-        public string Genre { get; set; } = string.Empty;
+        //public string Genre { get; set; } = string.Empty;
 
         public string Language { get; set; } = string.Empty;
 
@@ -36,11 +36,15 @@ namespace Domains.Entities
 
         public string ImageUrl { get; set; } = string.Empty;
 
-        // 🔗 Relationship with Venue
+     
         [ForeignKey(nameof(Venue))]
         public int VenueId { get; set; }
 
         public Venue? Venue { get; set; }
+
+        [ForeignKey(nameof(EventCategory))]
+        public int? EventCategoryId { get; set; }
+        public EventCategory? EventCategory { get; set; }
 
         // 🔗 Optional: Seats or bookings related to this event
         public ICollection<Seat>? Seats { get; set; }

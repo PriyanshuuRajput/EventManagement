@@ -1,7 +1,7 @@
 ﻿
 @inject ManagerAccountService signupService
 @inject NavigationManager Navigation 
-@inject Blazored.Toast.Services.IToastService toastService
+@* @inject Blazored.Toast.Services.IToastService toastService *@
 
 <div class="position-relative">
         <button type="button" class="btn-close position-absolute top-0 end-0 m-0"
@@ -10,7 +10,7 @@
         <EditForm Model="@signupModel" OnValidSubmit="@HandleSignup">
             <DataAnnotationsValidator />
 
-            <h4 class="text-center text-danger fw-bold mb-4">Create Account</h4>
+            <h4 class="text-center text-danger fw-bold mb-4" style="font-size:20px">Create Account</h4>
             <p class="text-center text-muted mb-4">Join <strong>EventiGO</strong> and list your show.</p>
 
 
@@ -80,7 +80,7 @@
         {
             //toastService.ShowSuccess("Signup submitted!");
 
-            await Task.Delay(1000);
+            await Task.Delay(200);
 
             if (OnCancel.HasDelegate)
                 await OnCancel.InvokeAsync();

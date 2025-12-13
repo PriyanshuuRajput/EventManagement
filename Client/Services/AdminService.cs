@@ -70,31 +70,31 @@ namespace EventBooking.Client.Services
             using var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(dto.Title ?? ""), "Title");
-            content.Add(new StringContent(dto.EventType ?? ""), "EventType");
+            content.Add(new StringContent(dto.EventCategoryId?.ToString()), "EventCategoryId");
             content.Add(new StringContent(dto.Description ?? ""), "Description");
-            content.Add(new StringContent(dto.Genre ?? ""), "Genre");
             content.Add(new StringContent(dto.Language ?? ""), "Language");
 
             // Duration must be in correct TimeSpan format ("hh:mm:ss")
             content.Add(new StringContent(dto.Duration?.ToString(@"hh\:mm\:ss")??""), "Duration");
 
-            content.Add(new StringContent(dto.StartDateOnly.ToString("yyyy-MM-dd")), "StartDateOnly");
-            content.Add(new StringContent(dto.StartTime.ToString(@"hh\:mm")), "StartTime");
+            content.Add(new StringContent(dto.StartDateOnly.ToString("o")), "StartDateOnly");
+            content.Add(new StringContent(dto.StartTime.ToString()), "StartTime");
 
-            content.Add(new StringContent(dto.EndDateOnly?.ToString("yyyy-MM-dd") ?? ""), "EndDateOnly");
-            content.Add(new StringContent(dto.EndTime.ToString(@"hh\:mm")), "EndTime");
+            content.Add(new StringContent(dto.EndDateOnly?.ToString("o") ?? ""), "EndDateOnly");
+            content.Add(new StringContent(dto.EndTime.ToString()), "EndTime");
+
 
             //  VenueId and CityId are integers
             content.Add(new StringContent(dto.VenueId.ToString()), "VenueId");
-            if (dto.CityId.HasValue)
-                content.Add(new StringContent(dto.CityId.Value.ToString()), "CityId");
+            //if (dto.CityId.HasValue)
+            //    content.Add(new StringContent(dto.CityId.Value.ToString()), "CityId");
 
             content.Add(new StringContent(dto.VenueName ?? ""), "VenueName");
-            content.Add(new StringContent(dto.CityName ?? ""), "CityName");
+            //content.Add(new StringContent(dto.CityName ?? ""), "CityName");
             content.Add(new StringContent(dto.ManagerId?.ToString() ?? "0"), "ManagerId");
             content.Add(new StringContent(dto.ManagerName ?? ""), "ManagerName");
 
-            // ✅Use invariant culture for price
+            // Use invariant culture for price
             content.Add(new StringContent(dto.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
 
             if (file != null)
@@ -123,30 +123,30 @@ namespace EventBooking.Client.Services
             //// 🔹 Match property names exactly with EventDto
             //content.Add(new StringContent(dto.Id.ToString()), "Id");
             content.Add(new StringContent(dto.Title ?? ""), "Title");
-            content.Add(new StringContent(dto.EventType ?? ""), "EventType");
+            content.Add(new StringContent(dto.EventCategoryId?.ToString() ?? ""), "EventCategoryId");
             content.Add(new StringContent(dto.Description ?? ""), "Description");
-            content.Add(new StringContent(dto.Genre ?? ""), "Genre");
             content.Add(new StringContent(dto.Language ?? ""), "Language");
             content.Add(new StringContent(dto.Duration?.ToString(@"hh\:mm\:ss")??""), "Duration");
-            content.Add(new StringContent(dto.StartDateOnly.ToString("yyyy-MM-dd")), "StartDateOnly");
-            content.Add(new StringContent(dto.StartTime.ToString(@"hh\:mm")), "StartTime");
 
-            content.Add(new StringContent(dto.EndDateOnly?.ToString("yyyy-MM-dd") ?? ""), "EndDateOnly");
-            content.Add(new StringContent(dto.EndTime.ToString(@"hh\:mm")), "EndTime");
+            content.Add(new StringContent(dto.StartDateOnly.ToString("o")), "StartDateOnly");
+            content.Add(new StringContent(dto.EndDateOnly?.ToString("o") ?? ""), "EndDateOnly");
+            content.Add(new StringContent(dto.StartTime.ToString()), "StartTime");
+            content.Add(new StringContent(dto.EndTime.ToString()), "EndTime");
+
 
             content.Add(new StringContent(dto.VenueId.ToString()), "VenueId");
 
-            if (dto.CityId.HasValue)
-                content.Add(new StringContent(dto.CityId.Value.ToString()), "CityId");
+            //if (dto.CityId.HasValue)
+            //    content.Add(new StringContent(dto.CityId.Value.ToString()), "CityId");
 
             content.Add(new StringContent(dto.VenueName ?? ""), "VenueName");
-            content.Add(new StringContent(dto.CityName ?? ""), "CityName");
+            //content.Add(new StringContent(dto.CityName ?? ""), "CityName");
             content.Add(new StringContent(dto.ManagerId?.ToString() ?? "0"), "ManagerId");
             content.Add(new StringContent(dto.ManagerName ?? ""), "ManagerName");
 
             content.Add(new StringContent(dto.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
 
-            // ✅ Handle image file (if provided)
+            // Handle image file 
             if (file != null)
             {
                 var stream = new StreamContent(file.OpenReadStream(maxAllowedSize: 10_485_760)); // 10 MB limit

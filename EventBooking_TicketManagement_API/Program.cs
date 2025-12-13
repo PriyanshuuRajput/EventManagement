@@ -11,6 +11,7 @@ using Infrastructures.Repositories;
 using Infrastructures.Repository;
 using Infrastructures.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -40,6 +41,7 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<ICountryRepository, CountryRepository>();
             builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
+            builder.Services.AddScoped<IEventCategoryRepository, EventCategoryRepository>();
 
             // ---------------------------------------------------------
             // Services
@@ -52,6 +54,7 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<ICountryService, CountryService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IManagerService, ManagerServices>();
+            builder.Services.AddScoped<IEventCategoryService,EventCategoryService>();
 
             // ---------------------------------------------------------
             // Security Services
@@ -64,6 +67,11 @@ namespace EventBooking_TicketManagement_API
             // ---------------------------------------------------------
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = false;
+            });
+
 
             builder.Services.AddSwaggerGen(c =>
             {

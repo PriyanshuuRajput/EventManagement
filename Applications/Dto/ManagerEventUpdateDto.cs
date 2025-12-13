@@ -3,16 +3,21 @@ using System.ComponentModel.DataAnnotations;
 
 public class ManagerEventUpdateDto
 {
+    [Required(ErrorMessage ="title is required.")]
     [StringLength(50, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 50 characters.")]
     public string Title { get; set; } = string.Empty;
-    public string? EventType { get; set; } = string.Empty;
+    //public string? EventType { get; set; } = string.Empty;
 
     public string? Description { get; set; }
 
-    [StringLength(50)]
-    [Required(ErrorMessage = "Genre is required.")]
+    //[StringLength(50)]
+    //[Required(ErrorMessage = "Genre is required.")]
 
-    public string? Genre { get; set; } = string.Empty;
+    //public string? Genre { get; set; } = string.Empty;
+    [Required(ErrorMessage = " Please select a event type. ")]
+    public int? EventCategoryId { get; set; }
+    public string? CategorySlug { get; set; }
+    public string? CategoryName { get; set; }
 
     public string? Language { get; set; }
     public TimeSpan? Duration { get; set; }
@@ -63,4 +68,5 @@ public class ManagerEventUpdateDto
 
     public IFormFile? ImageFile { get; set; }
     public string? ImageUrl { get; set; }
+    //public int? EventCategoryId { get; set; }
 }

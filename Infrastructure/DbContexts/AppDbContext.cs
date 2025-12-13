@@ -21,6 +21,8 @@ namespace Infrastructures.DbContexts
         public DbSet<State> States { get; set; }
         public DbSet<Manager> Managers { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<EventCategory> EventCategories { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -104,6 +106,13 @@ namespace Infrastructures.DbContexts
                 .WithOne(e => e.Venue)
                 .HasForeignKey(e => e.VenueId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // EventCategory → Events (1:N)
+            modelBuilder.Entity<EventCategory>()
+                .HasMany(ec => ec.Events)
+                .WithOne(e => e.EventCategory)
+                .HasForeignKey(e => e.EventCategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
 
 
         }

@@ -1,4 +1,7 @@
 ﻿@page "/manager-profile"
+@using EventBooking.Client.SpinnerService
+
+@inject SpinnerService spinnerService
 @inject NavigationManager Nav
 @inject HttpClient Http
 @using Domains.Entities
@@ -161,7 +164,7 @@
                         @onclick="() => SelectSuggestion(s)">
                         <strong>@s.Title</strong>
                         <div class="small text-muted">
-                            @s.EventType • @s.VenueName • @s.Address
+                            @s.CategoryName • @s.VenueName • @s.Address
                         </div>
                     </li>
                 }
@@ -228,7 +231,7 @@
                         <!-- Event Info -->
                         <td>
                             <div class="truncate-text small fw-semibold" data-bs-toggle="tooltip" data-placement="top" title="@ev.Title">@ev.Title</div>
-                            <div class="small text-muted ">@ev.EventType </div>
+                            <div class="small text-muted ">@ev.CategoryName </div>
                             <div class="small text-muted ">@ev.Language</div>
                         </td>
 
@@ -324,12 +327,12 @@
                  style="bottom:2px; left:4px;">
 
                 <span class="badge bg-secondary-subtle text-dark px-3 py-2">
-                    @selectedEvent.EventType
+                    @selectedEvent.CategoryName
                 </span>
 
-                <span class="badge bg-secondary-subtle  text-dark px-3 py-2">
+                @* <span class="badge bg-secondary-subtle  text-dark px-3 py-2">
                     @selectedEvent.Genre
-                </span>
+                </span> *@
 
             </div>
             <div class="position-absolute"
@@ -488,49 +491,54 @@
     </div>
 </div>
 
-        @code {
+@code {
 
-            private List<ManagerEventDto> managerEvents = new();
-            private bool showSidePanel = false;
-            private ManagerEventDto selectedEvent = null!;
-            private bool readMore = false;
-
-
-
-            private string _searchText = "";
-
-            private string searchText
-            {
-                get => _searchText;
-                set
-                {
-                    _searchText = value;
-                    UpdateSuggestions();
-                    currentPage = 1;
-                }
-            }
-
-            private EventStatus? activeStatusFilter = null;
-            private bool showSuggestions = false;
-            private List<ManagerEventDto> Suggestions = new();
+    private List<ManagerEventDto> managerEvents = new();
+    private bool showSidePanel = false;
+    private ManagerEventDto selectedEvent = null!;
+    private bool readMore = false;
 
 
-            private int currentPage = 1;
-            private int pageSize = 10;
-            private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
 
-            protected override async Task OnInitializedAsync()
-            {
-                try
-                {
-                    managerEvents = await Http.GetFromJsonAsync<List<ManagerEventDto>>("api/ManagerEvent/my-events");
-                }
-                catch
-                {
-                    managerEvents = new();
-                }
+    private string _searchText = "";
 
-            }
+    private string searchText
+    {
+        get => _searchText;
+        set
+        {
+            _searchText = value;
+            UpdateSuggestions();
+            currentPage = 1;
+        }
+    }
+
+    private EventStatus? activeStatusFilter = null;
+    private bool showSuggestions = false;
+    private List<ManagerEventDto> Suggestions = new();
+
+
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            spinnerService.Show();
+            managerEvents = await Http.GetFromJsonAsync<List<ManagerEventDto>>("api/ManagerEvent/my-events");
+        }
+        catch
+        {
+            managerEvents = new();
+        }
+        finally
+        {
+            spinnerService.Hide();
+        }
+
+     }
 
 
             private void UpdateSuggestions()
@@ -546,7 +554,7 @@
                 Suggestions = managerEvents
                     .Where(e =>
                         (e.Title?.ToLower().Contains(q) ?? false) ||
-                        (e.EventType?.ToLower().Contains(q) ?? false) ||
+                        (e.CategoryName?.ToLower().Contains(q) ?? false) ||
                         (e.VenueName?.ToLower().Contains(q) ?? false) ||
                         (e.Address?.ToLower().Contains(q) ?? false) ||
                         (e.Language?.ToLower().Contains(q) ?? false)
@@ -578,7 +586,7 @@
                e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                (e.VenueName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                (e.Address ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-               (e.EventType ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
+               (e.CategoryName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
         ).OrderByDescending(e => e.CreatedAt);
 
 

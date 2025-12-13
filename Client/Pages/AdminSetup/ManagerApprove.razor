@@ -1,8 +1,10 @@
 ﻿@page "/managers"
 
 @using System.Text.Json
+@using EventBooking.Client.SpinnerService
 
 
+@inject SpinnerService spinnerService
 @inject HttpClient Http
 @inject Blazored.Toast.Services.IToastService toast
 @*@using Blazored.Toast
@@ -775,7 +777,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        spinnerService.Show();
+        await Task.Delay(200);
         Managers = await Http.GetFromJsonAsync<List<ManagerProfileDto>>("api/admin/managers");
+        spinnerService.Hide();
+
 
     }
 

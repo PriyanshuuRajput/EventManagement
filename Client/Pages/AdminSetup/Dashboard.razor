@@ -2,8 +2,10 @@
 @using Domains.Entities
 @using Applications.Dto.Pagination
 @using EventBooking.Client.Components 
+@using EventBooking.Client.SpinnerService
 
 @inject AdminService adminService
+@inject SpinnerService spinnerService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
@@ -652,7 +654,7 @@
 
         <!-- APPROVED -->
         <button class="btn btn-sm @(selectedStatus == "Approved" ? "btn-success" : "btn-outline-secondary") rounded-3"
-                @onclick="@( () => SetStatus("Approved"))">
+                @onclick="@( () => SetStatus("AdminApproved"))">
             Approved (@ApprovedCount)
         </button>
 
@@ -707,7 +709,7 @@
                                     <!-- Event Name -->
                                     <td>
                                         <div class="event-title">@evt.Title</div>
-                                        <div class="event-sub">@evt.EventType</div>
+                                        <div class="event-sub">@evt.CategoryName</div>
                                     </td>
 
                                     <!-- Manager -->
@@ -975,6 +977,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        spinnerService.Show();
+        await Task.Delay(200);
         Events = await adminService.GetAllEventsAsync();
         BookingsCount = 0;
         Managers = await adminService.GetAllManagersAsync();
@@ -995,7 +999,7 @@
         BuildNotifications();
         //BuildTimeLine();
         await LoadPagedEventsAsync();
-
+        spinnerService.Hide();
         ApplyFilters();
     }
 

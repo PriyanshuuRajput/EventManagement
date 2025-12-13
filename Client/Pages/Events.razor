@@ -1,19 +1,38 @@
 ﻿@page "/events"
+@* @page "/events/{Slug}" *@
+
+@using EventBooking.Client.SpinnerService;
 
 @inject HttpClient Http
 @inject NavigationManager Nav
+@inject SpinnerService spinnerservice
+<style>
 
+    .card-img-wrapper {
+        position: relative;
+    }
+
+    .category-badge {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        color: #dc3545;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+</style>
 
 <div class="container-fluid my-4">
     <div class="row">
         <!-- Sidebar Filters (Left Column) -->
         <div class="col-lg-3 mb-4">
             <div class="card shadow-sm p-3 sticky-top" style="top:80px;">
-                <h5 class="mb-3">Filters</h5>
+                @* <h5 class="mb-3">Filters</h5> *@
 
                 <!-- Date Filter Card -->
                 <div class="mb-3">
-                    <h6 class="d-flex justify-content-between align-items-center">
+                    <h6 class="d-flex justify-content-between align-items-center fw-semibold">
                         Date
                         @if (selectedDateFilter != "all")
                         {
@@ -30,18 +49,18 @@
 
                     <!-- Custom Range -->
                     <div class="form-check mt-2">
-                        <input class="form-check-input" type="checkbox" id="customRangeCheckbox" @bind="isCustomRangeEnabled" />
-                        <label class="form-check-label" for="customRangeCheckbox"> Select Date </label>
+                        <input class="form-check-input border-danger" type="checkbox" id="customRangeCheckbox" @bind="isCustomRangeEnabled" />
+                        <label class="form-check-label" style="margin-top:1px"for="customRangeCheckbox"> Select Date </label>
                     </div>
 
                     @if (isCustomRangeEnabled)
                     {
                         <div class="d-flex flex-column gap-2 mt-1">
                             <div class="d-flex gap-2">
-                                <input type="date" class="form-control form-control-sm"
+                                <input type="date" class="form-control form-control-sm border-danger"
                                        @bind="customStartDate"
                                        min="@DateTime.Today.ToString("yyyy-MM-dd")" />
-                                <input type="date" class="form-control form-control-sm"
+                                <input type="date" class="form-control form-control-sm border-danger"
                                        @bind="customEndDate"
                                        min="@customStartDate.ToString("yyyy-MM-dd")" />
                             </div>
@@ -64,19 +83,20 @@
 
                 <!-- Category Filter -->
                 <div class="mb-3">
-                    <h6>Category</h6>
+                        <h6 class="fw-semibold ">Category</h6>
                     @foreach (var category in categories)
                     {
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="@category" @onchange="e => ToggleCategory(category)">
+                            <input class="form-check-input border-danger" type="checkbox" id="@category" @onchange="e => ToggleCategory(category)">
                             <label class="form-check-label" for="@category">@category</label>
                         </div>
+
                     }
                 </div>
 
                 <!-- City Filter -->
                 <div class="mb-3">
-                    <h6>City</h6>
+                    <h6 class="fw-semibold">City</h6>
                     <select class="form-select" @onchange="FilterCity">
                         <option value="">All Cities</option>
                         @foreach (var city in cities)
@@ -88,7 +108,7 @@
 
                 <!-- Price Filter -->
                 <div class="mb-3">
-                    <h6>Ticket Price</h6>
+                    <h6 class="fw-semibold">Ticket Price</h6>
                     <div class="d-flex flex-wrap gap-2">
                         <button class="@GetPriceButtonClass(0, 0)" @onclick="() => SetPriceRange(0, 0)">Free</button>
                         <button class="@GetPriceButtonClass(1, 500)" @onclick="() => SetPriceRange(1, 500)">0–500</button>
@@ -97,15 +117,19 @@
                         <button class="@GetPriceButtonClass(5001, 100000)" @onclick="() => SetPriceRange(5001, 100000)">Above 5000</button>
                     </div>
                 </div>
-
-                <button class="btn btn-danger w-100 mt-2" @onclick="ApplyFilters">Apply Filters</button>
+                <div class=" d-flex justify-content-between align-items-center mt-4">
+                <button class="btn btn-outline-secondary " @onclick="ClearAllFilters">
+                    Clear All
+                </button>
+                <button class="btn btn-danger " @onclick="ApplyFilters">Apply Filters</button>
+                </div>
             </div>
         </div>
 
         <!-- Events Grid (Right Column) -->
         <div class="col-lg-9">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3 g-4">
-                @if (isLoading)
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+                @* @if (isLoading)
                 {
                     <div class="col-12 text-center py-5">
                         <div class="spinner-border text-danger" role="status" style="width:4rem;height:4rem;">
@@ -113,8 +137,8 @@
                         </div>
                         <p class="mt-3 text-muted">Loading events...</p>
                     </div>
-                }
-                else if (filteredEvents == null || !filteredEvents.Any())
+                } *@
+                @if (filteredEvents == null || !filteredEvents.Any())
                 {
                     <div class="col-12 text-center py-5">
                         <p class="text-muted">No events found.</p>
@@ -124,14 +148,22 @@
                 {
                     @foreach (var ev in filteredEvents)
                     {
-                        <div class="col">
+                        <div class="col" style="padding:0px 10px">
                             <div class="card h-100 shadow-sm event-card">
-                                <img src="@(!string.IsNullOrEmpty(ev.ImageUrl) ? ev.ImageUrl : "images/default-event.png")"
-                                     class="card-img-top" alt="@ev.Title" style="height:180px; object-fit:cover;" />
+                                <div class="card-img-wrapper position-relative">
+                                    <img src="@((!string.IsNullOrEmpty(ev.ImageUrl)) ? ev.ImageUrl : "images/default-event.png")"
+                                         class="card-img-top"
+                                         alt="@ev.Title"
+                                         style="object-fit:cover;" />
+
+                                    <span class="category-badge px-2 bg-white rounded-3">
+                                        @ev.CategoryName
+                                    </span>
+                                </div>
                                 <div class="card-body">
                                     <h5 class="card-title">@ev.Title</h5>
                                     <p class="card-text mb-1"><i class="bi bi-calendar-event me-2"></i>@ev.StartDate.ToString("dd MMM yyyy")</p>
-        <p class="card-text mb-1"><i class="bi bi-clock me-2"></i>@ev.Duration?.ToString(@"hh\:mm")</p>
+                                    <p class="card-text mb-1"><i class="bi bi-clock me-2"></i>@ev.StartTime.ToString(@"hh\:mm")</p>
 
                                     <!--<p class="card-text mb-1">
                                         <i class="bi bi-calendar-event me-2"></i>
@@ -154,7 +186,7 @@
                                     <span class="fw-bold">₹@ev.TicketPrice</span>
                                     <button class="btn btn-danger btn-sm float-end"
                                             @onclick="@(() => Nav.NavigateTo("/book-event/" + ev.Id))">
-                                        Book Now
+                                        View
                                     </button>
 
 
@@ -172,9 +204,16 @@
 
 @code {
 
+    // [Parameter] public string? Slug { get; set; }
+    private string? initialFilter = null;
+
+
     private List<EventDto> events = new();
     private List<EventDto> filteredEvents = new();
-    private bool isLoading = true;
+    private List<string> categories = new();
+    private List<string> cities = new();
+
+    // private bool isLoading = true;
 
     private bool isCustomRangeEnabled = false;
     private string selectedDateFilter = "all";
@@ -186,28 +225,54 @@
     private decimal maxPrice = 10000;
 
     private List<string> selectedCategories = new();
-    private List<string> categories = new() { "Music", "Theatre", "Comedy", "Sports" };
-    private List<string> cities = new() { "New York", "Los Angeles", "Chicago", "Houston", "Phoenix" };
+   
+   // private List<string> cities = new() { "New York", "Los Angeles", "Chicago", "Houston", "Phoenix" };
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        spinnerservice.Show();
+        await Task.Delay(200);    
+
         try
         {
-            events = await Http.GetFromJsonAsync<List<EventDto>>("https://localhost:7239/api/Events/approved") ?? new List<EventDto>();
+            // Always fetch fresh data
+            events = await Http.GetFromJsonAsync<List<EventDto>>("https://localhost:7239/api/Events/approved")
+                        ?? new List<EventDto>();
 
             events = events.Where(e => e.StartDate.Date >= DateTime.Today).ToList();
-            filteredEvents = events.ToList();
-        }
-        catch
-        {
-            events = new List<EventDto>();
-            filteredEvents = new List<EventDto>();
+
+            var categoryObjects = await Http.GetFromJsonAsync<List<EventCategoryDto>>("https://localhost:7239/api/EventCategory");
+            categories = events
+    .Where(e => !string.IsNullOrWhiteSpace(e.CategoryName))
+    .Select(e => e.CategoryName!)
+    .Distinct()
+    .OrderBy(x => x)
+    .ToList();
+
+
+            cities = events
+            .Select(e => e.CityName)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+            // Read URL parameters (category)
+            var uri = Nav.ToAbsoluteUri(Nav.Uri);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+            initialFilter = query["category"]?.ToLower();
+            selectedCategories.Clear();
+            selectedCity = null;
+
+            ApplyFilters();
         }
         finally
         {
-            isLoading = false;
+            spinnerservice.Hide();
         }
     }
+
+
     private DateTime ToIST(DateTime utc)
     {
         return utc.AddHours(5).AddMinutes(30);
@@ -217,11 +282,14 @@
     // --- DATE FILTERS ---
     private void SetDateFilter(string filter)
     {
+        spinnerservice.Show();
+        Task.Delay(1000);
         selectedDateFilter = filter;
         isCustomRangeEnabled = false;
         customStartDate = DateTime.Today;
         customEndDate = null;
         ApplyFilters();
+        spinnerservice.Hide();
     }
 
 
@@ -230,19 +298,35 @@
 
     private void ApplyCustomDateFilter()
     {
-        if (!isCustomRangeEnabled) return;
+        spinnerservice.Show();
+
+        Task.Delay(200);
+        if (!isCustomRangeEnabled)
+        {
+            spinnerservice.Hide();
+            return;
+        }
+
         selectedDateFilter = "custom";
         ApplyFilters();
+
+        spinnerservice.Hide();
     }
 
     private void ClearDateFilter()
     {
+        spinnerservice.Show();
+        Task.Delay(200);
         selectedDateFilter = "all";
         isCustomRangeEnabled = false;
         customStartDate = DateTime.Today;
         customEndDate = null;
+
         ApplyFilters();
+
+        spinnerservice.Hide();
     }
+
 
     private bool IsEventInSelectedDate(DateTime eventDate)
     {
@@ -269,10 +353,16 @@
     // --- PRICE FILTERS ---
     private void SetPriceRange(decimal min, decimal max)
     {
+        spinnerservice.Show();
+        Task.Delay(200);
         minPrice = min;
         maxPrice = max;
+
         ApplyFilters();
+
+        spinnerservice.Hide();
     }
+
 
     private string GetPriceButtonClass(decimal min, decimal max)
     {
@@ -284,28 +374,86 @@
     // --- CATEGORY & CITY FILTERS ---
     private void ToggleCategory(string category)
     {
+        spinnerservice.Show();
+        Task.Delay(200);
+        initialFilter = null;
+
         if (selectedCategories.Contains(category))
             selectedCategories.Remove(category);
         else
             selectedCategories.Add(category);
-    }
 
+        ApplyFilters();
+
+        spinnerservice.Hide();
+    }
     private void FilterCity(ChangeEventArgs e)
     {
+        spinnerservice.Show();
+        Task.Delay(200);
         selectedCity = e.Value?.ToString();
+
         ApplyFilters();
+
+        spinnerservice.Hide();
     }
+
 
     // --- APPLY ALL FILTERS ---
     private void ApplyFilters()
     {
-        filteredEvents = events
-            .Where(ev =>
-                IsEventInSelectedDate(ev.StartDate) &&
-                ev.StartDate.Date>=DateTime.Today &&
-                (selectedCategories.Count == 0 || selectedCategories.Contains(ev.EventType)) &&
-                (string.IsNullOrEmpty(selectedCity) || ev.CityName == selectedCity) &&
-                ev.TicketPrice >= minPrice && ev.TicketPrice <= maxPrice)
-            .ToList();
+        IEnumerable<EventDto> query = events;
+
+
+        if (initialFilter != null)
+            query = query.Where(ev => ev.CategorySlug?.ToLower() == initialFilter);
+        if (selectedCategories.Any())
+            query = query.Where(ev => ev.CategoryName != null &&
+                                      selectedCategories.Contains(ev.CategoryName));
+
+
+        query = query.Where(ev => IsEventInSelectedDate(ev.StartDate));
+
+        query = query.Where(ev => ev.StartDate.Date >= DateTime.Today);
+
+        if (!string.IsNullOrEmpty(selectedCity))
+            query = query.Where(ev => ev.CityName == selectedCity);
+            
+        query = query.Where(ev => ev.TicketPrice >= minPrice &&
+                                  ev.TicketPrice <= maxPrice);
+
+        filteredEvents = query.ToList();
+
     }
+    private void ClearAllFilters()
+    {
+        spinnerservice.Show();
+
+        // Reset date filter
+        selectedDateFilter = "all";
+        isCustomRangeEnabled = false;
+        customStartDate = DateTime.Today;
+        customEndDate = null;
+
+        // Reset categories
+        selectedCategories.Clear();
+
+        // Reset city
+        selectedCity = null;
+
+        // Reset price
+        minPrice = 0;
+        maxPrice = 10000;
+
+        // Reset slug filter
+        initialFilter = null;
+
+        // Apply no filters → show all upcoming events
+        ApplyFilters();
+
+        spinnerservice.Hide();
+    }
+
+
+
 }

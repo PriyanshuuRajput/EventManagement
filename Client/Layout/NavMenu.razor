@@ -204,7 +204,7 @@
         </li>
 
         <li class="nav-item">
-            <NavLink class="nav-link" href="/events">Events</NavLink>
+                <a class="nav-link" @onclick="GoToEvents">Events</a>
         </li>
 
         <li class="nav-item">
@@ -463,5 +463,9 @@
     void ManagerSignup()
     {
         MainLayout.Instance?.ShowManagerSignup();
+    }
+    void GoToEvents()
+    {
+        Navigation.NavigateTo("/events", true);
     }
 }

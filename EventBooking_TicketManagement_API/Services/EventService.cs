@@ -25,13 +25,18 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Id = ev.Id,
                 Title = ev.Title,
-                EventType = ev.EventType,
+
+                EventCategoryId = ev.EventCategoryId??0,
+                CategorySlug = ev.EventCategory?.Slug,
+                CategoryName = ev.EventCategory?.Name,
+
                 Description = ev.Description,
-                Genre = ev.Genre,
                 Language = ev.Language,
                 Duration = ev.Duration,
                 StartDateOnly = ev.StartDate,
                 EndDateOnly = ev.EndDate,
+                
+
                 VenueId = ev.VenueId,
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 CityName = ev.Venue?.City?.CityName ?? string.Empty,
@@ -57,13 +62,20 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Id = ev.Id,
                 Title = ev.Title,
-                EventType = ev.EventType,
+
+                EventCategoryId = ev.EventCategoryId??0,
+                CategorySlug = ev.EventCategory?.Slug,
+                CategoryName = ev.EventCategory?.Name,
+
+
                 Description = ev.Description,
-                Genre = ev.Genre,
+               
                 Language = ev.Language,
                 Duration = ev.Duration,
                 StartDateOnly = ev.StartDate,
                 EndDateOnly = ev.EndDate,
+              
+
                 VenueId = ev.VenueId,
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 CityName = ev.Venue?.City?.CityName ?? string.Empty,
@@ -94,9 +106,9 @@ namespace EventBooking_TicketManagement_API.Services
             var ev = new Event
             {
                 Title = dto.Title,
-                EventType = dto.EventType,
+                EventCategoryId= dto.EventCategoryId,
                 Description = dto.Description ?? "",
-                Genre = dto.Genre,
+              
                 Language = dto.Language ?? "",
                 Duration = dto.Duration,
                 StartDate = dto.StartDate,
@@ -158,9 +170,8 @@ namespace EventBooking_TicketManagement_API.Services
             }
 
             ev.Title = dto.Title;
-            ev.EventType = dto.EventType;
+            ev.EventCategoryId = dto.EventCategoryId;
             ev.Description = dto.Description ?? "";
-            ev.Genre = dto.Genre;
             ev.Language = dto.Language ?? "";
             ev.Duration = dto.Duration;
 
@@ -234,9 +245,8 @@ namespace EventBooking_TicketManagement_API.Services
             var ev = new Event
             {
                 Title = mdto.Title,
-                EventType = mdto.EventType,
+                EventCategoryId = mdto.EventCategoryId,
                 Description = mdto.Description ?? "",
-                Genre = mdto.Genre,
                 Language = mdto.Language ?? "",
                 Duration = mdto.Duration,
 
@@ -283,13 +293,15 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Id = ev.Id,
                 Title = ev.Title,
-                EventType = ev.EventType,
+                CategoryName = ev.EventCategory?.Name,
+                CategorySlug = ev.EventCategory?.Slug,
+
                 Description = ev.Description ?? "",
-                Genre = ev.Genre,
                 Language = ev.Language ?? "",
                 Duration = ev.Duration,
                 StartDateOnly = ev.StartDate,
                 EndDateOnly = ev.EndDate,
+
                 TicketPrice = ev.TicketPrice,
                 ManagerId = ev.ManagerId,
                 ManagerName = ev.Managers?.ManagerName??"",
@@ -387,13 +399,17 @@ namespace EventBooking_TicketManagement_API.Services
         {
             Id = e.Id,
             Title = e.Title,
-            EventType = e.EventType,
+
+            EventCategoryId = e.EventCategoryId??0,
+            CategoryName = e.EventCategory?.Name,
+            CategorySlug = e.EventCategory?.Slug,
             Description = e.Description ?? "",
-            Genre = e.Genre,
+           
             Language = e.Language ?? "",
             Duration = e.Duration,
             StartDateOnly = e.StartDate,
             EndDateOnly = e.EndDate,
+
             TicketPrice = e.TicketPrice,
             ImageUrl = e.ImageUrl,
             VenueName = e.Venue?.VenueName ?? string.Empty,
@@ -425,15 +441,18 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Id = e.Id,
                 Title = e.Title,
-                EventType = e.EventType,
+                EventCategoryId = e.EventCategoryId??0,
+                CategorySlug = e.EventCategory?.Slug,
+                CategoryName = e.EventCategory?.Name,
+
                 Description = e.Description ?? "",
-                Genre = e.Genre,
                 Language = e.Language ?? "",
 
 
                 Duration = e.Duration,
                 StartDateOnly = e.StartDate,
                 EndDateOnly = e.EndDate,
+
 
 
                 TicketPrice = e.TicketPrice,
@@ -532,13 +551,15 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Id = e.Id,
                 Title = e.Title,
-                EventType = e.EventType,
+                EventCategoryId = e.EventCategoryId??0,
                 Description = e.Description ?? "",
-                Genre = e.Genre,
                 Language = e.Language ?? "",
                 Duration = e.Duration,
                 StartDateOnly = e.StartDate,
                 EndDateOnly = e.EndDate,
+                CategorySlug = e.EventCategory?.Slug,
+                CategoryName = e.EventCategory?.Name,
+
                 TicketPrice = e.TicketPrice,
                 ImageUrl = e.ImageUrl,
 

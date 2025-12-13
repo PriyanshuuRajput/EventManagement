@@ -8,7 +8,7 @@ namespace Applications.Dto.OrganizerDto
         [Required(ErrorMessage = "Email is required")]
         [RegularExpression(
       @"^[A-Za-z0-9._%+-]+@gmail\.com$",
-      ErrorMessage = "Enter a valid email address.")]
+      ErrorMessage = "Enter a valid email ")]
         public string Email { get; set; } = string.Empty;
 
 

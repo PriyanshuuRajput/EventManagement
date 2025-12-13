@@ -19,6 +19,7 @@ namespace Infrastructures.Repository
         public async Task<IEnumerable<Event>> GetAllAsync()
         {
             return await _context.Events
+                .Include(e=> e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .Include(e => e.Seats)
@@ -32,6 +33,7 @@ namespace Infrastructures.Repository
         public async Task<Event?> GetByIdAsync(int id)
         {
             return await _context.Events
+                .Include(e=>e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .Include(e => e.Seats)
@@ -97,6 +99,7 @@ namespace Infrastructures.Repository
         {
             return await _context.Events
                 .Where(e => e.ManagerId == managerId)
+                .Include(e=>e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                       .Include(e => e.Managers)
@@ -110,6 +113,7 @@ namespace Infrastructures.Repository
         {
             return await _context.Events
                 .Where(e => e.Status == EventStatus.Pending)
+                .Include(e => e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .OrderBy(e => e.CreatedAt)
@@ -121,6 +125,7 @@ namespace Infrastructures.Repository
         {
             return await _context.Events
                 .Where(e => e.Status == EventStatus.AdminApproved)
+                .Include(e => e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                       .Include(e => e.Managers)
@@ -134,6 +139,7 @@ namespace Infrastructures.Repository
         {
             return await _context.Events
                 .Where(e => e.Status == EventStatus.Rejected)
+                .Include(e => e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .OrderByDescending(e => e.CreatedAt)
@@ -144,6 +150,7 @@ namespace Infrastructures.Repository
         public async Task<PagedResult<Event>> GetPagedEventAsync(PagedRequest req)
         {
             var query = _context.Events
+                .Include(e => e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 .Include(e => e.Managers)
