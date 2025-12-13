@@ -1,6 +1,8 @@
 ﻿@page "/manage-events"
-@using Applications.Dto
-@using Domains.Entities
+@using Applications.Dto;
+@using EventBooking.Client.SpinnerService;
+@using Domains.Entities;
+@inject SpinnerService spinnerservice
 @inject AdminService AdminService
 @inject AuthenticationStateProvider AuthProvider
 @inject Blazored.Toast.Services.IToastService toastService
@@ -97,7 +99,7 @@
     }
 
     .fade-in {
-        animation: fadeIn 0.3s ease-in-out;
+        animation: fadeIn 0.3s ease-in-out
     }
 
 
@@ -378,14 +380,15 @@
                 <hr />
                 @if (activeTab == "events")
                 {
-
+                    @if(isAdmin){
                     <!--Manager Search Filter-->
-
-            <div class="filter-section mb-3">
-                <h6>Manager Name </h6>
-                    <input type="text" class="form-control form-control-sm" placeholder="Search name..."
+    
+                    <div class="filter-section mb-3">
+                        <h6>Manager Name </h6>
+                        <input type="text" class="form-control form-control-sm" placeholder="Search name..."
                            @bind="managerSearch" @oninput="(e) => ApplyFilters()" />
             </div>
+                    }
 
                 <!-- Date Filter -->
                 <div class="filter-section mb-3">
@@ -399,14 +402,18 @@
 
                 <!-- Category Filter -->
                 <div class="filter-section mb-3">
-                    <h6>EventType</h6>
-                    @foreach (var category in categories)
-                    {
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="@category" @onchange="e => ToggleCategory(category)">
-                            <label class="form-check-label small" for="@category">@category</label>
-                        </div>
-                    }
+                        <h6>Event Type</h6>
+                        @foreach (var c in categoryList)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       @onchange="e => ToggleCategory(c.Id)"
+                                       checked="@selectedCategoryIds.Contains(c.Id)" />
+
+                                <label class="form-check-label small">@c.Name</label>
+                            </div>
+                        }
                 </div>
 
                 <!-- City Filter -->
@@ -532,7 +539,7 @@
                                                 @evt.Title
                                             </h5>
 
-                                            <p class="text-muted small">@evt.EventType</p>
+                                            <p class="text-muted small">@evt.CategoryName</p>
 
                                             @if (isAdmin)
                                             {
@@ -573,7 +580,7 @@
 
                                             <!-- DURATION -->
                                             <p class="small text-muted mb-1">
-                                                <i class="bi bi-clock  text-danger" style="margin-right:2px"></i>
+                                                <i class="bi bi-hourglass-split  text-danger" style="margin-right:2px"></i>
                                                 @(evt.Duration?.ToString(@"hh\h\ mm\m"))
                                             </p>
 
@@ -698,7 +705,7 @@
                                                         <button class="btn btn-outline-warning" @onclick="() => EditVenue(v)">
                                                             <i class="bi bi-pencil-square"></i>
                                                         </button>
-                                                        <button class="btn btn-outline-danger" @onclick="() => OpenDeleteModal(v.Id)">
+                                                        <button class="btn btn-outline-danger" @onclick="() => OpenVenueDeleteModal(v.Id)">
                                                             <i class="bi bi-trash"></i>
                                                         </button>
                                                     </div>
@@ -811,14 +818,17 @@
 
                 <div class="drawer-panel">
                     <div class="drawer-header d-flex justify-content-between align-items-center shadow-sm">
-                        <h5 class="fw-bold" style="font-size:22px">
+                        <h5 class="fw-bold" style="font-size:22px;margin-bottom:4px">
                             @(editingEvent?.Id > 0 ? "Update Event" : "Add New Event")
                         </h5>
 
-                        @*<button class="btn-close" @onclick="() => showEventModal = false"></button>*@
-                        <button class="btn btn-outline-danger me-4" @onclick="ShowManagerComponent" style="padding:2px 16px">
-                            <i class="bi bi-person-fill" style="font-size:18px"></i>
-                        </button>
+                        @if (isAdmin)
+                        {
+                            @*<button class="btn-close" @onclick="() => showEventModal = false"></button>*@
+                            <button class="btn btn-outline-danger me-4" @onclick="ShowManagerComponent" style="padding:2px 16px">
+                                <i class="bi bi-person-fill" style="font-size:18px"></i>
+                            </button>
+                        }
                     </div>
 
                     <div class="drawer-body">
@@ -834,43 +844,30 @@
                                     General Information
                                 </div>
                                 <div class="card-body row g-3">
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Event Name<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingEvent.Title" class="form-control" />
                                         <ValidationMessage For="@(() => editingEvent.Title)" class="text-danger small" />
 
                                     </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Event Type <span class="text-danger">*</span></label>
 
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold">Event Type<span class="text-muted">(optional)</span></label>
-                                        <InputText @bind-Value="editingEvent.EventType"
-                                                   class="form-control"
-                                                   @oninput="e => { editingEvent.EventType = e.Value?.ToString(); ValidateTypeGenre(); }" />
+                                    <InputSelect @bind-Value="editingEvent.EventCategoryId" class="form-select">
+                                        <option value="0">-- Select Event Type --</option>
 
-                                        @if (!string.IsNullOrEmpty(eventTypeError))
+                                        @foreach (var c in categoryList)
                                         {
-                                            <div class="text-danger small">@eventTypeError</div>
+                                            <option value="@c.Id">@c.Name</option>
                                         }
+                                    </InputSelect>
 
-                                        @*<ValidationMessage For="@(()=>editingEvent.EventType)" class="text-danger small"/>*@
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold">Genre<span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="editingEvent.Genre"
-                                                   class="form-control"
-                                                   @oninput="e => { editingEvent.Genre = e.Value?.ToString(); ValidateTypeGenre(); }" />
-
-                                        @if (!string.IsNullOrEmpty(genreError))
-                                        {
-                                            <div class="text-danger small">@genreError</div>
-                                        }
-                                        <ValidationMessage For="@(()=>editingEvent.Genre)" class="text-danger small" />
-
-                                    </div>
+                                    <ValidationMessage For="@(() => editingEvent.EventCategoryId)" class="text-danger small" />
+                                </div>
 
 
-                                    <div class="col-md-3">
+
+                                    <div class="col-md-4">
                                         <label class="form-label fw-bold">Language</label>
                                         <InputText @bind-Value="editingEvent.Language" class="form-control" />
                                         @*<ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />*@
@@ -879,7 +876,7 @@
                                     <!-- ================== EVENT SCHEDULE ACCORDION ================== -->
                                     <div class="accordion mb-2" id="eventScheduleAccordion">
 
-                                        <div class="accordion-item border-0 shadow-sm">
+                                        <div class="accordion-item border-0 shadow-sm" style="margin-top:7px">
                                             <h2 class="accordion-header" id="scheduleHeader">
                                                 <button class="accordion-button py-2 px-3" type="button"
                                                         data-bs-toggle="collapse"
@@ -973,7 +970,7 @@
                                     </div>
                                     @if (eventDay == "multi")
                                     {
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label fw-bold">Duration</label>
 
                                             <input class="form-control" disabled
@@ -1024,6 +1021,7 @@
                                         @* <ValidationMessage For="@(() => editingEvent.ManagerId)" class="text-danger small" /> *@
                                     </div>
                                     }
+
                                     <div class="col-md-3">
                                         <label class="form-label fw-bold">Ticket Price (₹)</label>
                                         <InputNumber @bind-Value="editingEvent.TicketPrice" class="form-control" />
@@ -1131,7 +1129,7 @@
                     <div class="modal-dialog modal-md modal-dialog-centered">
                         <div class="modal-content border-0 custom-modal-content">
                             <div class="modal-header border-0">
-                                <h5 class="modal-title">@((editingVenue?.Id != 0 ? "Edit Venue" : "Add Venue"))</h5>
+                                <h5 class="modal-title fw-semibold" style="font-size:18px">@((editingVenue?.Id != 0 ? "Edit Venue" : "Add Venue"))</h5>
                                 @*<button type="button" class="btn-close" @onclick="() => showVenueModal = false"></button>*@
                             </div>
                             <div class="modal-body">
@@ -1188,7 +1186,7 @@
                     <div class="modal-dialog modal-md modal-dialog-centered">
                         <div class="modal-content border-0 custom-modal-content">
                             <div class="modal-header border-0">
-                                <h5 class="modal-title">@((editingCity?.Id != 0 ? "Edit City" : "Add City"))</h5>
+                                <h5 class="modal-title fw-semibold" style="font-size:18px">@((editingCity?.Id != 0 ? "Edit City" : "Add City")) </h5>
                                 @*<button type="button" class="btn-close" @onclick="() => showCityModal = false"></button>*@
                             </div>
 
@@ -1302,6 +1300,8 @@
 
     private List<EventDto> Events = new();
     private List<ManagerProfileDto> managers = new();
+    private List<EventCategoryDto> categoryList = new();
+
 
     private List<EventDto> FilteredEvents = new();
     private List<CountryDto> countries = new();
@@ -1362,6 +1362,8 @@
 
     private string? eventTypeError;
     private string? genreError;
+    private List<int> selectedCategoryIds = new();
+
 
     private List<BreadCrumbItemDto> breadcrumbItems = new();
     private void BreadCrumb()
@@ -1388,8 +1390,10 @@
 
     private void ChangeTab( string tab)
     {
+        spinnerservice.Show();
         activeTab = tab;
         BreadCrumb();
+        spinnerservice.Hide();
 
 
     }
@@ -1397,26 +1401,28 @@
 
     private string managerSearch = string.Empty;
 
-    private void ValidateTypeGenre()
-    {
-        var et = editingEvent.EventType?.Trim() ?? "";
-        var ge = editingEvent.Genre?.Trim() ?? "";
+    // private void ValidateTypeGenre()
+    // {
+    //     var et = editingEvent.EventType?.Trim() ?? "";
+    //     var ge = editingEvent.Genre?.Trim() ?? "";
 
-        if (string.IsNullOrWhiteSpace(et) && string.IsNullOrWhiteSpace(ge))
-        {
-            eventTypeError = "EventType or Genre is required";
-            genreError = "EventType or Genre is required";
-        }
-        else
-        {
-            eventTypeError = null;
-            genreError = null;
-        }
-    }
+    //     if (string.IsNullOrWhiteSpace(et) && string.IsNullOrWhiteSpace(ge))
+    //     {
+    //         eventTypeError = "EventType or Genre is required";
+    //         genreError = "EventType or Genre is required";
+    //     }
+    //     else
+    //     {
+    //         eventTypeError = null;
+    //         genreError = null;
+    //     }
+    // }
 
 
     protected override async Task OnInitializedAsync()
     {
+        spinnerservice.Show();
+        await Task.Delay(200);
         var authState = await AuthProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -1447,16 +1453,29 @@
         await LoadCities();
         await LoadVenues();
         await LoadCountriesAsync();
+        categoryList = await Http.GetFromJsonAsync<List<EventCategoryDto>>("api/EventCategory");
+
 
         cities = Events.Select(e => e.CityName).Distinct().OrderBy(c => c).ToList()!;
-        categories = Events.Select(e => e.EventType).Distinct().OrderBy(c => c).ToList();
+        // categories = Events.Select(e => e.EventType).Distinct().OrderBy(c => c).ToList();
 
         CalculateVenueEventCounts();
         CalculateCityCounts();
         CalculateVenueEventCounts();
         BreadCrumb();
         filteredVenues = venues.ToList();
+        spinnerservice.Hide();
 
+    }
+
+    private void ToggleCategory(int id)
+    {
+        if (selectedCategoryIds.Contains(id))
+            selectedCategoryIds.Remove(id);
+        else
+            selectedCategoryIds.Add(id);
+
+        ApplyFilters();
     }
 
     private void HandleInvalidSubmit()
@@ -1500,10 +1519,10 @@
         {
             Id = evt.Id,
             Title = evt.Title,
-            EventType = evt.EventType,
+            CategoryName = evt.CategoryName,
             Description = evt.Description,
             Language = evt.Language,
-            Genre = evt.Genre,
+            // Genre = evt.Genre,
             VenueId = evt.VenueId,
             TicketPrice = evt.TicketPrice,
             ImageUrl = evt.ImageUrl,
@@ -1674,13 +1693,13 @@
         {
             var evt = editingEvent;  
 
-            if (string.IsNullOrWhiteSpace(evt.EventType) &&
-                string.IsNullOrWhiteSpace(evt.Genre))
-            {
-                ValidateTypeGenre();
-                toastService.ShowError("Please fill at least EventType or Genre.");
-                return;
-            }
+            // if (string.IsNullOrWhiteSpace(evt.EventType) &&
+            //     string.IsNullOrWhiteSpace(evt.Genre))
+            // {
+            //     ValidateTypeGenre();
+            //     toastService.ShowError("Please fill at least EventType or Genre.");
+            //     return;
+            // }
             // SINGLE DAY EVENT 
             if (eventDay == "single")
             {
@@ -1707,25 +1726,27 @@
             }
 
 
-
-
             var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(evt.Title ?? ""), "Title");
-            content.Add(new StringContent(evt.EventType ?? ""), "EventType");
+            // content.Add(new StringContent(evt.EventType ?? ""), "EventType");
             content.Add(new StringContent(evt.Description ?? ""), "Description");
-            content.Add(new StringContent(evt.Genre ?? ""), "Genre");
+            // content.Add(new StringContent(evt.Genre ?? ""), "Genre");
+            content.Add(new StringContent(evt.EventCategoryId.ToString()!), "EventCategoryId");
             content.Add(new StringContent(evt.Language ?? ""), "Language");
 
             if (evt.VenueId > 0)
                 content.Add(new StringContent(evt.VenueId.ToString()), "VenueId");
 
-            if (evt.CityId.HasValue && evt.CityId > 0)
-                content.Add(new StringContent(evt.CityId.Value.ToString()), "CityId");
+            content.Add(new StringContent(evt.CityId?.ToString() ?? "0"), "CityId");
 
-            content.Add(new StringContent(evt.Duration?.ToString(@"hh\:mm\:ss")??""), "Duration");
-            content.Add(new StringContent(evt.StartDate.ToString("o")), "StartDate");
-            content.Add(new StringContent(evt.EndDate.ToString("o")), "EndDate");
+            content.Add(new StringContent(evt.Duration.Value.ToString(@"hh\:mm\:ss")), "Duration");
+
+            content.Add(new StringContent(evt.StartDateOnly.ToString("yyyy-MM-dd")), "StartDateOnly");
+            content.Add(new StringContent(evt.StartTime.ToString(@"hh\:mm\:ss")), "StartTime");
+
+            content.Add(new StringContent(evt.EndDateOnly?.ToString("yyyy-MM-dd") ?? ""), "EndDateOnly");
+           content.Add(new StringContent(evt.EndTime.ToString(@"hh\:mm\:ss")), "EndTime");
 
 
             content.Add(new StringContent(evt.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
@@ -1811,8 +1832,6 @@
             StateHasChanged();
         }
     }
-
-
     private void OpenDeleteModal(int id)
     {
         deleteType = "event";
@@ -1826,17 +1845,32 @@
     }
 
     private async Task DeleteConfirmed()
+{
+    spinnerservice.Show();   
+
+    try
     {
         if (deleteType == "event")
             await DeleteEvent(deleteEventId);
 
         if (deleteType == "venue")
             await DeleteVenue(deleteVenueId);
+
         if (deleteType == "city")
             await DeleteCity(deleteCityId);
 
         showDeleteModal = false;
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Delete error: " + ex.Message);
+        
+    }
+    finally
+    {
+        spinnerservice.Hide();  
+    }
+}
 
 
     private async Task DeleteEvent(int eventId)
@@ -2075,8 +2109,8 @@
         if (!string.IsNullOrWhiteSpace(selectedCity))
             filtered = filtered.Where(e => e.CityName == selectedCity);
 
-        if (selectedCategories.Any())
-            filtered = filtered.Where(e => selectedCategories.Contains(e.EventType));
+        if (selectedCategoryIds.Any())
+            filtered = filtered.Where(e => selectedCategoryIds.Contains(e.EventCategoryId??0));
 
         if (selectedPriceRange != null)
         {

@@ -63,11 +63,12 @@
     }
 </EditForm>
 
-@code {
+    @code {
     [Parameter] public EventCallback OnSuccess { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback OnSwitchToSignup { get; set; }
     [Parameter] public string? email { get; set; }
+
     private bool showPassword = false;
     private bool isProcessing = false;
 
@@ -99,72 +100,65 @@
     {
         if (isProcessing)
             return;
+
         isProcessing = true;
         StateHasChanged();
-        var http = new HttpClient();
 
-        var response = await http.PostAsJsonAsync("https://localhost:7239/api/Account/login", loginModel);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            errorMessage = await response.Content.ReadAsStringAsync();
-            return;
-        }
+            var http = new HttpClient();
+            var response = await http.PostAsJsonAsync("https://localhost:7239/api/Account/login", loginModel);
 
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = await response.Content.ReadAsStringAsync();
+                loginModel = new LoginDto();
+                StateHasChanged();
+                return;
+            }
 
-        var result = await response.Content.ReadFromJsonAsync<ManagerLoginResponseDto>();
+            var result = await response.Content.ReadFromJsonAsync<ManagerLoginResponseDto>();
 
-        if (result == null)
-        {
-            errorMessage = "Unexpected server response.";
-            return;
-        }
-        if (result.ChangePassword == true)
-        {
+            if (result == null)
+            {
+                errorMessage = "Unexpected server response.";
+                return;
+            }
+
+            if (result.ChangePassword == true)
+            {
+                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+                Navigation.NavigateTo("/manager-profile-change-password", true);
+                return;
+            }
+
             await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
 
+            if (result.Role == "Manager")
+            {
+                Navigation.NavigateTo("/manager-profile", true);
+                return;
+            }
 
-            // redirect to change-password
-            Navigation.NavigateTo("/manager-profile-change-password", true);
+            if (result.Role == "User")
+            {
+                Navigation.NavigateTo("/", true);
+                return;
+            }
 
-            return;
+            Navigation.NavigateTo("/", true);
         }
-
-        await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
-
-
-        // CASE 2 → NORMAL MANAGER LOGIN (AFTER PASSWORD CHANGE)
-        if (result.Role == "Manager")
+        finally
         {
-            Navigation.NavigateTo("/manager-profile", true);
-            return;
+            loginModel = new LoginDto();
+            
+            isProcessing = false;
+            StateHasChanged();
         }
-
-        // CASE 3 → NORMAL USER LOGIN
-        if (result.Role == "User")
-        {
-            Navigation.NavigateTo("/", true); // user homepage
-            return;
-        }
-
-        // DEFAULT → Just go home
-        Navigation.NavigateTo("/", true);
-
-        isProcessing = false;
-        StateHasChanged();
     }
 
+
     private async Task OnCancelClicked() => await OnCancel.InvokeAsync();
-
-    //    var success = await LoginAsync("https://localhost:7239/api/Account/login", "/");
-    //    if (success)
-    //    {
-    //        if (OnSuccess.HasDelegate)
-    //            await OnSuccess.InvokeAsync();
-    //    }
-    //}
-
-    //private async Task OnCancelClicked() => await OnCancel.InvokeAsync();
 
 
 }

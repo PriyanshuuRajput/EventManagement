@@ -1,4 +1,6 @@
 ﻿@page "/book-event/{eventId:int}"
+@using EventBooking.Client.SpinnerService;
+@inject SpinnerService spinnerService
 @inject HttpClient Http
 @inject NavigationManager Nav
 @inject IJSRuntime JS
@@ -79,6 +81,17 @@
         transition: all 0.2s ease-in-out;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
     }
+    .hide-scrollbar {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -ms-overflow-style: none;
+        scrollbar-width: none; 
+    }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none; 
+        }
+
 
 </style>
 
@@ -86,7 +99,7 @@
 @if (evtDetails == null)
 {
     <div class="text-center mt-5">
-        <div class="spinner-border text-primary" role="status"></div>
+        @* <div class="spinner-border text-primary" role="status"></div> *@
         <p class="mt-2">Loading event details...</p>
     </div>
 }
@@ -98,14 +111,14 @@ else
             <div class="col-lg-8">
                 <h2 class="fw-bold mb-3">@evtDetails.Title</h2>
 
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-2">
                     <img src="@evtDetails.ImageUrl" alt="@evtDetails.Title" class="img-fluid w-100 event-banner" />
                 </div>
 
                 <!-- Tags -->
                 <div class="mb-3 d-flex justify-content-end align-items-center">
-                    <span class="badge bg-secondary mt-2 ms-2">@evtDetails.Genre</span>
-                    <span class="badge bg-dark mt-2 ms-2">@evtDetails.EventType</span>
+                    <span class="badge bg-secondary mt-2 ms-2">@evtDetails.CategoryName</span>
+                  
 
                     
                     <i class="bi bi-hand-thumbs-up-fill text-success ms-2 mt-2 fs-5"></i>
@@ -191,7 +204,7 @@ else
                     <h4 class="fw-bold mb-3">You May Also Like</h4>
 
                     <!-- Horizontal Scroll Wrapper -->
-                    <div class="d-flex overflow-auto pb-3" style="scroll-snap-type: x mandatory;">
+                    <div class="d-flex overflow-auto pb-3 hide-scrollbar">
                         @foreach (var item in suggestedEvents)
                         {
                             <div class="card border-0 shadow-sm rounded-3 me-3 flex-shrink-0"
@@ -233,7 +246,7 @@ else
                             </li>
                             <li class="d-flex align-items-center mb-2">
                                 <i class="bi bi-person-fill me-2 text-danger"></i>
-                                <span>@evtDetails.EventType</span>
+                                <span>@evtDetails.CategoryName</span>
                             </li>
                             <li class="d-flex align-items-center mb-3">
                                 <i class="bi bi-geo-alt me-2 text-danger"></i>
@@ -241,9 +254,9 @@ else
                             </li>
                         </ul>
 
-                        <hr class="my-3" />
+                        <hr/>
 
-                        <h4 class="fw-bold mb-4 d-flex align-items-center">
+                        <h4 class="fw-bold mb-4 2 align-items-center">
                             <i class="bi bi-ticket-perforated-fill text-danger me-2"></i>
                             Choose Your Seats
                         </h4>
@@ -252,16 +265,16 @@ else
                         {
                             @foreach (var category in seatCategories)
                             {
-                                <div class="border rounded-3 p-4 mb-4 bg-white shadow-sm hover-shadow-sm mb-4">
+                                <div class="border rounded-2 p-2 bg-white shadow-sm mb-2">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h4 class="fw-semibold mb-0">@category.Category</h4>
                                         <h5 class="fw-semibold text-danger mb-0">₹@category.Price</h5>
                                     </div>
-                                    <p class="text-muted mb-1 small">@GetSeatDescription(category.Category)</p>
+                                    <p class="text-muted mb-2 small">@GetSeatDescription(category.Category)</p>
                                     <p class="text-secondary small mb-0">@category.Available available</p>
                                 </div>
 
-                                <div class=" d-flex justify-content-between align-items-center">
+                                <div class=" d-flex justify-content-between align-items-center p-2 mb-2">
                                     <span class="fw-semibold text-muted">Quantity</span>
                                     <div class="btn-group" role="group" aria-label="Quantity controls">
                                         <button type="button" class="btn btn-outline-secondary btn-sm" style="width:50% ; height:50%"
@@ -288,11 +301,11 @@ else
                         <hr class="my-3" />
 
 
-                        <div class="alert alert-warning small py-2 mb-3">
+                        <div class="alert alert-warning small p-2 mb-3">
                             <i class="bi bi-info-circle me-2"></i>Bookings are filling fast!
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                        <div class="d-flex justify-content-between align-items-center mb-4 m-2 flex-wrap">
                             <!-- 🧾 Left Side: Calculation -->
                             <div class="d-flex align-items-center flex-wrap gap-2 text-muted small price-row">
                                 <span class="fw-bold text-dark fs-6">₹@Subtotal</span>
@@ -303,17 +316,18 @@ else
                                 <span class="fw-bold text-dark fs-5 text-nowrap">₹@Total</span>
                             </div>
                         </div>
+                        <button class="btn btn-danger w-100 fw-semibold py-2"
+                                @onclick="ProceedToCheckout">
+                            Book Now
+                        </button>
                     </div>
-                    <button class="btn btn-danger w-100 fw-semibold py-2"
-                            @onclick="ProceedToCheckout">
-                        Book Now
-                    </button>
+                    
                 </div>
             </div>
         </div>
     </div>
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-1 lh-1" style="--bs-breadcrumb-divider: '→'; font-size:0.75rem; opacity:0.8;">
+    <nav aria-label="breadcrumb" class="me-4 ms-4 mt-4 lh-1" style="--bs-breadcrumb-divider: '→'; font-size:0.75rem; opacity:0.8;">
         <ol class="breadcrumb small text-muted mb-0">
             <li class="breadcrumb-item">
                 <a href="/" class="text-decoration-none text-muted">Home</a>
@@ -322,7 +336,7 @@ else
                 <a href="/events" class="text-decoration-none text-muted">Events</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="/events" class="text-decoration-none text-muted">@evtDetails.Genre</a>
+                <a href="/events" class="text-decoration-none text-muted">@evtDetails.CategoryName</a>
             </li>
             @*<li class="breadcrumb-item">
                     <a href="/organizer/@evtDetails.VenueName.ToLower().Replace(" ", "-")" class="text-decoration-none text-muted">
@@ -360,6 +374,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        spinnerService.Show();
+        await Task.Delay(200);
+
         evtDetails = await Http.GetFromJsonAsync<EventDto>($"api/events/{eventId}");
         var allSeats = await Http.GetFromJsonAsync<List<SeatDto>>($"api/seats/event/{eventId}");
 
@@ -376,6 +393,7 @@ else
                 .ToList();
         }
         await LoadSuggestedEvents();
+        spinnerService.Hide();
     }
 
     private void Increase(SeatCategory category)
@@ -395,7 +413,7 @@ else
 
         suggestedEvents = allEvents?
             .Where(e => e.Id != eventId &&
-                        (e.Genre == evtDetails?.Genre || e.CityName == evtDetails?.CityName))
+                        (e.EventCategoryId == evtDetails?.EventCategoryId || e.CityName == evtDetails?.CityName))
             .Take(8) // show more events for horizontal scroll
             .ToList() ?? new List<EventDto>();
     }

@@ -11,6 +11,7 @@ using Infrastructures.Repositories;
 using Infrastructures.Repository;
 using Infrastructures.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -66,6 +67,11 @@ namespace EventBooking_TicketManagement_API
             // ---------------------------------------------------------
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = false;
+            });
+
 
             builder.Services.AddSwaggerGen(c =>
             {

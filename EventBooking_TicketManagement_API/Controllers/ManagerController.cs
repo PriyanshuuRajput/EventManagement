@@ -182,9 +182,8 @@ namespace EventBooking_TicketManagement_API.Controllers
             {
                 Id = id,
                 Title = dto.Title,
-                EventType = dto.EventType,
+                EventCategoryId = dto.EventCategoryId,
                 Description = dto.Description ?? "",
-                Genre = dto.Genre,
                 Language = dto.Language ?? "",
                 Duration = dto.Duration,
                 StartDateOnly = dto.StartDate,

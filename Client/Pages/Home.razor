@@ -9,14 +9,14 @@
 
 .hero-carousel-item {
     height: 400px;
-    overflow: hidden;
+    /* overflow: hidden; */
     position: relative;
 }
 
 
-.carousel.slide .carousel-item {
+/* .carousel.slide .carousel-item {
     transition: opacity 0.8s ease-in-out;
-}
+} */
 
 .hero-img {
     width: 100%;
@@ -108,14 +108,14 @@
 </style>
 
 <section class="p-0">
-    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000" data-bs-wrap="true" data-bs-pause="false">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
         <div class="carousel-inner">
 
             <div class="carousel-item active hero-carousel-item">
                 <img src="concerts-crousel.png" class="hero-img d-block" alt="Live Music Fest">
                 <div class="carousel-caption d-none d-md-block text-start">
                     <h1 class="display-4 fw-bolder text-uppercase">LIVE MUSIC FEST</h1>
-                    <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Explore Concerts</button>
+                    @* <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Explore Concerts</button> *@
                 </div>
             </div>
 
@@ -123,7 +123,7 @@
                 <img src="movie-crousel.png" class="hero-img d-block" alt="Big Game Thrills">
                 <div class="carousel-caption d-none d-md-block text-start">
                     <h1 class="display-4 fw-bolder text-uppercase">LIVE MUSIC FEST</h1>
-                    <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Explore Concerts</button>
+                    @* <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Explore Concerts</button> *@
                 </div>
             </div>
 
@@ -131,7 +131,7 @@
                 <img src="threater-crousel.png" class="hero-img d-block" alt="Drama and Shows">
                 <div class="carousel-caption d-none d-md-block text-start">
                     <h1 class="display-4 fw-bolder text-uppercase">DRAMA & SHOWS</h1>
-                    <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Book Shows</button>
+                    @* <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Book Shows</button> *@
                 </div>
             </div>
 
@@ -139,7 +139,7 @@
                 <img src="comedyshow-crousel.png" class="hero-img d-block" alt="Comedy Nights">
                 <div class="carousel-caption d-none d-md-block text-start">
                     <h1 class="display-4 fw-bolder text-uppercase">COMEDY NIGHTS</h1>
-                    <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Find Comedy</button>
+                    @* <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Find Comedy</button> *@
                 </div>
             </div>
 

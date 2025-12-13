@@ -4,24 +4,31 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Applications.Dto
 {
-    public class EventDto : IValidatableObject
+    public class EventDto 
+        //: IValidatableObject
     {
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Event name is required.")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 50 characters.")]
         public string Title { get; set; } = string.Empty;
-        public string? CategorySlug { get; set; }
-        public EventCategory? EventCategory { get; set; }
 
-        public string? EventType { get; set; } = string.Empty;
+        [Required(ErrorMessage = " Please select a event type. " )]
+        public int? EventCategoryId { get; set; }
+        public string? CategorySlug { get; set; }
+        public string? CategoryName { get; set; }
+
+        //public int? EventCategoryId { get; set; }
+        //public EventCategory? EventCategory { get; set; }
+
+        //public string? EventType { get; set; } = string.Empty;
 
         public string? Description { get; set; } = "";
 
 
-        [StringLength(50)]
-        [Required(ErrorMessage = "Genre is required.")]
-        public string? Genre { get; set; } = string.Empty;
+        //[StringLength(50)]
+        //[Required(ErrorMessage = "Genre is required.")]
+        //public string? Genre { get; set; } = string.Empty;
         public string? Language { get; set; } = "";
 
         public TimeSpan? Duration { get; set; }
@@ -65,7 +72,7 @@ namespace Applications.Dto
             (EndDateOnly ?? StartDateOnly).Date + EndTime;
 
 
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a venue")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a venue.")]
         public int VenueId { get; set; }
 
         public string? VenueName { get; set; }
@@ -112,26 +119,26 @@ namespace Applications.Dto
         public bool PrizePaid { get; set; } = false;
         public DateTime? PrizePaidAt { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {
-            string eventType = EventType?.Trim() ?? "";
-            string genre = Genre?.Trim() ?? "";
+        //public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        //{
+        //    string eventType = EventType?.Trim() ?? "";
+        //    string genre = Genre?.Trim() ?? "";
 
-            if (eventType == "" && genre == "")
-            {
-                yield return new ValidationResult(
-                    "Please provide at least Event Type or Genre.",
-                    new[] { nameof(EventType), nameof(Genre) });
+        //    if (eventType == "" && genre == "")
+        //    {
+        //        yield return new ValidationResult(
+        //            "Please provide at least Event Type or Genre.",
+        //            new[] { nameof(EventType), nameof(Genre) });
 
-            }
-            if (eventType == "" && genre != "")
-            {
-                EventType = genre;
-            }
-            if (genre == "" && eventType != "")
-            {
-                Genre = eventType;
-            }
-        }
+        //    }
+        //    if (eventType == "" && genre != "")
+        //    {
+        //        EventType = genre;
+        //    }
+        //    if (genre == "" && eventType != "")
+        //    {
+        //        Genre = eventType;
+        //    }
+        //}
     }
 }

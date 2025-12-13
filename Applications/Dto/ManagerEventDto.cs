@@ -16,14 +16,19 @@ namespace Applications.Dto
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 50 characters.")]
         public string Title { get; set; } = string.Empty;
 
-        public string? EventType { get; set; } = string.Empty;
+        [Required(ErrorMessage = " Please select a event type. ")]
+        public int? EventCategoryId { get; set; }
+        public string? CategorySlug { get; set; }
+        public string? CategoryName { get; set; }
+
+        //public string? EventType { get; set; } = string.Empty;
 
         public string? Description { get; set; } = "";
 
-        [StringLength(50)]
-        [Required(ErrorMessage = "Genre is required.")]
+        //[StringLength(50)]
+        //[Required(ErrorMessage = "Genre is required.")]
 
-        public string? Genre { get; set; }
+        //public string? Genre { get; set; }
 
         public string? Language { get; set; } = "";
 
@@ -123,5 +128,6 @@ namespace Applications.Dto
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public string? ManagerName { get; set; }
+        //public int EventCategoryId { get; set; }
     }
 }

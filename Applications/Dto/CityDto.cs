@@ -6,7 +6,7 @@ namespace Applications.Dto
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage ="City is required.")]
         [StringLength(100)]
         public string CityName { get; set; } = string.Empty;
 
