@@ -1,5 +1,10 @@
 ﻿@page "/"
+
+@using Applications.Dto
+@inject HttpClient Http
+
 @inject NavigationManager Navigation
+
 
 
 
@@ -93,6 +98,12 @@
     background-color: transparent !important;
 }
 
+    .category-img {
+        height: 180px;
+        object-fit: cover;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
 
 .category-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -177,45 +188,26 @@
 <section>
     <div class="container" style="margin-top:40px">
         <h2 class="mt-4 mb-4 fw-bold">The Best Of Live Events</h2>
-        @*<p class="text-center text-muted mb-5">Click on a category to see available events.</p>*@
+
         <div class="row text-center">
+            @foreach (var category in categories)
+            {
+                <div class="col-6 col-md-3 mb-4">
+                    <div class="card h-100 shadow category-card"
+                         @onclick='() => GoToCategory(category.Slug)'>
 
-            <div class="col-6 col-md-3 mb-4">
-                <div class="card h-100 shadow category-card" @onclick='() => GoToCategory("concerts")'>
-                    <img src="concerts-crousel.png" class="card-img-top category-img" alt="Concerts">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <h5 class="card-title mb-0">Concerts</h5>
+                        <img src="@GetCategoryImage(category.ImageUrl)"
+                             class="card-img-top category-img"
+                             alt="@category.Name">
+
+                        <div class="card-body d-flex align-items-center justify-content-center">
+                            <h5 class="card-title mb-0">
+                                @category.Name
+                            </h5>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-6 col-md-3 mb-4">
-                <div class="card h-100 shadow category-card" @onclick='() => GoToCategory("music")'>
-                    <img src="sports-crousel.png" class="card-img-top category-img" alt="Music">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <h5 class="card-title mb-0">Music</h5>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3 mb-4">
-                <div class="card h-100 shadow category-card" @onclick='() => GoToCategory("theatre")'>
-                    <img src="threater-crousel.png" class="card-img-top category-img" alt="Theatre">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <h5 class="card-title mb-0">Theatre</h5>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3 mb-4">
-                <div class="card h-100 shadow category-card" @onclick='() => GoToCategory("comedy")'>
-                    <img src="comedyshow-crousel.png" class="card-img-top category-img" alt="Comedy">
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <h5 class="card-title mb-0">Comedy</h5>
-                    </div>
-                </div>
-            </div>
-
+            }
         </div>
     </div>
 </section>
@@ -344,7 +336,26 @@
 
 
 @code {
-    // [Parameter] public string? CategoryFromUrl { get; set; }
+
+    private List<EventCategoryDto> categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
+            "api/EventCategory"
+        ) ?? new();
+    }
+
+    string GetCategoryImage(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+            return "/images/category-placeholder.png";
+
+        return imageUrl.StartsWith("/")
+            ? imageUrl
+            : "/" + imageUrl;
+    }
+
 
     void GoToLogin()
     {

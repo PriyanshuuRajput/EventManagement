@@ -213,7 +213,7 @@ namespace EventBooking_TicketManagement_API.Services
             {
                 Id = m.Id,
                 ManagerId = m.Id,
-                ManagerName = m.User?.Username ?? "",
+                ManagerName = m.ManagerName ?? "",
                 Email = m.User?.Email ?? "",
                 Mobile = m.User?.PhoneNumber??"",
                 Address = m.Address,

@@ -32,11 +32,10 @@ namespace Applications.Dto
 
         public string? Language { get; set; } = "";
 
-        //[Required(ErrorMessage = "Event Duration is required.")]
+        [Required(ErrorMessage = " event Duration is required.")]
         public TimeSpan? Duration { get; set; }
 
-
-        [Required(ErrorMessage = "Event duration is required.")]
+        //[Required(ErrorMessage ="Duration is required. ")]
         public string DurationInput
         {
             get => Duration == null ? "" : Duration.Value.ToString(@"hh\:mm");

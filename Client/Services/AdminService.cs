@@ -42,27 +42,6 @@ namespace EventBooking.Client.Services
             return await _httpClient.GetFromJsonAsync<List<EventDto>>("api/events") ?? new();
         }
 
-        //public async Task AddEventAsync(EventDto dto, IBrowserFile? file)
-        //{
-        //    await AddAuthHeaderAsync();
-
-        //    using var content = new MultipartFormDataContent();
-
-        //    // Add Event fields as JSON string
-        //    content.Add(new StringContent(System.Text.Json.JsonSerializer.Serialize(dto)), "Event");
-
-        //    // Add file if exists
-        //    if (file != null)
-        //    {
-        //        var streamContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 10_485_760)); // 10 MB
-        //        streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-        //        content.Add(streamContent, "file", file.Name);
-        //    }
-
-        //    var response = await _httpClient.PostAsync("api/events", content);
-        //    response.EnsureSuccessStatusCode();
-        //}
-
         public async Task AddEventAsync(EventDto dto, IBrowserFile? file)
         {
             await AddAuthHeaderAsync();
@@ -70,10 +49,10 @@ namespace EventBooking.Client.Services
             using var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(dto.Title ?? ""), "Title");
-            content.Add(new StringContent(dto.EventCategoryId?.ToString()), "EventCategoryId");
+            content.Add(new StringContent(dto.Duration?.ToString(@"hh\:mm\:ss") ?? "01:00:00"),"Duration");
             content.Add(new StringContent(dto.Description ?? ""), "Description");
             content.Add(new StringContent(dto.Language ?? ""), "Language");
-
+            content.Add(new StringContent(dto.EventCategoryId!.Value.ToString()), "EventCategoryId");
             // Duration must be in correct TimeSpan format ("hh:mm:ss")
             content.Add(new StringContent(dto.Duration?.ToString(@"hh\:mm\:ss")??""), "Duration");
 
@@ -109,8 +88,11 @@ namespace EventBooking.Client.Services
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Failed to create event: {response.StatusCode} - {error}");
+                Console.WriteLine("SERVER ERROR:");
+                Console.WriteLine(error);
+                throw new Exception(error);
             }
+
         }
 
 

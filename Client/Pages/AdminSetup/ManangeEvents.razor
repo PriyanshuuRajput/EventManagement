@@ -16,6 +16,16 @@
         font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
+    .custom-modal-content {
+        border-radius: 16px !important;
+        border: none !important;
+        animation: scaleIn 0.25s ease-out;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+
     .nav-pills .nav-link {
         border-radius: 8px;
         margin-right: 6px;
@@ -203,7 +213,7 @@
 
 /* ---------- HEADER ---------- */
 .drawer-header {
-    padding: 20px 20px;
+    padding: 10px 20px;
     background: #fff;
     border-bottom: 2px solid #eee;
     position: sticky;
@@ -350,7 +360,7 @@
     <BreadCrumbs Items="@breadcrumbItems"/>
 
     <!-- ====== NAV TABS ====== -->
-    <ul class="nav nav-pills mt-4 mb-3 gap-3" id="adminTabs">
+    <ul class="nav nav-pills mt-4 mb-3 gap-2" id="adminTabs">
         <li class="nav-item">
             <button class="nav-link @(activeTab == "events" ? "active" : "")"
                     @onclick='() => ChangeTab("events")'>
@@ -367,6 +377,12 @@
             <button class="nav-link @(activeTab == "cities" ? "active" : "")"
                     @onclick='() => ChangeTab("cities")'>
                 Cities
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "categories" ? "active" : "")"
+                    @onclick='() => ChangeTab("categories")'>
+                Category
             </button>
         </li>
     </ul>
@@ -475,18 +491,6 @@
                         </select>
                     </div>
 
-                    <!-- State Filter -->
-                    @*<div class="filter-section mb-3">
-                <h6>State</h6>
-                <select class="form-select form-select-sm" @onchange="FilterState">
-                    <option value="">All States</option>
-                    @foreach (var state in filteredStates)
-                    {
-                        <option value="@state.Id">@state.Name</option>
-                    }
-                </select>
-            </div>*@
-
                     <!-- City Search -->
                     <div class="filter-section mb-3">
                         <h6>City Name</h6>
@@ -494,6 +498,21 @@
                                @bind="citySearch" @oninput="(e) => ApplyFilters()" />
                     </div>
                 }
+                @if(activeTab == "categories")
+                {
+                    <div class="filter-section mb-3">
+                        <h5>Category Name</h5>
+                        <select class="form-select form-select-sm"
+                        @onchange="FilterCategory">
+                        <option value="">All Categories</option>
+                        @foreach (var category in categoryList)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                            </select>
+                            </div>
+                            }
+
 
                 <hr />
                 <div class="d-flex justify-content-between">
@@ -790,23 +809,17 @@
                     }
                 </div>
             }
+            else if (activeTab == "categories")
+            {
+                <Category Categories="FilteredCategories" />
+
+            }
 
             <!-- ================= EVENT MODAL ================= -->
             @if (showEventModal)
             {
-                <!--<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-md modal-dialog-scrollable" style="max-width:800px;">
-            <div class="modal-content border-0 shadow-lg rounded-3">-->
-                <!-- Header -->
-                <!--<div class="modal-header border border-danger-subtle text-dark py-2">
-            <h5 class="modal-title">
                 @((editingEvent?.Id > 0 ? "Update Event" : "Add New Event"))
-            </h5>
-            <button type="button" class="btn-close btn-close-white" @onclick="() => showEventModal = false"></button>
-        </div>-->
-
-                <!-- Body -->
-                <!--<div class="modal-body bg-light">-->
+            
                 @if (showManagerComponent)
                 {
                     <div class="manager-modal-container">
@@ -854,7 +867,7 @@
                                     <label class="form-label fw-bold">Event Type <span class="text-danger">*</span></label>
 
                                     <InputSelect @bind-Value="editingEvent.EventCategoryId" class="form-select">
-                                        <option value="0">-- Select Event Type --</option>
+                                        <option value="">-- Select Event Type --</option>
 
                                         @foreach (var c in categoryList)
                                         {
@@ -983,12 +996,13 @@
                                             <label class="form-label fw-bold">Duration (HH:MM)<span class="text-danger">*</span></label>
                                             <InputText class="form-control"
                                                        @bind-Value="editingEvent.DurationInput" />
-
                                             @if (!string.IsNullOrEmpty(editingEvent.DurationError))
                                             {
-                                                <div class="text-danger small">@editingEvent.DurationError</div>
+                                                <div class="text-danger small">
+                                                    @editingEvent.DurationError
+                                                </div>
                                             }
-                                            <ValidationMessage For="@(() => editingEvent.DurationInput)" class="text-danger small" />
+                                            <ValidationMessage For="@(() => editingEvent.Duration)" class="text-danger small" />
                                         </div>
 
                                     }
@@ -1047,41 +1061,6 @@
                                     @*</div>*@
                                 </div>
                             </div>
-
-                            <!-- Location Info -->
-                            @*<div class="card shadow-sm mb-0">
-            <div class="card-header  text-dark fw-bold">
-                Location Details
-            </div>
-            <div class="card-body row g-3">*@
-
-
-                            @*<div class="col-md-6">
-                <label class="form-label fw-bold">City<span class="text-danger">*</span></label>
-                <InputSelect @bind-Value="editingEvent.CityId" class="form-select" @onchange="OnCityChanged">
-                    <option value="0">-- Select City --</option>
-                    @foreach (var city in citiesList)
-                    {
-                        <option value="@city.Id">@city.CityName</option>
-                    }
-                </InputSelect>
-
-                <ValidationMessage For="@(() => editingEvent.CityId)" />
-            </div>*@
-                            @*</div>
-            </div>*@
-
-                            <!-- Ticket and Image Info -->
-                            <!--<div class="card shadow-sm mb-2">
-            <div class="card-header  text-dark fw-bold">
-                Tickets & Image
-            </div>
-            <div class="card-body row g-3">
-
-
-
-            </div>
-        </div>-->
                             <!-- Description -->
                             <div class="card shadow-sm mb-2">
                                 <div class="card-header  text-dark fw-bold">
@@ -1308,6 +1287,8 @@
     private List<CountryDto> _allCountries = new();
     private List<StateDto> states = new();
     private List<StateDto> filteredStates = new();
+    private List<EventCategoryDto> FilteredCategories = new();
+    private int? selectedCategoryFilterId;
     private List<string> cities = new();
     private Guid? selectedCountryId;
     private Guid? selectedStateId;
@@ -1380,6 +1361,7 @@
                 "events" => "Events",
                 "venues" => "Venues",
                 "cities" => "Cities",
+                "categories"=>"Categories",
                 _ => "Events"
             },
             "/manage-events",
@@ -1433,18 +1415,19 @@
         {
             managers = await AdminService.GetAllManagersAsync();
             await LoadAdminEvents();
+
             foreach (var m in managers)
             {
-                if (!string.IsNullOrWhiteSpace(m.ManagerName))
-                    continue;
                 var fullName = $"{m.FirstName} {m.LastName}".Trim();
 
-                m.ManagerName = string.IsNullOrWhiteSpace(fullName)
-                    ? m.Email
-                    : fullName;
+                if (!string.IsNullOrWhiteSpace(fullName))
+                {
+                    m.ManagerName = fullName;
+                }
             }
 
         }
+
         else if (isManager)
         {
             await LoadManagerEvents();
@@ -1453,7 +1436,9 @@
         await LoadCities();
         await LoadVenues();
         await LoadCountriesAsync();
-        categoryList = await Http.GetFromJsonAsync<List<EventCategoryDto>>("api/EventCategory");
+        categoryList = await Http.GetFromJsonAsync<List<EventCategoryDto>>("api/EventCategory") ?? new();
+        FilteredCategories = categoryList.ToList();
+
 
 
         cities = Events.Select(e => e.CityName).Distinct().OrderBy(c => c).ToList()!;
@@ -1519,10 +1504,10 @@
         {
             Id = evt.Id,
             Title = evt.Title,
+            EventCategoryId = evt.EventCategoryId,
             CategoryName = evt.CategoryName,
             Description = evt.Description,
             Language = evt.Language,
-            // Genre = evt.Genre,
             VenueId = evt.VenueId,
             TicketPrice = evt.TicketPrice,
             ImageUrl = evt.ImageUrl,
@@ -1555,6 +1540,7 @@
         if (string.IsNullOrWhiteSpace(editingEvent.DurationInput))
         {
             editingEvent.Duration = null;
+            //editingEvent.DurationError = "Duration is required.";
             return true;
         }
 
@@ -1564,125 +1550,15 @@
             return false;
         }
 
-        if (ts.TotalMinutes < 10)
+        if (ts.TotalMinutes < 20)
         {
-            editingEvent.DurationError = "Duration must be at least 10 minutes.";
+            editingEvent.DurationError = "Minimum Duration is 20 minutes.";
             return false;
         }
 
         editingEvent.Duration = ts;
         return true;
     }
-
-    //private async Task SaveEvent(EventDto evt)
-    //{
-    //    isProcessing = true;
-    //    StateHasChanged();
-    //    try
-    //    {
-    //        //if (!ConvertDuration())
-    //        //{
-    //        //    toastService.ShowError("Invalid duration format. Use HH:mm (e.g., 02:30).");
-    //        //    return;
-    //        //}
-    //        if (string.IsNullOrWhiteSpace(editingEvent.EventType) &&
-    //            string.IsNullOrWhiteSpace(editingEvent.Genre))
-    //        {
-    //            ValidateTypeGenre();
-    //            toastService.ShowError("Please fill at least EventType or Genre.");
-    //            return;
-    //        }
-
-
-    //        var content = new MultipartFormDataContent();
-
-    //        content.Add(new StringContent(evt.Title ?? ""), "Title");
-    //        content.Add(new StringContent(evt.EventType ?? ""), "EventType");
-    //        content.Add(new StringContent(evt.Description ?? ""), "Description");
-    //        content.Add(new StringContent(evt.Genre ?? ""), "Genre");
-    //        content.Add(new StringContent(evt.Language ?? ""), "Language");
-
-    //        if (evt.VenueId > 0)
-    //            content.Add(new StringContent(evt.VenueId.ToString()), "VenueId");
-
-    //        if (evt.CityId.HasValue && evt.CityId > 0)
-    //            content.Add(new StringContent(evt.CityId.Value.ToString()), "CityId");
-
-    //        content.Add(new StringContent(evt.Duration.ToString(@"hh\:mm\:ss")), "Duration");
-    //        content.Add(new StringContent(evt.ShowDate.ToString("yyyy-MM-ddTHH:mm:ss")), "ShowDate");
-    //        content.Add(new StringContent(evt.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
-
-    //        // IMAGE
-    //        if (selectedImageFile != null)
-    //        {
-    //            var stream = selectedImageFile.OpenReadStream(10_000_000);
-    //            var fileContent = new StreamContent(stream);
-    //            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedImageFile.ContentType);
-    //            content.Add(fileContent, "ImageFile", selectedImageFile.Name);
-    //        }
-    //        else if (evt.Id > 0)
-    //        {
-    //            content.Add(new StringContent(evt.ImageUrl ?? ""), "ImageUrl");
-    //        }
-
-
-    //        // MANAGER FLOW
-
-    //        if (isManager)
-    //        {
-    //            HttpResponseMessage response;
-
-    //            if (evt.Id > 0)
-    //                response = await Http.PutAsync($"api/ManagerEvent/update/{evt.Id}", content);
-    //            else
-    //                response = await Http.PostAsync("api/ManagerEvent/create", content);
-
-    //            string body = await response.Content.ReadAsStringAsync();
-
-    //            if (!response.IsSuccessStatusCode)
-    //            {
-    //                toastService.ShowError(body);
-    //                return;
-    //            }
-
-    //            toastService.ShowSuccess("Event saved successfully.");
-    //            await LoadManagerEvents();
-
-    //            showEventModal = false;
-    //            selectedImageFile = null;
-    //            return;
-    //        }
-
-
-    //        // ADMIN FLOW
-
-    //        if (isAdmin)
-    //        {
-    //            if (evt.Id > 0)
-    //                await AdminService.UpdateEventAsync(evt.Id, evt, selectedImageFile);
-    //            else
-    //                await AdminService.AddEventAsync(evt, selectedImageFile);
-
-    //            toastService.ShowSuccess("Event saved successfully!");
-
-    //            await LoadAdminEvents();
-
-    //            showEventModal = false;
-    //            selectedImageFile = null;
-    //            return;
-    //        }
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        toastService.ShowError("Error: " + ex.Message);
-    //        Console.WriteLine("Save Event Error: " + ex);
-    //    }
-    //    finally
-    //    {
-    //        isProcessing = false;
-    //        StateHasChanged();
-    //    }
-    //}
 
     private async Task SaveEvent()
     {
@@ -1693,13 +1569,6 @@
         {
             var evt = editingEvent;  
 
-            // if (string.IsNullOrWhiteSpace(evt.EventType) &&
-            //     string.IsNullOrWhiteSpace(evt.Genre))
-            // {
-            //     ValidateTypeGenre();
-            //     toastService.ShowError("Please fill at least EventType or Genre.");
-            //     return;
-            // }
             // SINGLE DAY EVENT 
             if (eventDay == "single")
             {
@@ -1722,17 +1591,14 @@
                     return;
                 }
 
-                evt.Duration = evt.EndDate - evt.StartDate;  // auto duration
+                evt.Duration = evt.EndDate - evt.StartDate;
             }
-
 
             var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(evt.Title ?? ""), "Title");
-            // content.Add(new StringContent(evt.EventType ?? ""), "EventType");
             content.Add(new StringContent(evt.Description ?? ""), "Description");
-            // content.Add(new StringContent(evt.Genre ?? ""), "Genre");
-            content.Add(new StringContent(evt.EventCategoryId.ToString()!), "EventCategoryId");
+            content.Add(new StringContent(evt.EventCategoryId!.Value.ToString()), "EventCategoryId");
             content.Add(new StringContent(evt.Language ?? ""), "Language");
 
             if (evt.VenueId > 0)
@@ -1746,7 +1612,7 @@
             content.Add(new StringContent(evt.StartTime.ToString(@"hh\:mm\:ss")), "StartTime");
 
             content.Add(new StringContent(evt.EndDateOnly?.ToString("yyyy-MM-dd") ?? ""), "EndDateOnly");
-           content.Add(new StringContent(evt.EndTime.ToString(@"hh\:mm\:ss")), "EndTime");
+            content.Add(new StringContent(evt.EndTime.ToString(@"hh\:mm\:ss")), "EndTime");
 
 
             content.Add(new StringContent(evt.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)), "TicketPrice");
@@ -1845,32 +1711,32 @@
     }
 
     private async Task DeleteConfirmed()
-{
-    spinnerservice.Show();   
-
-    try
     {
-        if (deleteType == "event")
-            await DeleteEvent(deleteEventId);
+        spinnerservice.Show();   
 
-        if (deleteType == "venue")
-            await DeleteVenue(deleteVenueId);
+        try
+        {
+            if (deleteType == "event")
+                await DeleteEvent(deleteEventId);
 
-        if (deleteType == "city")
-            await DeleteCity(deleteCityId);
+            if (deleteType == "venue")
+                await DeleteVenue(deleteVenueId);
 
-        showDeleteModal = false;
+            if (deleteType == "city")
+                await DeleteCity(deleteCityId);
+
+            showDeleteModal = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Delete error: " + ex.Message);
+
+        }
+        finally
+        {
+            spinnerservice.Hide();  
+        }
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine("Delete error: " + ex.Message);
-        
-    }
-    finally
-    {
-        spinnerservice.Hide();  
-    }
-}
 
 
     private async Task DeleteEvent(int eventId)
@@ -2169,7 +2035,6 @@
 
     }
 
-
     private void FilterCountry(ChangeEventArgs e)
     {
         var value = e.Value?.ToString();
@@ -2186,18 +2051,40 @@
 
         ApplyFilters();
     }
+    private void FilterCategory(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
 
+        // All Categories selected
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            selectedCategoryFilterId = null;
+            FilteredCategories = categoryList.ToList();
+            return;
+        }
 
-    //private void FilterState(ChangeEventArgs e)
-    //{
-    //    if (Guid.TryParse(e.Value?.ToString(), out var id))
-    //        selectedStateFilter = id;
-    //    else
-    //        selectedStateFilter = null;
+        if (int.TryParse(value, out int id))
+        {
+            selectedCategoryFilterId = id;
 
-    //    ApplyFilters();
-    //}
+            FilteredCategories = categoryList
+                .Where(c => c.Id == id)
+                .ToList();
+        }
+      
+    }
+    private void ApplyCategoryFilter()
+    {
+        if (!selectedCategoryFilterId.HasValue)
+        {
+            FilteredCategories = categoryList.ToList();
+            return;
+        }
 
+        FilteredCategories = categoryList
+            .Where(c => c.Id == selectedCategoryFilterId.Value)
+            .ToList();
+    }
 
     private void ApplyFilters()
     {
@@ -2207,6 +2094,10 @@
             ApplyVenueFilters();
         else if (activeTab == "cities")
             ApplyCityFilters();
+
+        else if (activeTab == "categories")
+            ApplyCategoryFilter();
+            
     }
 
     private void ClearAllFilters()
@@ -2230,6 +2121,10 @@
         selectedCountryFilter = null;
         citySearch = string.Empty;
         FilteredCities = citiesList;
+
+        //Category Filters
+         selectedCategoryFilterId = null;
+         FilteredCategories = categoryList.ToList();
     }
 
     private void SetDateFilter(string filter)
@@ -2379,11 +2274,6 @@
 
         eventTypeError = null;
         genreError = null;
-        //durationError = null;
-
-
-        //durationInput = string.Empty;
-
 
         selectedImageFile = null;
 

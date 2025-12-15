@@ -31,17 +31,24 @@ namespace EventBooking_TicketManagement_API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(EventCategoryDto dto)
+        public async Task<IActionResult> Create([FromForm] EventCategoryDto dto, IFormFile? imageFile)
         {
             if(!ModelState.IsValid) return BadRequest();
-
+            if (imageFile != null)
+            {
+                dto.ImageUrl = await SaveCategoryImage(imageFile);
+            }
             var result = await _eventCategoryService.CreateAsync(dto);
             return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, EventCategoryDto dto)
+        public async Task<IActionResult> Update(int id, [FromForm] EventCategoryDto dto , IFormFile? imageFile)
         {
+            if(imageFile !=null)
+            { 
+                dto.ImageUrl = await SaveCategoryImage(imageFile);
+            }
             await _eventCategoryService.UpdateAsync(id, dto);
             return NoContent();
         }
@@ -52,5 +59,23 @@ namespace EventBooking_TicketManagement_API.Controllers
             await _eventCategoryService.DeleteAsync(id);
             return NoContent();
         }
+
+        private async Task<string> SaveCategoryImage(IFormFile file)
+        {
+            var folder = Path.Combine("wwwroot", "category-images");
+
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(folder, fileName);
+
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            var imageUrl = $"{Request.Scheme}://{Request.Host}/category-images/{fileName}";
+            return imageUrl;
+        }
+
     }
 }
