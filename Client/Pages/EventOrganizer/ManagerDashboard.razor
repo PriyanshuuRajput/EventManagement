@@ -5,6 +5,7 @@
 @inject NavigationManager Nav
 @inject HttpClient Http
 @using Domains.Entities
+@attribute [Authorize(Roles = "Manager")]
 
 
 <style>
@@ -202,11 +203,10 @@
         <table class="table table-hover align-middle">
             <thead class="table-secondary">
                 <tr>
-                    <th style="width:120px;">Image</th>
-                    <th style="width:160px">Event</th>
+                    <th style="width:18px">Event Name</th>
                     <th>Description</th>
-                    <th style="width:150px;">Show Date</th>
-                    <th style="width:150px;">Address</th>
+                    <th style="width:150px;">Event Date</th>
+                    <th style="width:200px;">Address</th>
                     <th style="width:100px">Tickets</th>
                     <th style="width:100px">Revenue</th>
                     @*<th style="width:100px">Amount</th>*@
@@ -218,15 +218,6 @@
                 @foreach (var ev in PagedItems)
                 {
                     <tr @key = "ev.Id" @onclick="() => OpenSidePanel(ev)" style="cursor:pointer;">
-
-                        <!-- Image -->
-                        <td>
-                            <img @key= "@ev.ImageUrl"
-                                 src="@ev.ImageUrl"
-                                 class="rounded-3 border"
-                                 style="width:85px; height:55px; object-fit:cover;"
-                                 alt="No Img" />
-                        </td>
 
                         <!-- Event Info -->
                         <td>
@@ -430,26 +421,6 @@
             </div>
 
         </div>
-
-        <!-- Status Badge -->
-        @*<div class="mt-2">
-            <h6 class="fw-bold text-secondary mb-2">
-                <i class="bi bi-info-circle-fill me-2 text-primary"></i>Status
-            </h6>
-
-            @if (selectedEvent.Status == EventStatus.Pending)
-            {
-                <span class="badge bg-warning text-dark p-2 px-3">Pending Approval</span>
-            }
-            else if (selectedEvent.Status == EventStatus.AdminApproved)
-            {
-                <span class="badge bg-success text-white p-2 px-3">Approved & Published</span>
-            }
-            else if (selectedEvent.Status == EventStatus.Rejected)
-            {
-                <span class="badge bg-danger text-white p-2 px-3">Rejected</span>
-            }
-        </div>*@
     </div>
 </div>
  }
@@ -459,7 +430,7 @@
 
     <!-- Pagination -->
     <div class="d-flex justify-content-between align-items-center ">
-        <div class="small text-muted">Showing @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, FilteredItems.Count())) of @FilteredItems.Count() events</div>
+        <div class="small text-muted">Showing @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, FilteredList.Count())) of @FilteredList.Count() events</div>
 
         <nav>
             <ul class="pagination pagination-sm mb-0">
@@ -469,7 +440,11 @@
                 @for (int i = 1; i <= TotalPages; i++)
                 {
                     <li class="page-item @(currentPage == i ? "active disabled" : "")">
-                        <button class="page-link btn" @onclick="() => GoToPage(i)">@i</button>
+                        <button class="page-link btn"
+                                disabled="@(i > TotalPages)"
+                                @onclick="() => GoToPage(i)">
+                            @i
+                        </button>
                     </li>
                 }
                 <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
@@ -519,8 +494,9 @@
 
 
     private int currentPage = 1;
-    private int pageSize = 10;
-    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)FilteredItems.Count() / pageSize));
+    private int pageSize = 5;
+    private int TotalPages =>
+    Math.Max(1, (int)Math.Ceiling((double)FilteredList.Count / pageSize));
 
     protected override async Task OnInitializedAsync()
     {
@@ -578,20 +554,23 @@
 
 
 
-            private IEnumerable<ManagerEventDto> FilteredItems =>
-        managerEvents
-        .Where(e =>
-           (activeStatusFilter == null || e.Status == activeStatusFilter) &&
-           (string.IsNullOrWhiteSpace(searchText) ||
-               e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-               (e.VenueName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-               (e.Address ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-               (e.CategoryName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
-        ).OrderByDescending(e => e.CreatedAt);
+    private List<ManagerEventDto> FilteredList =>
+managerEvents
+.Where(e =>
+    (activeStatusFilter == null || e.Status == activeStatusFilter) &&
+    (string.IsNullOrWhiteSpace(searchText) ||
+        e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+        (e.VenueName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+        (e.Address ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+        (e.CategoryName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
+)
+.OrderByDescending(e => e.CreatedAt)
+.ToList();
+
 
 
             private IEnumerable<ManagerEventDto> PagedItems =>
-                FilteredItems.Skip((currentPage - 1) * pageSize).Take(pageSize);
+                FilteredList.Skip((currentPage - 1) * pageSize).Take(pageSize);
 
 
             private void SetStatusFilter(EventStatus? s)
@@ -631,18 +610,14 @@
                 selectedEvent = null;
             }
 
+    private void GoToPage(int page)
+    {
+        if (page < 1)
+            page = 1;
 
-            private void GoToPage(int page)
-            {
-                if (page == currentPage)
-                {
-                    StateHasChanged();
-                    return;
-                }
-                currentPage = page;
-                StateHasChanged();
-            }
+        if (page > TotalPages)
+            page = TotalPages;
 
-
-            //private void CreateEvent() => Nav.NavigateTo("/manage-events");
-        }
+        currentPage = page;
+    }
+}

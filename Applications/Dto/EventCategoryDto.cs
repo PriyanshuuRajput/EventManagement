@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -11,11 +12,15 @@ namespace Applications.Dto
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage ="Category Name is required.")]
+        [Required(ErrorMessage = "Name is required")]
+        [MinLength(3, ErrorMessage = "Minimum 3 characters required")]
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
         public string? Description { get; set; }
-        [Required(ErrorMessage ="Image is required ")]
+        //[Required(ErrorMessage ="Image is required ")]
         public string? ImageUrl { get; set; }
+
+        public IFormFile? ImageFile { get; set; }
+
     }
 }

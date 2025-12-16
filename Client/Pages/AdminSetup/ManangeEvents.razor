@@ -8,6 +8,7 @@
 @inject Blazored.Toast.Services.IToastService toastService
 
 @*@using Blazored.Typeahead*@
+@attribute [Authorize(Roles = "Admin,Manager")]
 
 <style>
 
@@ -223,7 +224,7 @@
 
 /* ---------- BODY ---------- */
 .drawer-body {
-    padding: 12px 18px;
+    padding: 4px 18px;
     overflow-y: auto;
 }
 
@@ -566,7 +567,7 @@
                                             <span class="badge bg-light text-danger border fw-bold small mb-2 d-inline-flex align-items-center"
                                                   style="font-size:15px">
                                                 <i class="bi bi-person-fill me-1"></i>
-                                                @evt.ManagerName
+                                                    @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
                                             </span>
                                             }
                                                             

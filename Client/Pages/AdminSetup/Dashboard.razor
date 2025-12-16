@@ -9,6 +9,8 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
+@attribute [Authorize(Roles = "Admin")]
+
 
 
 <style>
@@ -520,7 +522,9 @@
             <div class="card shadow-sm rounded-2 border-0 " style="background-color: #fceeee">
                 <div class="card-header text-dark  border-danger fw-semibold rounded-top-2 d-flex justify-content-between" style="background-color: #dee2e6">
                     Notifications
-                    <i class="bi bi-bell-fill text-danger"></i>
+                    <i class="bi bi-bell-fill text-danger ms-1">
+                        @(PendingEventsCount + PendingManagersCount)
+                    </i>
                 </div>
                 <div class="card-body  p-3 notification-list">
                     @if (!Notifications.Any())
@@ -545,7 +549,7 @@
                             else
                                 colorClass = "bg-light text-dark";
 
-                            <div class="notify-card @colorClass shadow-sm">
+                            <div class="notify-card @colorClass shadow-sm" role="button" tabindex="0" @onclick="()=>NavigateTo(note.Route)">
                                 <div>
                                     <div class="fw-semibold" style="font-size:14px">
                                         @((MarkupString)note.Message)
@@ -714,7 +718,7 @@
 
                                     <!-- Manager -->
                                     <td class="event-title">
-                                        @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Unknown" : evt.ManagerName)
+                                        @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
                                     </td>
 
                                     <!-- Address -->
@@ -892,34 +896,15 @@
 @code {
     private List<EventDto> Events = new();
     private List<ManagerProfileDto> Managers = new();
-    private List<(string Message, DateTime Date)> Notifications = new();
-    // private List<EventDto> filteredEvents = new();
+    private List<(string Message, DateTime Date ,string Route)> Notifications = new();
+    private int PendingEventsCount => Events.Count(e => e.Status == EventStatus.Pending);
+
+    private int PendingManagersCount =>Managers.Count(m => !m.IsApproved);
     private DateTime? filterDate = null;
     //private List<DateTime> TimelineDates = new();
     //private DateTime SelectedTimelineDate = DateTime.Today;
-    private bool enableDateFilter;
+    // private bool enableDateFilter;
     private DateTime? SelectedDate = null;
-    //private bool EnableDateFilter
-    //{
-    //    get => enableDateFilter;
-    //    set
-    //    {
-    //        enableDateFilter = value;
-
-    //        if (!value)
-    //        {
-    //            filterDate = null;
-    //        }
-    //        else if (SelectedDate != null)
-    //        {
-    //            filterDate = SelectedDate.Value.Date;
-    //        }
-
-    //        ApplyFilters();
-    //    }
-    //}
-
-
 
     private string searchTerm = "";
     private string selectedStatus { get; set; } = "";
@@ -957,7 +942,12 @@
 
     private List<EventDto> OngoingEvents =>Events.Where(e =>e.Status == EventStatus.AdminApproved && e.StartDate.Date == DateTime.Today).ToList();
 
-    private List<EventDto> UpcomingEvents => Events.Where(e => e.Status == EventStatus.AdminApproved && e.StartDate.Date == DateTime.Today.AddDays(10)).ToList();
+    private List<EventDto> UpcomingEvents =>
+     Events.Where(e =>
+         e.Status == EventStatus.AdminApproved &&
+         e.StartDate.Date > DateTime.Today &&
+         e.StartDate.Date <= DateTime.Today.AddDays(10)
+     ).ToList();
 
     private List<(string Title, string Icon, int Value,string color, string Route)> SummaryCards = new();
 
@@ -1048,9 +1038,10 @@
         }
     }
 
-    private void ClearFilters()
+    private async void ClearFilters()
     {
-
+        spinnerService.Show();
+        await Task.Delay(200);
         SearchTerm = "";
         searchTerm = "";
 
@@ -1065,49 +1056,8 @@
         JS.InvokeVoidAsync("clearSemanticDate");
 
         ApplyFilters();
+        spinnerService.Hide();
     }
-
-    //private void BuildTimeLine()
-    //{
-    //    TimelineDates.Clear();
-    //    var start = DateTime.Today.AddDays(-2);
-
-    //    for(int i = 0;i<10; i++)
-    //    {
-    //        TimelineDates.Add(start.AddDays(i));
-    //    }
-
-    //}
-
-    //private void SelectDate(DateTime d)
-    //{
-    //    SelectedTimelineDate = d;
-    //    if (EnableDateFilter)
-    //    {
-
-
-    //        filterDate = d.Date;
-    //        ApplyFilters();
-    //    }
-    //}
-    //private void OnDateFilterChanged(ChangeEventArgs e)
-    //{
-    //    bool value = (bool)e.Value!;
-    //    EnableDateFilter =value;
-
-    //    if (!value)
-    //    {
-    //        filterDate = null;
-    //        SelectedTimelineDate = DateTime.Today;
-    //    }
-    //    else
-    //    {
-    //        filterDate = SelectedTimelineDate.Date;
-    //    }
-
-    //    ApplyFilters();
-    //}
-
 
     private void BuildNotifications()
     {
@@ -1119,7 +1069,7 @@
             {
                 Notifications.Add((
                     $"Pending Event Approval: <span class='text-muted'>{evt.Title}</span>",
-                    evt.CreatedAt
+                    evt.CreatedAt, $"/approval-manager-events/{evt.Id}"
                 ));
             }
         }
@@ -1129,7 +1079,7 @@
             {
                 Notifications.Add((
                     $"New Manager Request !!",
-                    manager.CreatedAt
+                    manager.CreatedAt,"/managers"
                 ));
             }
         }

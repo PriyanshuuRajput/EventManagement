@@ -11,47 +11,45 @@
 <PageTitle>EventiGo-Home</PageTitle>
 
 <style>
+    .hero-carousel-item {
+        height: 60vh;
+        min-height: 350px;
+        max-height: 500px;
+        position: relative;
+        overflow:hidden;
 
-.hero-carousel-item {
-    height: 400px;
-    /* overflow: hidden; */
-    position: relative;
-}
+    }
 
+    .hero-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        filter: brightness(85%);
+        transition: transform 0.6s ease;
+        will-change: transform; 
+    }
 
-/* .carousel.slide .carousel-item {
-    transition: opacity 0.8s ease-in-out;
-} */
-
-.hero-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: brightness(80%);
-    transition: transform 0.6s ease;
-}
 
 .hero-carousel-item:hover .hero-img {
     transform: scale(1.05);
 }
 
 
-.hero-carousel-item::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 35%;
-    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-    pointer-events: none;
-}
+    .hero-carousel-item::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient( to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 35%, transparent 65% );
+        pointer-events: none;
+    }
 
 
 .carousel-caption {
-    bottom: 10px;
+    bottom: 20px;
+    right:auto;
     text-align: left;
-    left: 40px;
+    left: 100px;
 }
 
 .carousel-caption h1 {
@@ -68,41 +66,53 @@
 }
 
 /* Indicators  */
-.carousel-indicators [data-bs-target] {
-    width: 10px;
-    height: 10px;
-    background-color: rgba(255,255,255,0.6);
-    border-radius: 50%;
-    transition: 0.3s ease;
-    border-bottom:0px;
-    border-top:0px;
-}
+    .carousel-indicators {
+        bottom: 18px;
+        gap: 8px;
+    }
 
-.carousel-indicators .active {
-    width: 16px;
-    border-radius: 8px;
-    background: #fff;
-}
+        .carousel-indicators [data-bs-target] 
+        {
+            width: 22px;
+            height: 6px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: none;
+            transition: all 0.3s ease;
+        }
 
-/* Prev/Next arrows */
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-    filter: drop-shadow(0 0 8px rgba(0,0,0,0.9));
-    width: 45px;
-    height: 45px;
-}
+        .carousel-indicators .active 
+        {
+            width: 40px;
+            background-color: #dc3545; 
+        }
 
-/* Remove the black bg circle */
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-    background-color: transparent !important;
-}
+    .icon-only-control {
+        width: auto !important;
+        pointer-events: none; 
+        opacity: 1;
+    }
+
+        .icon-only-control span {
+            pointer-events: auto;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            filter: drop-shadow(0 0 8px rgba(0,0,0,0.9));
+        }
+    .carousel-control-prev.icon-only-control {
+        left: 20px;
+    }
+
+    .carousel-control-next.icon-only-control {
+        right: 20px;
+    }
 
     .category-img {
         height: 180px;
         object-fit: cover;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
     }
 
 .category-card {
@@ -111,7 +121,7 @@
 }
 
 .category-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-5px);
     box-shadow: 0 20px 30px rgba(0,0,0,0.15);
 }
 
@@ -119,72 +129,72 @@
 </style>
 
 <section class="p-0">
-    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000" data-bs-pause="false">
         <div class="carousel-inner">
 
-            <div class="carousel-item active hero-carousel-item">
-                <img src="concerts-crousel.png" class="hero-img d-block" alt="Live Music Fest">
-                <div class="carousel-caption d-none d-md-block text-start">
-                    <h1 class="display-4 fw-bolder text-uppercase">LIVE MUSIC FEST</h1>
-                    @* <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Explore Concerts</button> *@
-                </div>
-            </div>
+            @if (events.Any())
+            {
+                @for (int i = 0; i < events.Count; i++)
+                {
+                    var evt = events[i];
 
-            <div class="carousel-item hero-carousel-item">
-                <img src="movie-crousel.png" class="hero-img d-block" alt="Big Game Thrills">
-                <div class="carousel-caption d-none d-md-block text-start">
-                    <h1 class="display-4 fw-bolder text-uppercase">LIVE MUSIC FEST</h1>
-                    @* <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Explore Concerts</button> *@
-                </div>
-            </div>
+                    <div class="carousel-item hero-carousel-item @(i == 0 ? "active" : "")">
+                        <img src="@GetEventImage(evt.ImageUrl)"
+                             class="hero-img d-block w-100"
+                             alt="@evt.Title">
 
-            <div class="carousel-item hero-carousel-item">
-                <img src="threater-crousel.png" class="hero-img d-block" alt="Drama and Shows">
-                <div class="carousel-caption d-none d-md-block text-start">
-                    <h1 class="display-4 fw-bolder text-uppercase">DRAMA & SHOWS</h1>
-                    @* <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Book Shows</button> *@
+                        <div class="carousel-caption d-none d-md-block text-start">
+                            <h1 class="display-4 fw-bolder text-uppercase">
+                                @evt.Title
+                            </h1>
+                            <p class="small">
+                                @evt.StartDate.ToString("dd MMM yyyy, hh:mm tt")
+                            </p>
+                            <button class="btn btn-danger btn-lg"
+                                    @onclick="() => GoToEventDetails(evt.Id)">
+                                Explore 
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- fallback slide -->
+                <div class="carousel-item active hero-carousel-item">
+                    <img src="/images/default-banner.jpg"
+                         class="hero-img d-block w-100">
                 </div>
-            </div>
-
-            <div class="carousel-item hero-carousel-item">
-                <img src="comedyshow-crousel.png" class="hero-img d-block" alt="Comedy Nights">
-                <div class="carousel-caption d-none d-md-block text-start">
-                    <h1 class="display-4 fw-bolder text-uppercase">COMEDY NIGHTS</h1>
-                    @* <button class="btn btn-danger btn-lg" @onclick="GoToEvent">Find Comedy</button> *@
-                </div>
-            </div>
+            }
 
         </div>
-
         <div class="carousel-indicators">
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+            @for (int i = 0; i < events.Count; i++)
+            {
+                <button type="button"
+                        data-bs-target="#heroCarousel"
+                        data-bs-slide-to="@i"
+                        class="@(i == 0 ? "active" : "")"
+                        aria-current="@(i == 0 ? "true" : "false")">
+                </button>
+            }
         </div>
+        <button class="carousel-control-prev icon-only-control"
+                type="button"
+                data-bs-target="#heroCarousel"
+                data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
 
-        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon bg-dark p-3 rounded-circle" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
+        <button class="carousel-control-next icon-only-control"
+                type="button"
+                data-bs-target="#heroCarousel"
+                data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon bg-dark p-3 rounded-circle" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
+
     </div>
 </section>
-
-
-@*<section class="py-4 bg-secondary text-white text-center shadow-lg unique-banner">
-    <div class="container d-flex align-items-center justify-content-center flex-wrap">
-        <img src="logo2.PNG" alt="EventiGo Logo" class="logo me-3 mb-2 mb-md-0" />
-        <div>
-            <h3 class="fw-bold mb-1">Your Passport to Unforgettable Experiences!</h3>
-            <p class="lead mb-0">From local gigs to global spectacles, we've got your tickets ready.</p>
-        </div>
-    </div>
-</section>*@
-
 <section>
     <div class="container" style="margin-top:40px">
         <h2 class="mt-4 mb-4 fw-bold">The Best Of Live Events</h2>
@@ -338,12 +348,29 @@
 @code {
 
     private List<EventCategoryDto> categories = new();
+    private List<EventDto> events = new();
+
+    //Search bar
+    private string searchText = "";
+    private bool showSuggestions = false;
+    private List<EventDto> suggestionList = new();
+    private List<EventDto> allEvents = new();
+    private CancellationTokenSource? debounceCts;
+
 
     protected override async Task OnInitializedAsync()
     {
         categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
             "api/EventCategory"
         ) ?? new();
+
+        var allEvents = await Http.GetFromJsonAsync<List<EventDto>>("api/Events/approved") ?? new();
+
+        events = allEvents
+         .Where(e =>e.StartDate >= DateTime.Now)
+         .OrderBy(e => e.StartDate) 
+         .Take(5)
+         .ToList();
     }
 
     string GetCategoryImage(string? imageUrl)
@@ -351,11 +378,27 @@
         if (string.IsNullOrWhiteSpace(imageUrl))
             return "/images/category-placeholder.png";
 
-        return imageUrl.StartsWith("/")
-            ? imageUrl
-            : "/" + imageUrl;
-    }
+        // absolute URL → return as-is
+        if (imageUrl.StartsWith("http"))
+            return imageUrl;
 
+        // relative path → attach API base URL
+        return $"{Http.BaseAddress}{imageUrl.TrimStart('/')}";
+    }
+    string GetEventImage(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+            return "/images/event-placeholder.png";
+
+        if (imageUrl.StartsWith("http"))
+            return imageUrl;
+
+        return $"{Http.BaseAddress}{imageUrl.TrimStart('/')}";
+    }
+    void GoToEventDetails(int eventId)
+    {
+        Navigation.NavigateTo($"/book-event/{eventId}");
+    }
 
     void GoToLogin()
     {
