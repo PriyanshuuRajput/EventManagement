@@ -2,6 +2,7 @@
 using Applications.Interfaces.IService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
@@ -10,6 +11,7 @@ namespace EventBooking_TicketManagement_API.Controllers
     public class EventCategoryController : ControllerBase
     {
         private readonly IEventCategoryService _eventCategoryService;
+
         public EventCategoryController(IEventCategoryService eventCategoryService)
         {
             _eventCategoryService = eventCategoryService;
@@ -31,17 +33,55 @@ namespace EventBooking_TicketManagement_API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(EventCategoryDto dto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Create([FromForm] EventCategoryDto dto)
         {
-            if(!ModelState.IsValid) return BadRequest();
+            try
+            {
+                ModelState.Remove(nameof(dto.ImageUrl));
 
-            var result = await _eventCategoryService.CreateAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                if (dto.ImageFile != null)
+                {
+                    dto.ImageUrl = await SaveImage(dto.ImageFile);
+                }
+
+                var result = await _eventCategoryService.CreateAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "An error occurred while creating the event category.",
+                    error = ex.Message
+                });
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, EventCategoryDto dto)
+        public async Task<IActionResult> Update(int id, [FromForm] EventCategoryDto dto)
         {
+            var existing = await _eventCategoryService.GetByIdAsync(id);
+            if (existing == null) return NotFound();
+
+            ModelState.Remove(nameof(dto.ImageUrl));
+            ModelState.Remove(nameof(dto.Slug));
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (dto.ImageFile != null)
+            {
+                dto.ImageUrl = await SaveImage(dto.ImageFile);
+            }
+            else
+            {
+                dto.ImageUrl = existing.ImageUrl;
+            }
+
             await _eventCategoryService.UpdateAsync(id, dto);
             return NoContent();
         }
@@ -51,6 +91,24 @@ namespace EventBooking_TicketManagement_API.Controllers
         {
             await _eventCategoryService.DeleteAsync(id);
             return NoContent();
+        }
+
+        private async Task<string> SaveImage(IFormFile file)
+        {
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "category-images");
+
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(folderPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return $"/category-images/{fileName}";
         }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using Domains.Entities;
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Applications.Dto
 {
     public class EventDto 
-        //: IValidatableObject
+
     {
         public int Id { get; set; }
 
@@ -17,27 +18,16 @@ namespace Applications.Dto
         public int? EventCategoryId { get; set; }
         public string? CategorySlug { get; set; }
         public string? CategoryName { get; set; }
-
-        //public int? EventCategoryId { get; set; }
-        //public EventCategory? EventCategory { get; set; }
-
-        //public string? EventType { get; set; } = string.Empty;
-
         public string? Description { get; set; } = "";
-
-
-        //[StringLength(50)]
-        //[Required(ErrorMessage = "Genre is required.")]
-        //public string? Genre { get; set; } = string.Empty;
         public string? Language { get; set; } = "";
 
+
+        [Required(ErrorMessage = "Event Duration is required. ")]
         public TimeSpan? Duration { get; set; }
 
-
-        [Required(ErrorMessage = "Event duration is required.")]
         public string DurationInput
         {
-            get => Duration== null?"":Duration.Value.ToString(@"hh\:mm");
+            get => Duration == null ? "" : Duration.Value.ToString(@"hh\:mm");
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
@@ -88,10 +78,7 @@ namespace Applications.Dto
         //[Required(ErrorMessage = "Ticket price is required.")]
         [Range(0, 10000, ErrorMessage = "Ticket price must be between 0 and 10,000.")]
         public decimal TicketPrice { get; set; }
-
-        //[StringLength(500, ErrorMessage = "Image URL cannot exceed 500 characters.")]
-        //[Required(ErrorMessage = "Event image is required.")]
-        public string ImageUrl { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; } = string.Empty;
 
 
         public IFormFile? ImageFile { get; set; }
@@ -100,7 +87,7 @@ namespace Applications.Dto
         public int SoldTickets { get; set; } = 0;
 
         public int? ManagerId { get; set; }
-        public string ManagerName { get; set; } = string.Empty;
+        public string? ManagerName { get; set; }
 
         public string? ManagerEmail { get; set; }
 
@@ -118,27 +105,5 @@ namespace Applications.Dto
         public bool IsAmountAccepted { get; set; }
         public bool PrizePaid { get; set; } = false;
         public DateTime? PrizePaidAt { get; set; }
-
-        //public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        //{
-        //    string eventType = EventType?.Trim() ?? "";
-        //    string genre = Genre?.Trim() ?? "";
-
-        //    if (eventType == "" && genre == "")
-        //    {
-        //        yield return new ValidationResult(
-        //            "Please provide at least Event Type or Genre.",
-        //            new[] { nameof(EventType), nameof(Genre) });
-
-        //    }
-        //    if (eventType == "" && genre != "")
-        //    {
-        //        EventType = genre;
-        //    }
-        //    if (genre == "" && eventType != "")
-        //    {
-        //        Genre = eventType;
-        //    }
-        //}
     }
 }

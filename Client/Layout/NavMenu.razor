@@ -65,6 +65,28 @@
                 {
                     width: 80%;
                 }
+
+    .search-dropdown {
+        position: absolute;
+        top: 110%;
+        width: 100%;
+        background: #fff;
+        border-radius: 6px;
+        z-index: 2000;
+        max-height: 320px;
+        overflow-y: auto;
+    }
+
+    .search-item {
+        padding: 10px 14px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+    }
+
+        .search-item:hover {
+            background: #f8f9fa;
+        }
+
     .dashboard-btn {
         position: relative;
         border: 1px solid rgba(255, 255, 255, 0.4);
@@ -129,11 +151,44 @@
 
        
          <!---Search bar    -->
-        <form class="d-none d-lg-flex mx-auto w-50">
-            <input class="form-control me-2" type="search"
-                   placeholder="Search for Movies, Events, Sports" aria-label="Search">
-        </form>   
-        
+            <div class="d-none d-lg-flex mx-auto position-relative" style="width:450px">
+
+                <input class="form-control pe-5"
+                       placeholder="Search events, categories"
+                       @bind="SearchText"
+                       @bind:event="oninput"
+                       @onkeydown="HandleSearchKey" />
+
+                @if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    <button type="button"
+                            class="btn position-absolute top-50 end-0 translate-middle-y me-2"
+                            style="border:none;background:none"
+                            @onclick="ClearSearch">
+                        <i class="bi bi-x-circle-fill text-muted"></i>
+                    </button>
+                }
+
+                @if (showSearchDropdown)
+                {
+                    <div class="search-dropdown shadow">
+                        @foreach (var item in searchResults)
+                        {
+                            <div class="search-item"
+                                 @onclick="() => NavigateFromSearch(item)">
+                                <div class="fw-semibold">@item.Title</div>
+                                <small class="text-muted">@item.CategoryName</small>
+                            </div>
+                        }
+
+                        @if (!searchResults.Any())
+                        {
+                            <div class="search-item text-muted">No results found</div>
+                        }
+                    </div>
+                    }
+                    </div>
+
 
         <!-- Right Section: Profile/Login + Dashboard -->
         <div class="d-flex align-items-center " style="margin-right:30px">
@@ -372,9 +427,27 @@
     private string? userName;
     [Parameter] public EventCallback OnShowLogin { get; set; }
 
+    private string searchText = "";
+
+    private string SearchText
+    {
+        get => searchText;
+        set
+        {
+            searchText = value;
+            _ = PerformSearch(); 
+        }
+    }
+    private bool showSearchDropdown = false;
+    private List<EventDto> allEvents = new();
+    private List<EventDto> searchResults = new();
+    private CancellationTokenSource? debounceCts;
+
+
     protected override async Task OnInitializedAsync()
     {
         AuthStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
+        allEvents = await Http.GetFromJsonAsync<List<EventDto>>("api/Events/approved") ?? new();
         await LoadUserState();
     }
 
@@ -401,6 +474,61 @@
     {
         await LoadUserState();
     }
+    private async Task PerformSearch()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            showSearchDropdown = false;
+            searchResults.Clear();
+            return;
+        }
+
+        debounceCts?.Cancel();
+        debounceCts = new CancellationTokenSource();
+
+        try
+        {
+            await Task.Delay(300, debounceCts.Token);
+
+            searchResults = allEvents
+                .Where(x =>
+                    (x.Title?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (x.CategoryName?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false)
+                )
+                .Take(7)
+                .ToList();
+
+            showSearchDropdown = true;
+        }
+        catch { }
+    }
+
+    private void HandleSearchKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            showSearchDropdown = false;
+            Navigation.NavigateTo($"/events?search={Uri.EscapeDataString(searchText)}");
+        }
+    }
+    private void NavigateFromSearch(EventDto evt)
+    {
+        showSearchDropdown = false;
+        Navigation.NavigateTo($"/book-event/{evt.Id}");
+    }
+    private void ClearSearch()
+    {
+        searchText = "";
+        searchResults.Clear();
+        showSearchDropdown = false;
+
+        Navigation.NavigateTo(
+            Navigation.Uri.Split('?')[0],
+            replace: true
+        );
+    }
+
+
 
     private async Task Logout()
     {

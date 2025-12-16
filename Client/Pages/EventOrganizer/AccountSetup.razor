@@ -1,6 +1,8 @@
 ﻿@page "/accountsetup"
 @using EventBooking.Client.Components
 @using Applications.Dto
+@attribute [Authorize(Roles = "Admin,Manager")]
+
 
 <h3>Account Setup</h3>
 

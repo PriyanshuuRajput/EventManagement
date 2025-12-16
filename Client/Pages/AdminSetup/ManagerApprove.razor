@@ -2,6 +2,7 @@
 
 @using System.Text.Json
 @using EventBooking.Client.SpinnerService
+@using System.Threading.Tasks
 
 
 @inject SpinnerService spinnerService
@@ -200,18 +201,6 @@
     to { right: 0; opacity: 1; }
 }
 
-
-    /* Top toolbar style above table */
-    /*.table-toolbar {
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-        border-top: 1px solid #dee2e6;
-        border-radius: 6px 6px 0 0;
-        position: sticky;
-        top: 0;
-        z-index: 20;
-    }*/
-
     /* Dropdown style to match your UI */
     .show-dropdown {
         width: 70px;
@@ -227,11 +216,6 @@
             border-color: #dc3545 !important;
             box-shadow: 0 0 6px rgba(220, 53, 69, 0.4);
         }
-
-    /* Text alignment fix */
-    /*.table-toolbar label {
-        white-space: nowrap;
-    }*/
 
     /* ---FOOTER BANNER ---*/
     .promo-banner {
@@ -292,27 +276,35 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <div class="d-flex gap-3">
+            @if (isLoading)
+            {
+                <span class="spinner-border spinner-border-sm text-danger"></span>
+            }
 
             <!-- ALL -->
             <button class="btn btn-sm @(SelectedStatus == "" ? "btn-danger" : "btn-outline-secondary") rounded-3"
+                    disabled="@isLoading"
                     @onclick="@( () => SetStatus(""))">
                 All
             </button>
 
             <!-- PENDING -->
             <button class="btn btn-sm @(SelectedStatus == "Pending" ? "btn-warning" : "btn-outline-secondary") rounded-3"
+                    disabled="@isLoading"
                     @onclick="@( () => SetStatus("Pending") )">
                 Pending (@PendingCount)
             </button>
 
             <!-- APPROVED -->
             <button class="btn btn-sm @(SelectedStatus == "Approved" ? "btn-success" : "btn-outline-secondary") rounded-3"
+                    disabled="@isLoading"
                     @onclick="@( () => SetStatus("Approved"))">
                 Approved (@ApprovedCount)
             </button>
 
             <!-- REJECTED -->
             <button class="btn btn-sm @(SelectedStatus == "Rejected" ? "btn-danger" : "btn-outline-secondary") rounded-3"
+                    disabled="@isLoading"
                     @onclick="@( () => SetStatus("Rejected"))">
                 Rejected (@RejectedCount)
             </button>
@@ -345,7 +337,7 @@
 
             <tbody style="text-align:center">
 
-                @if (Managers == null)
+                @if (isLoading)
                 {
                     <tr>
                         <td colspan="8" class="text-center py-4">
@@ -353,7 +345,7 @@
                         </td>
                     </tr>
                 }
-                else if (!Managers.Any())
+                else if (!PagedItems.Any())
                 {
                     <tr>
                         <td colspan="8" class="text-center py-4">
@@ -474,23 +466,10 @@
         </select>
         </div>
         <div class="small text-muted">Showing @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, FilteredItems.Count())) of @FilteredItems.Count() managers</div>
-
-        <nav>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item me-1 @(currentPage == 1 ? "disabled" : "")">
-                    <button class="page-link btn  " @onclick="PrevPage">Previous</button>
-                </li>
-                @for (int i = 1; i <= TotalPages; i++)
-                {
-                    <li class="page-item @(currentPage == i ? "active disabled" : "")">
-                        <button class="page-link btn" @onclick="() => GoToPage(i)">@i</button>
-                    </li>
-                }
-                <li class="page-item  ms-1 @(currentPage == TotalPages ? "disabled" : "")">
-                    <button class="page-link btn   " @onclick="NextPage">Next</button>
-                </li>
-            </ul>
-        </nav>
+        <Pagination Page="@tablePage"
+                    PageSize="@tablePageSize"
+                    TotalItems="@tableTotalItems"
+                    PageChanged="tablePageChanged" />
     </div>
 
     <div class="promo-banner banner mt-4 text-center">
@@ -757,11 +736,17 @@
     bool ShowDeleteConfirm = false;
     bool ShowViewModal = false;
     int DeleteId = 0;
+    bool isLoading = false;
 
 
     private int PendingCount => Managers?.Count(e => e.Status == PendingStatus) ?? 0;
     private int ApprovedCount => Managers?.Count(e => e.Status == ApproveStatus) ?? 0;
     private int RejectedCount => Managers?.Count(e => e.Status == RejectedStatus) ?? 0;
+
+
+    private int tablePage = 1;
+    private int tablePageSize = 5;
+    private int tableTotalItems => FilteredItems.Count();
 
 
     private int currentPage = 1;
@@ -790,10 +775,19 @@
     private void OpenApproveModal(ManagerProfileDto m) => SelectedManagers = m;
     private void CloseModal() => PendingManagers = null;
 
-    private void SetStatus(string status)
+    private async Task SetStatus(string status)
     {
+        if (isLoading)
+            return;
+        isLoading = true;
+        spinnerService.Show();
+        StateHasChanged();
+
         SelectedStatus = status;
-        currentPage = 1;
+        tablePage = 1;
+        await Task.Delay(200);
+        isLoading = false;
+        spinnerService.Hide();
     }
 
 
@@ -1003,7 +997,7 @@
 
     private IEnumerable<ManagerProfileDto> PagedItems =>
                 FilteredItems
-                .Skip((currentPage - 1) * pageSize)
+                .Skip((tablePage - 1) * tablePageSize)
                 .Take(pageSize);
 
     private void PrevPage()
@@ -1023,14 +1017,16 @@
         currentPage = 1;
     }
 
-    private void ClearFilters()
+    private async Task ClearFilters()
     {
+        spinnerService.Show();
+        await Task.Delay(200);
         SearchTerm = "";
         SearchText = "";
         SelectedStatus = "";
 
         currentPage = 1;
-
+        spinnerService.Hide();
         StateHasChanged();
     }
 
@@ -1038,12 +1034,25 @@
     {
         if (page < 1 || page > TotalPages)
             return;
-
-        if (page == currentPage)
-            return;
-
         currentPage = page;
+        StateHasChanged();
     }
 
+    private async Task tablePageChanged(int page)
+    {
+        if (page == tablePage)
+            return;
+
+        isLoading = true;
+        spinnerService.Show();
+        StateHasChanged();
+
+        tablePage = page;
+
+        await Task.Delay(150);
+
+        isLoading = false;
+        spinnerService.Hide();
+    }
 
 }
