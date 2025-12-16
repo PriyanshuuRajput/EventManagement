@@ -1,19 +1,36 @@
 ﻿<div class="d-flex justify-content-end mt-3 me-3">
-    <ul class="pagination pagination-sm ">
+    <ul class="pagination pagination-sm mb-0">
 
-        <li class="page-item @(Page == 1 ? "disabled" : "")">
-            <button class="page-link btn" @onclick="Previous">Previous</button>
+        <li class="page-item @(Page <= 1 ? "disabled" : "")">
+            <button type="button"
+                    class="page-link text-secondary border-0 bg-light"
+                    aria-label="Previous page"
+                    disabled="@(Page <= 1)"
+                    @onclick="() => ChangePage(Page - 1)">
+                <i class="bi bi-chevron-left"></i>
+            </button>
         </li>
 
-        @for (int i = 1; i <= TotalPages; i++)
+        @for (int i = Math.Max(1, Page - 2); i <= Math.Min(TotalPages, Page + 2); i++)
         {
-            <li class="page-item @(i == Page ? "active" : "")">
-                <button class="page-link btn" @onclick="() => SetPage(i)">@i</button>
+            int pageNum = i;
+            <li class="page-item @(pageNum == Page ? "active" : "")">
+                <button type="button"
+                        class="page-link @(pageNum == Page ? "bg-danger border-danger text-white" : "text-secondary bg-light border-0")"
+                        @onclick="() => ChangePage(pageNum)">
+                    @pageNum
+                </button>
             </li>
         }
 
-        <li class="page-item @(Page == TotalPages ? "disabled" : "")">
-            <button class="page-link btn" @onclick="Next">Next</button>
+        <li class="page-item @(Page >= TotalPages ? "disabled" : "")">
+            <button type="button"
+                    class="page-link text-secondary border-0 bg-light"
+                    disabled="@(Page >= TotalPages)"
+                    aria-label="Next page"
+                    @onclick="() => ChangePage(Page + 1)">
+                <i class="bi bi-chevron-right"></i>
+            </button>
         </li>
 
     </ul>
@@ -21,34 +38,20 @@
 
 @code {
     [Parameter] public int Page { get; set; }
-    [Parameter] public int PageSize { get; set; } = 8;
+    [Parameter] public int PageSize { get; set; }
     [Parameter] public int TotalItems { get; set; }
     [Parameter] public EventCallback<int> PageChanged { get; set; }
 
-    private int TotalPages => Math.Max(1, (int)Math.Ceiling((double)TotalItems / PageSize));
+    private int TotalPages =>
+        Math.Max(1, (int)Math.Ceiling(TotalItems / (double)PageSize));
 
-    private async Task Previous()
+    private async Task ChangePage(int page)
     {
-        if (Page > 1)
-        {
-            Page--;
-            await PageChanged.InvokeAsync(Page);
-        }
-    }
-
-    private async Task Next()
-    {
-        if (Page < TotalPages)
-        {
-            Page++;
-            await PageChanged.InvokeAsync(Page);
-        }
-    }
-
-    private async Task SetPage(int page)
-    {
-
-        await PageChanged.InvokeAsync(Page);
-        Page = page;
+        if (page < 1 || page > TotalPages)
+            return;
+            if(page!=Page)
+            {
+                await PageChanged.InvokeAsync(page);
+            }
     }
 }

@@ -522,7 +522,7 @@
             <div class="card shadow-sm rounded-2 border-0 " style="background-color: #fceeee">
                 <div class="card-header text-dark  border-danger fw-semibold rounded-top-2 d-flex justify-content-between" style="background-color: #dee2e6">
                     Notifications
-                    <i class="bi bi-bell-fill text-danger ms-1">
+                    <i class="bi bi-bell-fill text-danger me-2">
                         @(PendingEventsCount + PendingManagersCount)
                     </i>
                 </div>
@@ -619,8 +619,8 @@
                 </span>
                 <input class="form-control"
                        placeholder="Search ..."
-                       @bind="SearchTerm"
-                       @bind:event="oninput" />
+                       value="@SearchTerm"
+                       @oninput="OnSearchChanged" />
             </div>
         </div>
 
@@ -643,27 +643,34 @@
 
     <!-- FILTER BUTTONS (Always Below) -->
     <div class="d-flex gap-3 flex-wrap ms-2 mb-3 mt-3" style="margin-left:40px">
-
+        @if (isLoading)
+        {
+            <span class="spinner-border spinner-border-sm text-danger"></span>
+        }
         <!-- ALL -->
         <button class="btn btn-sm @(selectedStatus == "" ? "btn-danger" : "btn-outline-secondary") rounded-3"
+                disabled="@isLoading"
                 @onclick="@( () => SetStatus(""))">
             All
         </button>
 
         <!-- PENDING -->
         <button class="btn btn-sm @(selectedStatus == "Pending" ? "btn-warning" : "btn-outline-secondary") rounded-3"
+                disabled="@isLoading"
                 @onclick="@( () => SetStatus("Pending") )">
             Pending (@PendingCount)
         </button>
 
         <!-- APPROVED -->
         <button class="btn btn-sm @(selectedStatus == "Approved" ? "btn-success" : "btn-outline-secondary") rounded-3"
+                disabled="@isLoading"
                 @onclick="@( () => SetStatus("AdminApproved"))">
             Approved (@ApprovedCount)
         </button>
 
         <!-- REJECTED -->
         <button class="btn btn-sm @(selectedStatus == "Rejected" ? "btn-danger" : "btn-outline-secondary") rounded-3"
+                disabled="@isLoading"
                 @onclick="@( () => SetStatus("Rejected"))">
             Rejected (@RejectedCount)
         </button>
@@ -807,12 +814,14 @@
 
 
             <!-- RIGHT: Pagination -->
-            <div>
-                <Pagination Page="@CurrentPage"
+            @* <div> *@
+                <Pagination @key="CurrentPage"
+                            Page="@CurrentPage"
                             PageSize="@PageSize"
                             TotalItems="@PagedResult.TotalCount"
                             PageChanged="OnPageChanged" />
-            </div>
+
+            @* </div> *@
 
         </div>
     </div>
@@ -920,6 +929,7 @@
     private int StartIndex => ((CurrentPage - 1) * PageSize) + 1;
     private int EndIndex => Math.Min(CurrentPage * PageSize, PagedResult.TotalCount);
 
+    private bool isLoading = false;
     // private int TotalPages => (int)Math.Ceiling(filteredEventsFull.Count / (double)PageSize);
 
     private List<EventDto> filteredEvents = new();
@@ -959,12 +969,20 @@
 
 
 
-    private void SetStatus(string status)
+    private async Task SetStatus(string status)
     {
-        selectedStatus = status;
-        ApplyFilters();
-    }
+        if (isLoading)
+            return;
+        isLoading = true;
+        spinnerService.Show();
+        StateHasChanged();
 
+        selectedStatus = status;
+        await ApplyFilters();
+        await Task.Delay(200);
+        isLoading = false;
+        spinnerService.Hide();
+    }
     protected override async Task OnInitializedAsync()
     {
         spinnerService.Show();
@@ -990,7 +1008,7 @@
         //BuildTimeLine();
         await LoadPagedEventsAsync();
         spinnerService.Hide();
-        ApplyFilters();
+        await ApplyFilters();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -1019,26 +1037,37 @@
 
     private async Task OnPageSizeChanged(ChangeEventArgs e)
     {
-        PageSize = int.Parse(e.Value.ToString());
+        if (isLoading)
+            return;
+
+        isLoading = true;
+        spinnerService.Show();
+        await Task.Delay(200);
+        StateHasChanged();
+
+        PageSize = int.Parse(e.Value!.ToString());
         CurrentPage = 1;
 
-        await LoadPagedEventsAsync();
-        StateHasChanged();
+        await LoadPagedEventsAsync(); 
+
+        isLoading = false;
+        spinnerService.Hide();
     }
 
 
+
     [JSInvokable]
-    public void OnSemanticDateSelected(string dateStr)
+    public async Task OnSemanticDateSelected(string dateStr)
     {
         if (DateTime.TryParse(dateStr, out var dt))
         {
             filterDate = dt.Date;
             SelectedDate = dt;
-            ApplyFilters();
+            await ApplyFilters();
         }
     }
 
-    private async void ClearFilters()
+    private async Task ClearFilters()
     {
         spinnerService.Show();
         await Task.Delay(200);
@@ -1053,9 +1082,9 @@
         selectedStatus = "";
 
 
-        JS.InvokeVoidAsync("clearSemanticDate");
+        await JS.InvokeVoidAsync("clearSemanticDate");
 
-        ApplyFilters();
+        await ApplyFilters();
         spinnerService.Hide();
     }
 
@@ -1090,101 +1119,47 @@
 
 
     [JSInvokable]
-    public void OnDateChanged(string selectedDate)
+    public async Task OnDateChanged(string selectedDate)
     {
         if (DateTime.TryParse(selectedDate, out var dt))
             filterDate = dt;
         else
             filterDate = null;
 
-        ApplyFilters();
+        await ApplyFilters();
     }
 
-    //private void ApplyFilters()
-    //{
-    //    var term = searchTerm?.Trim().ToLower() ?? "";
-
-    //    filteredEventsFull = Events
-    //        .Where(e =>
-
-    //            // STATUS FILTER
-    //            (
-    //                string.IsNullOrEmpty(selectedStatus)
-    //                || (selectedStatus == "Approved" && e.Status == EventStatus.AdminApproved)
-    //                || (selectedStatus == "Pending" && e.Status == EventStatus.Pending)
-    //                || (selectedStatus == "Rejected" && e.Status == EventStatus.Rejected)
-    //            )
-
-    //            &&
-
-    //            // SEARCH TERM FILTER
-    //            (
-    //                string.IsNullOrWhiteSpace(term)
-    //                ||
-    //                (
-    //                    (e.Title?.ToLower().Contains(term) ?? false)
-    //                    || (e.ManagerName?.ToLower().Contains(term) ?? false)
-    //                    || (e.VenueName?.ToLower().Contains(term) ?? false)
-    //                    || (e.CityName?.ToLower().Contains(term) ?? false)
-    //                    || (e.EventType?.ToLower().Contains(term) ?? false)
-    //                    || (e.EventAmount.ToString().Contains(term))
-    //                )
-    //            )
-
-    //            &&
-
-    //            // DATE FILTER — ONLY WHEN CHECKBOX ENABLED
-    //            //(
-    //            //    !EnableDateFilter
-    //            //    || (EnableDateFilter && filterDate.HasValue && e.ShowDate.Date == filterDate.Value.Date)
-    //            //)
-    //            (filterDate ==  null
-    //            || e.ShowDate.Date == filterDate.Value.Date
-    //            )
-    //        )
-    //        .OrderByDescending(e => e.CreatedAt)
-    //        .ToList();
-
-    //    CurrentPage = 1;
-    //    ApplyPagination();
-    //}
-
-    private async void ApplyFilters()
+    private async Task ApplyFilters()
     {
         CurrentPage = 1;
         await LoadPagedEventsAsync();
-        StateHasChanged();
     }
 
     private async Task OnPageChanged(int page)
     {
+        if (isLoading)
+            return;
+
+        var totalPages = (int)Math.Ceiling(
+            PagedResult.TotalCount / (double)PageSize);
+
+        if (page < 1 || page > totalPages || page == CurrentPage)
+            return;
+
+        isLoading = true;
+        spinnerService.Show();
+
+        StateHasChanged();
+        await Task.Delay(200);
+
         CurrentPage = page;
+
         await LoadPagedEventsAsync();
+
+        isLoading = false;
+        spinnerService.Hide();
     }
 
-
-
-    //private async Task OnPageChanged(int page)
-    //{
-    //    CurrentPage = page;
-    //    ApplyPagination();
-    //}
-
-    //private async void ApplyPagination()
-    //{
-    //    fadeClass = "";
-    //    StateHasChanged();
-    //    await Task.Delay(100);
-
-    //    filteredEvents = filteredEventsFull
-    //        .Skip((CurrentPage - 1) * PageSize)
-    //        .Take(PageSize)
-    //        .ToList();
-
-
-    //    fadeClass = "show";
-    //    StateHasChanged();
-    //}
 
 
     private void ToggleOngoing() => showOngoing = !showOngoing;
@@ -1193,7 +1168,12 @@
     private string SearchTerm
     {
         get => searchTerm;
-        set { searchTerm = value; ApplyFilters(); }
+        set { searchTerm = value; }
+    }
+    private async Task OnSearchChanged(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString();
+        await ApplyFilters(); 
     }
 
     private void EventApprove(int eventId)

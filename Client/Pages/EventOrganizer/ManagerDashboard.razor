@@ -175,15 +175,21 @@
 
     <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between">
         <div class="d-flex gap-3 flex-wrap p-2 m-2">
+            @if (isLoading)
+            {
+                <span class="spinner-border spinner-border-sm text-danger"></span>
+            }
             <button class="btn btn-sm @(activeStatusFilter == null ? "btn-danger" : "btn-outline-secondary") rounded-3"
                     @onclick="() => SetStatusFilter(null)">
                 All
             </button>
             <button class="btn btn-sm @(activeStatusFilter == EventStatus.Pending ? "btn-warning" : "btn-outline-secondary") rounded-3"
+                    disabled ="@isLoading"
                     @onclick="() => SetStatusFilter(EventStatus.Pending)">
                 Pending
             </button>
             <button class="btn btn-sm @(activeStatusFilter == EventStatus.AdminApproved ? "btn-success text-white" : "btn-outline-secondary") rounded-3"
+                    disabled="@isLoading"
                     @onclick="() => SetStatusFilter(EventStatus.AdminApproved)">
                 Approved
             </button>
@@ -192,6 +198,7 @@
                     Published
                 </button>*@
             <button class="btn btn-sm @(activeStatusFilter == EventStatus.Rejected ? "btn-danger" : "btn-outline-secondary") rounded-3"
+                    disabled="@isLoading"
                     @onclick="() => SetStatusFilter(EventStatus.Rejected)">
                 Rejected
             </button>
@@ -432,7 +439,7 @@
     <div class="d-flex justify-content-between align-items-center ">
         <div class="small text-muted">Showing @((currentPage - 1) * pageSize + 1) - @(Math.Min(currentPage * pageSize, FilteredList.Count())) of @FilteredList.Count() events</div>
 
-        <nav>
+        @* <nav>
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                     <button class="page-link btn me-1 " @onclick="PrevPage">Previous</button>
@@ -451,7 +458,12 @@
                     <button class="page-link btn ms-1  " @onclick="NextPage">Next</button>
                 </li>
             </ul>
-        </nav>
+        </nav> *@
+        <Pagination Page="@currentPage"
+                    PageSize="@pageSize"
+                    TotalItems="@FilteredList.Count"
+                    PageChanged="OnPageChanged" />
+
     </div>
 
     <div class="promo-banner banner mt-4 text-center">
@@ -472,7 +484,7 @@
     private bool showSidePanel = false;
     private ManagerEventDto selectedEvent = null!;
     private bool readMore = false;
-
+    private bool isLoading = false;
 
 
     private string _searchText = "";
@@ -551,21 +563,17 @@
                 showSuggestions = false;
                 StateHasChanged();
             }
-
-
-
-    private List<ManagerEventDto> FilteredList =>
-managerEvents
-.Where(e =>
-    (activeStatusFilter == null || e.Status == activeStatusFilter) &&
-    (string.IsNullOrWhiteSpace(searchText) ||
-        e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-        (e.VenueName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-        (e.Address ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-        (e.CategoryName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
-)
-.OrderByDescending(e => e.CreatedAt)
-.ToList();
+            private List<ManagerEventDto> FilteredList =>managerEvents
+            .Where(e =>(activeStatusFilter == null || 
+                e.Status == activeStatusFilter) &&
+            (string.IsNullOrWhiteSpace(searchText) ||
+            e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+            (e.VenueName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+           (e.Address ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+            (e.CategoryName ?? "").Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            ) 
+            .OrderByDescending(e => e.CreatedAt)
+            .ToList();
 
 
 
@@ -573,10 +581,18 @@ managerEvents
                 FilteredList.Skip((currentPage - 1) * pageSize).Take(pageSize);
 
 
-            private void SetStatusFilter(EventStatus? s)
+            private async Task SetStatusFilter(EventStatus? s)
             {
+        if (isLoading)
+            return;
+        isLoading = true;
+        spinnerService.Show();
+        StateHasChanged();
                 activeStatusFilter = s;
                 currentPage = 1;
+        await Task.Delay(200);
+        isLoading = false;
+        spinnerService.Hide();
             }
 
 
@@ -587,16 +603,6 @@ managerEvents
                     pageSize = sz;
                     currentPage = 1;
                 }
-            }
-
-            private void PrevPage()
-            {
-                if (currentPage > 1) currentPage--;
-            }
-
-            private void NextPage()
-            {
-                if (currentPage < TotalPages) currentPage++;
             }
 
             private void OpenSidePanel(ManagerEventDto ev)
@@ -610,14 +616,13 @@ managerEvents
                 selectedEvent = null;
             }
 
-    private void GoToPage(int page)
+    private Task OnPageChanged(int page)
     {
-        if (page < 1)
-            page = 1;
-
-        if (page > TotalPages)
-            page = TotalPages;
+        if (page < 1 || page > TotalPages || page == currentPage)
+            return Task.CompletedTask;
 
         currentPage = page;
+        return Task.CompletedTask;
     }
+
 }
