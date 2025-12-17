@@ -124,6 +124,15 @@
     transform: translateY(-5px);
     box-shadow: 0 20px 30px rgba(0,0,0,0.15);
 }
+.popular-badge{
+        position: absolute;
+        top: 58%;
+        right: 4px;
+        z-index:2;
+        color: #dc3545;
+        font-size: 0.75rem;
+        font-weight: 600;
+}
 
 
 </style>
@@ -197,7 +206,7 @@
 </section>
 <section>
     <div class="container" style="margin-top:40px">
-        <h2 class="mt-4 mb-4 fw-bold">The Best Of Live Events</h2>
+        <h2 class="mt-4 mb-4 fw-bold">EventiGo Category</h2>
 
         <div class="row text-center">
             @foreach (var category in categories)
@@ -222,69 +231,119 @@
     </div>
 </section>
 
-<section class="bg-light">
+<section class="bg-light py-4">
     <div class="container">
-        <h2 class="m-4 fw-bold"> Popular Events</h2>
-        <div class="row">
+        <h2 class="m-4 fw-bold">Popular Events</h2>
 
-            <div class="col-md-3 mb-4">
-                <div class="card h-100 shadow event-card" @onclick="GoToEvent">
-                    <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Music</div>
-                    <img src="concerts-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Rock Concert">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold">Summer Rock Festival</h5>
-                        <p class="card-text text-muted">Join the biggest rock concert of the year!</p>
-                        <button class="mt-auto btn btn-outline-danger" @onclick:stopPropagation="true" @onclick="GoToLogin">
-                            Get Tickets Now
-                        </button>
+        <div class="d-flex gap-3 overflow-auto flex-nowrap scroll-container">
+        
+            @foreach (var ev in events)
+            {
+                <div class="col-6 col-md-2 mb-4">
+                    <div class="card shadow-sm event-card position-relative flex-shrink-0"
+                         style="width:260px"
+                         @onclick="() => GoToEventDetails(ev.Id)">
+
+                        @if (ev.IsPromoted)
+                        {
+                            <span class="badge popular-badge px-2 bg-light">
+                                Promoted
+                            </span>
+                        }
+
+                        <img src="@GetEventImage(ev.ImageUrl)"
+                             class="card-img-top"
+                             style="height:180px; object-fit:cover;"
+                             alt="@ev.Title">
+
+                        <div class="card-body d-flex flex-column mt-2">
+                            <h5 class="card-title fw-bold">@ev.Title</h5>
+                            @* <p class="card-text text-muted text-truncate">
+                                @ev.Description
+                            </p> *@
+
+                            <button class="mt-auto btn btn-danger"
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => GoToEventDetails(ev.Id)">
+                                View Details
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-md-3 mb-4">
-                <div class="card h-100 shadow event-card" @onclick="GoToEvent">
-                    <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Food</div>
-                    <img src="movie-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Food Festival">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold">International Food Fair</h5>
-                        <p class="card-text text-muted">Taste delicacies from around the world.</p>
-                        <button class="mt-auto btn btn-outline-danger" @onclick:stopPropagation="true" @onclick="GoToLogin">
-                            Get Tickets Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-3 mb-4">
-                <div class="card h-100 shadow event-card" @onclick="GoToEvent">
-                    <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Art</div>
-                    <img src="movie-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Art Exhibition">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold">Modern Art Exhibition</h5>
-                        <p class="card-text text-muted">Experience amazing artworks and cultural shows.</p>
-                        <button class="mt-auto btn btn-outline-danger" @onclick:stopPropagation="true" @onclick="GoToLogin">
-                            Get Tickets Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card h-100 shadow event-card" @onclick="GoToEvent">
-                    <div class="badge bg-danger text-white position-absolute" style="top: 10px; right: 10px;">Food</div>
-                    <img src="movie-crousel.png" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Food Festival">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold">International Food Fair</h5>
-                        <p class="card-text text-muted">Taste delicacies from around the world.</p>
-                        <button class="mt-auto btn btn-outline-danger" @onclick:stopPropagation="true" @onclick="GoToLogin">
-                            Get Tickets Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-
+            }
         </div>
     </div>
 </section>
+
+<!--Artist Section-->
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="fw-bold m-4">Artists in your EventiGo </h2>
+
+        <div class="row">
+
+            <div class="col-4 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                    <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">Arijit Singh</h6>
+                </div>
+            </div>
+
+            <div class="col-4 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                    <img src="https://images.unsplash.com/photo-1501837303764-ada599fdac6c?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">Shreya Ghoshal</h6>
+                </div>
+            </div>
+
+            <div class="col-4 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                    <img src="https://images.unsplash.com/photo-1575285113814-f770cb8c796e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8TXVzaWMlMjBhcnRpc3R8ZW58MHx8MHx8fDA%3D"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">A.R. Rahman</h6>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                    <img src="https://media.insider.in/image/upload/c_crop,g_custom/v1756999925/m6gmdpmfdnpsrri6synm.png"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">Karan Aujla</h6>
+                </div>
+            </div>
+             <div class="col-4 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                    <img src="https://images.unsplash.com/photo-1657042742546-b1ff81d52b74?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8TXVzaWMlMjBhcnRpc3R8ZW58MHx8MHx8fDA%3D"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">DJ Snake</h6>
+                </div>
+            </div>
+            <div class="col-4 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                    <img src="https://media.insider.in/image/upload/c_crop,g_custom/v1765480426/lfrcznnd15yw7qhc2svw.jpg"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">Prem Dhillon</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 
 <section class="bg-light text-dark py-5 text-center">
     <div class="container">
@@ -358,6 +417,9 @@
     private CancellationTokenSource? debounceCts;
 
 
+
+
+
     protected override async Task OnInitializedAsync()
     {
         categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
@@ -369,7 +431,7 @@
         events = allEvents
          .Where(e =>e.StartDate >= DateTime.Now)
          .OrderBy(e => e.StartDate) 
-         .Take(5)
+         .Take(10)
          .ToList();
     }
 

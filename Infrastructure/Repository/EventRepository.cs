@@ -210,5 +210,24 @@ namespace Infrastructures.Repository
             return await _context.Managers.FirstOrDefaultAsync(m => m.Id == id);
         }
 
+        public async Task<IEnumerable<Event>> GetPromotedEventsAsync()
+        {
+            return await _context.Events
+                .Where(e =>
+                        e.IsPromoted &&
+                        e.Status == EventStatus.AdminApproved &&
+                        e.StartDate >= DateTime.Now)
+                .Include(e => e.EventCategory)
+                .Include(e => e.Venue)
+                    .ThenInclude(v => v.City)
+                .Include(e => e.Managers)
+                    .ThenInclude(m => m.User)
+                .AsNoTracking()
+                .OrderBy(e => e.StartDate)
+                .Take(10)
+                .ToListAsync();
+
+        }
+
     }
 }

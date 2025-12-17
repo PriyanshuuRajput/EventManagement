@@ -30,6 +30,8 @@ namespace Applications.Interfaces.IService
         //PAgination
         Task<PagedResult<EventDto>> GetPagedEventAsync(PagedRequest req);
 
+        Task<IEnumerable<EventDto>> GetPromotedEventsAsync();
+
 
     }
 }

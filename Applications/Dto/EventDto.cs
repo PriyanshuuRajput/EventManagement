@@ -105,5 +105,7 @@ namespace Applications.Dto
         public bool IsAmountAccepted { get; set; }
         public bool PrizePaid { get; set; } = false;
         public DateTime? PrizePaidAt { get; set; }
+        public bool IsPromoted { get; set; }
+
     }
 }
