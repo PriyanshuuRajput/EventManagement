@@ -126,13 +126,41 @@
 }
 .popular-badge{
         position: absolute;
-        top: 58%;
+        top: 55%;
         right: 4px;
         z-index:2;
         color: #dc3545;
         font-size: 0.75rem;
         font-weight: 600;
 }
+    .scroll-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-behavior: smooth;
+        padding-bottom: 10px;
+        scrollbar-width: none; 
+        gap:36px
+        /* -ms-overflow-style: none; */
+    }
+
+        .scroll-container::-webkit-scrollbar {
+            height: 6px;
+            display: none;
+        }
+
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+    .event-card {
+        transition: transform .25s ease, box-shadow .25s ease;
+        width:200px
+    }
+
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,.15);
+        }
 
 
 </style>
@@ -235,13 +263,12 @@
     <div class="container">
         <h2 class="m-4 fw-bold">Popular Events</h2>
 
-        <div class="d-flex gap-3 overflow-auto flex-nowrap scroll-container">
+        <div class="d-flex flex-nowrap scroll-container">
         
             @foreach (var ev in events)
             {
-                <div class="col-6 col-md-2 mb-4">
+                @* <div class="col-6 col-md-2 mb-4"> *@
                     <div class="card shadow-sm event-card position-relative flex-shrink-0"
-                         style="width:260px"
                          @onclick="() => GoToEventDetails(ev.Id)">
 
                         @if (ev.IsPromoted)
@@ -269,8 +296,17 @@
                             </button>
                         </div>
                     </div>
-                </div>
+                @* </div> *@
             }
+            @* <button class="btn btn-light arrow left"
+                    @onclick="ScrollLeft">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn btn-light arrow right"
+                    @onclick="ScrollRight">
+                <i class="bi bi-chevron-right"></i>
+            </button> *@
+
         </div>
     </div>
 </section>
@@ -414,11 +450,10 @@
     private bool showSuggestions = false;
     private List<EventDto> suggestionList = new();
     private List<EventDto> allEvents = new();
-    private CancellationTokenSource? debounceCts;
+    // private CancellationTokenSource? debounceCts;
+    // private ElementReference scrollContainer;
 
-
-
-
+    
 
     protected override async Task OnInitializedAsync()
     {
@@ -434,7 +469,6 @@
          .Take(10)
          .ToList();
     }
-
     string GetCategoryImage(string? imageUrl)
     {
         if (string.IsNullOrWhiteSpace(imageUrl))
@@ -447,6 +481,7 @@
         // relative path → attach API base URL
         return $"{Http.BaseAddress}{imageUrl.TrimStart('/')}";
     }
+
     string GetEventImage(string? imageUrl)
     {
         if (string.IsNullOrWhiteSpace(imageUrl))
@@ -457,6 +492,18 @@
 
         return $"{Http.BaseAddress}{imageUrl.TrimStart('/')}";
     }
+    // private async Task ScrollLeft()
+    // {
+    //     await scrollContainer.ScrollToAsync(
+    //         scrollContainer.ScrollLeft - 300, 0);
+    // }
+
+    // private async Task ScrollRight()
+    // {
+    //     await scrollContainer.ScrollToAsync(
+    //         scrollContainer.ScrollLeft + 300, 0);
+    // }
+
     void GoToEventDetails(int eventId)
     {
         Navigation.NavigateTo($"/book-event/{eventId}");
