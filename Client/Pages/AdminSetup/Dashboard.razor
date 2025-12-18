@@ -35,8 +35,8 @@
         color: #fff;
         padding: 10px 20px;
         overflow: hidden;
-        min-width: 260px;
-        width: calc(25% - 20px);
+        /* min-width: 260px;
+        width: calc(25% - 20px); */
         cursor: pointer;
         transition: 0.1s ease;
     }
@@ -486,28 +486,29 @@
 
     </div>
 
-    <div class="row g-4 mb-4 ">
-        <!-- Left Side: Summary Cards -->
+    <div class="row g-3 align-items-stretch mb-4">
+
+        <!-- LEFT: SUMMARY CARDS -->
         <div class="col-lg-9 col-md-12">
-            <div class="d-flex flex-wrap gap-2">
+            <div class="row g-3">
 
                 @foreach (var card in SummaryCards)
                 {
-                    <div class="dashboard-card " style="background-color: #fceeee"
-                         @onclick="()=> NavigateTo(card.Route)">
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+                        <div class="dashboard-card h-100"
+                             style="background-color:#fceeee"
+                             @onclick="() => NavigateTo(card.Route)">
 
+                            <i class="@card.Icon dashboard-icon-bg"></i>
 
-                        <i class="@card.Icon dashboard-icon-bg"></i>
+                            <div class="content text-dark">
+                                <div class="number">@card.Value</div>
+                                <div class="title">@card.Title</div>
 
-                        <!-- Content -->
-                        <div class="content text-dark">
-                            <div class="number">@card.Value</div>
-                            <div class="title">@card.Title</div>
-
-                            <div class="card-footer">
-                                <i class="bi bi-arrow-right text-danger" style="font-size:28px"></i>
+                                <div class="card-footer">
+                                    <i class="bi bi-arrow-right text-danger fs-3"></i>
+                                </div>
                             </div>
-
 
                         </div>
                     </div>
@@ -516,53 +517,51 @@
             </div>
         </div>
 
+        <!-- RIGHT: NOTIFICATIONS -->
+        <div class="col-lg-3 col-md-12">
+            <div class="card shadow-sm h-100 border-0"
+                 style="background-color:#fceeee">
 
-        <!-- Right Side: Notifications -->
-        <div class="col-lg-3 col-md-12 ">
-            <div class="card shadow-sm rounded-2 border-0 " style="background-color: #fceeee">
-                <div class="card-header text-dark  border-danger fw-semibold rounded-top-2 d-flex justify-content-between" style="background-color: #dee2e6">
+                <div class="card-header d-flex justify-content-between align-items-center fw-semibold"
+                     style="background-color:#dee2e6">
                     Notifications
-                    <i class="bi bi-bell-fill text-danger me-2">
+                    <span class="badge bg-danger">
                         @(PendingEventsCount + PendingManagersCount)
-                    </i>
+                    </span>
                 </div>
-                <div class="card-body  p-3 notification-list">
+
+                <div class="card-body notification-list p-3">
                     @if (!Notifications.Any())
                     {
-                        <div class="text-center text-muted py-4 small">
-                            <i class="bi bi-bell-slash fs-2 d-block mb-2 text-danger"></i>
-                            No notifications yet
+                        <div class="text-center text-muted py-4">
+                            No notifications
                         </div>
                     }
                     else
                     {
                         @foreach (var note in Notifications)
                         {
-                            string colorClass = "bg-light";
-
-                            if (note.Message.Contains("Pending") || note.Message.Contains("request"))
-                                colorClass = "bg-light text-dark";
-
-                            else if (note.Message.Contains("waiting for payment"))
-                                colorClass = " bg-light text-dark";
-
-                            else
-                                colorClass = "bg-light text-dark";
-
-                            <div class="notify-card @colorClass shadow-sm" role="button" tabindex="0" @onclick="()=>NavigateTo(note.Route)">
+                            <div class="notify-card bg-light shadow-sm mb-2"
+                                 role="button"
+                                 @onclick="() => NavigateTo(note.Route)">
                                 <div>
-                                    <div class="fw-semibold" style="font-size:14px">
+                                    <div class="fw-semibold small">
                                         @((MarkupString)note.Message)
                                     </div>
-                                    <div class="text-muted small">@note.Date.ToString("dd MMM yyyy, hh:mm tt")</div>
+                                    <div class="text-muted small">
+                                        @note.Date.ToString("dd MMM yyyy, hh:mm tt")
+                                    </div>
                                 </div>
                             </div>
                         }
-
                     }
                 </div>
+
             </div>
         </div>
+
+    </div>
+
     </div>
 
     @*<div class="col-md-6 mb-3 mb-md-0 mt-2">
@@ -900,7 +899,7 @@
             }
         </div>
     </div>
-</div>
+
 
 @code {
     private List<EventDto> Events = new();
