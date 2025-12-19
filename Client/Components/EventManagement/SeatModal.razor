@@ -1,4 +1,4 @@
-﻿@using Applications.Dto
+﻿@* @using Applications.Dto
 @inherits ComponentBase
 
 @if (Visible)
@@ -48,8 +48,8 @@
 
 @code {
     [Parameter] public bool Visible { get; set; }
-    [Parameter] public EventCallback<bool> VisibleChanged { get; set; } // ✅ Needed for @bind-Visible
-    [Parameter] public SeatDto Seat { get; set; } = new();
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    // [Parameter] public SeatDto Seat { get; set; } = new();
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnSave { get; set; }
 
@@ -70,4 +70,4 @@
         await VisibleChanged.InvokeAsync(false);
         await OnClose.InvokeAsync();
     }
-}
+} *@

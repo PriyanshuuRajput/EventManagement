@@ -1,9 +1,12 @@
 ﻿using Applications.Dto;
 using Applications.Interfaces.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BookingController : ControllerBase
@@ -15,14 +18,19 @@ namespace EventBooking_TicketManagement_API.Controllers
             _bookingService = bookingService;
         }
 
-        // ✅ Create booking
+        //  Create booking (User from JWT)
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequest request)
         {
             if (request == null)
                 return BadRequest("Invalid booking data.");
 
-            var result = await _bookingService.CreateBookingAsync(request);
+            int userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value
+            );
+
+            var result = await _bookingService.CreateBookingAsync(request, userId);
 
             return Ok(new
             {
@@ -31,7 +39,8 @@ namespace EventBooking_TicketManagement_API.Controllers
             });
         }
 
-        // ✅ Get all bookings
+        // ✅ Get all bookings (Admin use)
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllBookings()
         {
@@ -39,27 +48,24 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok(bookings);
         }
 
-        // ✅ Get booking by user
-        [HttpGet("user/{email}")]
-        public async Task<IActionResult> GetByUser(string email)
+        // ✅ Get bookings of logged-in user
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyBookings()
         {
-            var bookings = await _bookingService.GetBookingByUserAsync(email);
+            int userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value
+            );
+
+            var bookings = await _bookingService.GetBookingByUserAsync(userId);
             return Ok(bookings);
         }
 
-        // Cancel booking and release seats
+        //  Cancel booking
         [HttpPost("{bookingId}/cancel")]
         public async Task<IActionResult> CancelBooking(int bookingId)
         {
-            try
-            {
-                await _bookingService.CancelBookingAsync(bookingId);
-                return Ok(new { message = "Booking cancelled and seats released successfully." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            await _bookingService.CancelBookingAsync(bookingId);
+            return Ok(new { message = "Booking cancelled successfully." });
         }
     }
 }

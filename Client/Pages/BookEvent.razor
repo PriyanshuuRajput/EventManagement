@@ -9,7 +9,7 @@
 
 <style>
     .event-banner {
-        border-radius: 15px;
+        border-radius: 5px;
         height: 380px;
         object-fit: cover;
     }
@@ -111,7 +111,7 @@ else
             <div class="col-lg-8">
                 <h2 class="fw-bold mb-3">@evtDetails.Title</h2>
 
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-2">
+                <div class="card border-0 shadow-sm rounded-2 overflow-hidden ">
                     <img src="@evtDetails.ImageUrl" alt="@evtDetails.Title" class="img-fluid w-100 event-banner" />
                 </div>
 
@@ -132,7 +132,7 @@ else
                     }
                     else
                     {
-                <button class="btn btn-outline-danger btn-sm fw-semibold ms-2" @onclick="MarkInterested">  
+                <button class="btn btn-outline-danger btn-sm fw-semibold ms-2 mt-2" @onclick="MarkInterested">  
                     I'm Interested
                 </button>
                     }
@@ -231,7 +231,7 @@ else
             <div class="col-lg-4">
                 <div class="card shadow-sm border-0 sticky-top " style="top: 90px; margin-top: 43px">
                     <div class="card-body">
-                        <ul class="list-unstyled mb-4">
+                        <ul class="list-unstyled mb-0">
                             <li class="d-flex align-items-center mb-2">
                                 <i class="bi bi-calendar-date me-2 text-danger"></i>
                                 <span>@evtDetails.StartDate.ToString("ddd, dd MMM yyyy")</span>
@@ -248,7 +248,7 @@ else
                                 <i class="bi bi-person-fill me-2 text-danger"></i>
                                 <span>@evtDetails.CategoryName</span>
                             </li>
-                            <li class="d-flex align-items-center mb-3">
+                            <li class="d-flex align-items-center mb-2">
                                 <i class="bi bi-geo-alt me-2 text-danger"></i>
                                 <span>@evtDetails.VenueName, @evtDetails.CityName</span>
                             </li>
@@ -256,47 +256,33 @@ else
 
                         <hr/>
 
-                        <h4 class="fw-bold mb-4 2 align-items-center">
+                        <h4 class="fw-bold align-items-center ">
                             <i class="bi bi-ticket-perforated-fill text-danger me-2"></i>
-                            Choose Your Seats
+                            Select Tickets
                         </h4>
+                        <p class="text-muted small mb-2">
+                            @maxTickets tickets available
+                        </p>
 
-                        @if (seatCategories.Any())
-                        {
-                            @foreach (var category in seatCategories)
-                            {
-                                <div class="border rounded-2 p-2 bg-white shadow-sm mb-2">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h4 class="fw-semibold mb-0">@category.Category</h4>
-                                        <h5 class="fw-semibold text-danger mb-0">₹@category.Price</h5>
-                                    </div>
-                                    <p class="text-muted mb-2 small">@GetSeatDescription(category.Category)</p>
-                                    <p class="text-secondary small mb-0">@category.Available available</p>
-                                </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-semibold">Quantity</span>
 
-                                <div class=" d-flex justify-content-between align-items-center p-2 mb-2">
-                                    <span class="fw-semibold text-muted">Quantity</span>
-                                    <div class="btn-group" role="group" aria-label="Quantity controls">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" style="width:50% ; height:50%"
-                                                @onclick="() => Decrease(category)">
-                                            <i class="bi bi-dash-lg"></i>
-                                        </button>
-                                        <span class="mx-3 my-1 fw-semibold fs-6">@category.Quantity</span>
-                                        <button type="button" class="btn btn-outline-danger btn-sm" style="width:50%;height:50%"
-                                                @onclick="() => Increase(category)">
-                                            <i class="bi bi-plus-lg"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="text-center text-muted py-4">
-                                <i class="bi bi-exclamation-circle fs-4 mb-2"></i>
-                                <p>No seats available for this event.</p>
+                            <div class="btn-group d-flex align-items-center">
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        @onclick="DecreaseTicket"
+                                        disabled="@(ticketCount <= 1)">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+
+                                <span class="mx-3 fw-semibold">@ticketCount</span>
+
+                                <button class="btn btn-outline-danger btn-sm"
+                                        @onclick="IncreaseTicket"
+                                        disabled="@(ticketCount >= maxTickets)">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
                             </div>
-                        }
+                        </div>
 
                         <hr class="my-3" />
 
@@ -316,13 +302,25 @@ else
                                 <span class="fw-bold text-dark fs-5 text-nowrap">₹@Total</span>
                             </div>
                         </div>
-                        <button class="btn btn-danger w-100 fw-semibold py-2"
-                                @onclick="ProceedToCheckout">
-                            Book Now
-                        </button>
+                        @if (!IsLoggedIn)
+                        {
+                            <button class="btn btn-secondary w-100 fw-semibold py-2"
+                                    @onclick="OpenLoginPopup">
+                                Login To Book
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-danger w-100 fw-semibold py-2"
+                            disabled="@(maxTickets == 0)"
+                            @onclick="ProceedToCheckout">
+                                @(maxTickets == 0 ? "Sold Out" : "Book Now")
+                            </button>
+                        }
                     </div>
                     
                 </div>
+
             </div>
         </div>
     </div>
@@ -360,12 +358,20 @@ else
 
     private EventDto? evtDetails;
     private List<EventDto> suggestedEvents = new();
-    private List<SeatCategory> seatCategories = new();
+    // private List<SeatCategory> seatCategories = new();
     private List<string> selectedSeats = new();
 
-    private decimal Subtotal => seatCategories.Sum(c => c.Quantity * c.Price);
+    // private decimal Subtotal => seatCategories.Sum(c => c.Quantity * c.Price);
+    // private decimal ServiceFee => Math.Round(Subtotal * 0.1m, 2);
+    // private decimal Total => Subtotal + ServiceFee;
+    private int ticketCount = 0;
+    private int maxTickets = 0;
+    private decimal Subtotal => ticketCount * evtDetails!.TicketPrice;
     private decimal ServiceFee => Math.Round(Subtotal * 0.1m, 2);
     private decimal Total => Subtotal + ServiceFee;
+    private bool IsLoggedIn = false;
+
+
 
 
     private int interestedCount = 0;
@@ -375,49 +381,47 @@ else
     protected override async Task OnParametersSetAsync()
     {
         spinnerService.Show();
+        await CheckLoginStatusAsync();
 
         evtDetails = null;
-        seatCategories.Clear();
+        // seatCategories.Clear();
         suggestedEvents.Clear();
 
         evtDetails = await Http.GetFromJsonAsync<EventDto>(
-            $"api/events/{eventId}"
-        );
+    $"api/events/{eventId}");
 
-        var allSeats = await Http.GetFromJsonAsync<List<SeatDto>>(
-            $"api/seats/event/{eventId}"
-        );
-
-        if (allSeats != null && allSeats.Any())
+        if (evtDetails != null)
         {
-            seatCategories = allSeats
-                .GroupBy(s => s.Category)
-                .Select(g => new SeatCategory
-                {
-                    Category = g.Key,
-                    Price = g.First().Price,
-                    Available = g.Count(s => !s.IsBooked)
-                })
-                .ToList();
-        }
+            maxTickets = evtDetails.TotalTickets
+                         - evtDetails.SoldTickets;
+            if (maxTickets < 0)
+                maxTickets = 0;
 
+            ticketCount = maxTickets > 0 ? 1 : 0;
+        }
         await LoadSuggestedEvents();
 
         spinnerService.Hide();
     }
-
-
-    private void Increase(SeatCategory category)
+    private async Task CheckLoginStatusAsync()
     {
-        if (category.Quantity < category.Available)
-            category.Quantity++;
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        IsLoggedIn = !string.IsNullOrWhiteSpace(token);
     }
 
-    private void Decrease(SeatCategory category)
+
+    private void IncreaseTicket()
     {
-        if (category.Quantity > 0)
-            category.Quantity--;
+        if (ticketCount < maxTickets)
+            ticketCount++;
     }
+
+    private void DecreaseTicket()
+    {
+        if (ticketCount > 1)
+            ticketCount--;
+    }
+
     private async Task LoadSuggestedEvents()
     {
         var allEvents = await Http.GetFromJsonAsync<List<EventDto>>("api/Events/approved");
@@ -433,32 +437,31 @@ else
     {
         Nav.NavigateTo($"/book-event/{id}");
     }
-
+    private void OpenLoginPopup()
+    {
+        MainLayout.Instance?.ShowLoginOverlay();
+    }
 
     private async Task ProceedToCheckout()
     {
-        if (Subtotal == 0)
+        if (ticketCount <= 0)
         {
             await JS.InvokeVoidAsync("alert", "Please select at least one ticket.");
             return;
         }
 
-        var selectedSeats = new List<int>();
-
         var booking = new BookingRequest
         {
             EventId = eventId,
-            UserName = "Test User",
-            UserEmail = "test@gmail.com",
-            Quantity = seatCategories.Sum(c => c.Quantity),
-            TotalPrice = Total,
-            SeatIds = selectedSeats
+            // UserId = 1,
+            TicketCount = ticketCount
         };
 
         var response = await Http.PostAsJsonAsync("api/Booking", booking);
+
         if (response.IsSuccessStatusCode)
         {
-            await JS.InvokeVoidAsync("alert", "✅ Booking successful!");
+            await JS.InvokeVoidAsync("alert", "✅ Booking initiated!");
             Nav.NavigateTo("/events");
         }
         else
@@ -469,30 +472,31 @@ else
     }
 
 
-    private void ToggleSeat(SeatCategory category, string seatId)
-    {
-        if (selectedSeats.Contains(seatId))
-        {
-            selectedSeats.Remove(seatId);
-            category.Quantity--;
-        }
-        else
-        {
-            selectedSeats.Add(seatId);
-            category.Quantity++;
-        }
-    }
-    private string GetSeatDescription(string category)
-    {
-        return category switch
-        {
-            "Regular" => "Standard seating for casual comfort",
-            "Premium" => "Mid-level seats with excellent view",
-            "VIP" => "Front row seats with exclusive access",
-            "Balcony" => "Top view, relaxed experience",
-            _ => "General seating"
-        };
-    }
+
+    // private void ToggleSeat(SeatCategory category, string seatId)
+    // {
+    //     if (selectedSeats.Contains(seatId))
+    //     {
+    //         selectedSeats.Remove(seatId);
+    //         category.Quantity--;
+    //     }
+    //     else
+    //     {
+    //         selectedSeats.Add(seatId);
+    //         category.Quantity++;
+    //     }
+    // }
+    // private string GetSeatDescription(string category)
+    // {
+    //     return category switch
+    //     {
+    //         "Regular" => "Standard seating for casual comfort",
+    //         "Premium" => "Mid-level seats with excellent view",
+    //         "VIP" => "Front row seats with exclusive access",
+    //         "Balcony" => "Top view, relaxed experience",
+    //         _ => "General seating"
+    //     };
+    // }
 
     private async Task LoadInterestAsync()
     {
@@ -525,11 +529,11 @@ else
         // await JS.InvokeVoidAsync("alert", "👍 You’ve marked this event as interested!");
     }
 
-    public class SeatCategory
-    {
-        public string Category { get; set; } = "";
-        public decimal Price { get; set; }
-        public int Quantity { get; set; } = 0;
-        public int Available { get; set; } = 0;
-    }
+    // public class SeatCategory
+    // {
+    //     public string Category { get; set; } = "";
+    //     public decimal Price { get; set; }
+    //     public int Quantity { get; set; } = 0;
+    //     public int Available { get; set; } = 0;
+    // }
 }

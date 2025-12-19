@@ -218,32 +218,32 @@ namespace EventBooking.Client.Services
         }
 
         // -------------------- SEATS -------------------- //
-        public async Task<List<SeatDto>> GetAllSeatsAsync()
-        {
-            await AddAuthHeaderAsync();
-            return await _httpClient.GetFromJsonAsync<List<SeatDto>>("api/seats") ?? new();
-        }
+        //public async Task<List<SeatDto>> GetAllSeatsAsync()
+        //{
+        //    await AddAuthHeaderAsync();
+        //    return await _httpClient.GetFromJsonAsync<List<SeatDto>>("api/seats") ?? new();
+        //}
 
-        public async Task AddSeatAsync(SeatDto dto)
-        {
-            await AddAuthHeaderAsync();
-            var response = await _httpClient.PostAsJsonAsync("api/seats", dto);
-            response.EnsureSuccessStatusCode();
-        }
+        //public async Task AddSeatAsync(SeatDto dto)
+        //{
+        //    await AddAuthHeaderAsync();
+        //    var response = await _httpClient.PostAsJsonAsync("api/seats", dto);
+        //    response.EnsureSuccessStatusCode();
+        //}
 
-        public async Task UpdateSeatAsync(int id, SeatDto dto)
-        {
-            await AddAuthHeaderAsync();
-            var response = await _httpClient.PutAsJsonAsync($"api/seats/{id}", dto);
-            response.EnsureSuccessStatusCode();
-        }
+        //public async Task UpdateSeatAsync(int id, SeatDto dto)
+        //{
+        //    await AddAuthHeaderAsync();
+        //    var response = await _httpClient.PutAsJsonAsync($"api/seats/{id}", dto);
+        //    response.EnsureSuccessStatusCode();
+        //}
 
-        public async Task DeleteSeatAsync(int id)
-        {
-            await AddAuthHeaderAsync();
-            var response = await _httpClient.DeleteAsync($"api/seats/{id}");
-            response.EnsureSuccessStatusCode();
-        }
+        //public async Task DeleteSeatAsync(int id)
+        //{
+        //    await AddAuthHeaderAsync();
+        //    var response = await _httpClient.DeleteAsync($"api/seats/{id}");
+        //    response.EnsureSuccessStatusCode();
+        //}
 
         public async Task<List<CountryDto>> GetAllCountriesAsync()
         {

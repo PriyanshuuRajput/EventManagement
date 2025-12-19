@@ -37,7 +37,7 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<IEventRepository, EventRepository>();
             builder.Services.AddScoped<ICityRepository, CityRepository>();
             builder.Services.AddScoped<IVenueRepository, VenueRepository>();
-            builder.Services.AddScoped<ISeatRepository, SeatRepository>();
+            //builder.Services.AddScoped<ISeatRepository, SeatRepository>();
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<ICountryRepository, CountryRepository>();
             builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
@@ -48,7 +48,7 @@ namespace EventBooking_TicketManagement_API
             // ---------------------------------------------------------
             builder.Services.AddScoped<IEventService, EventService>();
             builder.Services.AddScoped<ICityService, CityService>();
-            builder.Services.AddScoped<ISeatService, SeatService>();
+            //builder.Services.AddScoped<ISeatService, SeatService>();
             builder.Services.AddScoped<IVenueService, VenueService>();
             builder.Services.AddScoped<IBookingService, BookingService>();
             builder.Services.AddScoped<ICountryService, CountryService>();

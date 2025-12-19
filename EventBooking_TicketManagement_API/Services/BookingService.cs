@@ -8,89 +8,65 @@ namespace EventBooking_TicketManagement_API.Services
     public class BookingService : IBookingService
     {
         private readonly IBookingRepository _bookingRepository;
-        private readonly ISeatRepository _seatRepository;
         private readonly IEventRepository _eventRepository;
 
         public BookingService(
             IBookingRepository bookingRepository,
-            ISeatRepository seatRepository,
             IEventRepository eventRepository)
         {
             _bookingRepository = bookingRepository;
-            _seatRepository = seatRepository;
             _eventRepository = eventRepository;
         }
 
-        public async Task<BookingDto> CreateBookingAsync(BookingRequest request)
+        public async Task<BookingDto> CreateBookingAsync(BookingRequest request , int userId)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            if (request.SeatIds == null || !request.SeatIds.Any())
-                throw new Exception("No seats selected for booking.");
+            if (request.TicketCount <= 0)
+                throw new Exception("Ticket count must be greater than zero.");
 
-            // Validate Event exists
-            var eventExists = await _eventRepository.EventExistsAsync(request.EventId);
-            if (!eventExists)
-                throw new Exception($"Event with Id {request.EventId} does not exist.");
+            // 1 Get Event
+            var evnt = await _eventRepository.GetByIdAsync(request.EventId)
+                       ?? throw new Exception($"Event with Id {request.EventId} does not exist.");
 
-            //  Get all seats for the event
-            var eventSeats = await _seatRepository.GetSeatsByEventAsync(request.EventId);
-            var selectedSeats = eventSeats.Where(s => request.SeatIds.Contains(s.Id)).ToList();
+            // 2️ Check availability
+            int availableTickets =
+                evnt.TotalTickets - (evnt.SoldTickets + evnt.ReservedTickets);
 
-            if (!selectedSeats.Any())
-                throw new Exception("Selected seats are invalid or not part of this event.");
+            if (request.TicketCount > availableTickets)
+                throw new Exception("Not enough tickets available.");
 
-            //  Check for already booked seats
-            var alreadyBooked = selectedSeats.Where(s => s.IsBooked).Select(s => s.SeatNumber).ToList();
-            if (alreadyBooked.Any())
-            {
-                var list = string.Join(", ", alreadyBooked);
-                throw new Exception($"The following seats are already booked: {list}");
-            }
+            // 3️ Reserve tickets
+            evnt.ReservedTickets += request.TicketCount;
+            await _eventRepository.UpdateAsync(evnt);
 
-            //  Calculate total
-            var totalAmount = selectedSeats.Sum(s => s.Price);
-
-            //Create booking
+            // 4️ Create booking
             var booking = new Booking
             {
                 EventId = request.EventId,
-                UserName = request.UserName,
-                UserEmail = request.UserEmail,
+                UserId = userId, 
+                TicketCount = request.TicketCount,
                 BookingDate = DateTime.UtcNow,
-                TicketNumber = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
-                PaymentStatus = PaymentStatus.Pending,
-                TotalAmount = totalAmount,
-                Seats = selectedSeats
+                TicketNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
+                PaymentStatus = PaymentStatus.Pending
             };
 
-            //  Mark seats as booked
-            foreach (var seat in selectedSeats)
-            {
-                seat.IsBooked = true;
-                seat.Booking = booking;
-            }
 
             var savedBooking = await _bookingRepository.CreateBookingAsync(booking);
 
-            // Map to DTO for response
+            // 5️ Return DTO
             return new BookingDto
             {
                 Id = savedBooking.Id,
                 EventId = savedBooking.EventId,
-                EventName = savedBooking.Event?.Title ?? "Unknown Event",
-                SeatIds = selectedSeats.Select(s => s.Id).ToList(),
-                Quantity = selectedSeats.Count,
-                TotalAmount = totalAmount,
+                EventName = evnt.Title,
+                TicketCount = savedBooking.TicketCount,
                 BookingDate = savedBooking.BookingDate,
-                UserName = savedBooking.UserName,
-                UserEmail = savedBooking.UserEmail,
                 TicketNumber = savedBooking.TicketNumber,
                 PaymentStatus = savedBooking.PaymentStatus
             };
         }
-
 
         public async Task<IEnumerable<BookingDto>> GetAllBookingAsync()
         {
@@ -101,50 +77,45 @@ namespace EventBooking_TicketManagement_API.Services
                 Id = b.Id,
                 EventId = b.EventId,
                 EventName = b.Event?.Title ?? "Unknown Event",
-                UserEmail = b.UserEmail,
-                UserName = b.UserName,
+                TicketCount = b.TicketCount,
                 BookingDate = b.BookingDate,
                 TicketNumber = b.TicketNumber,
-                PaymentStatus = b.PaymentStatus,
-                SeatIds = b.Seats?.Select(s => s.Id).ToList() ?? new List<int>(),
-                Quantity = b.Seats?.Count ?? 0,
-                TotalAmount = b.Seats?.Sum(s => s.Price) ?? 0
+                PaymentStatus = b.PaymentStatus
             });
         }
 
-        public async Task<IEnumerable<BookingDto>> GetBookingByUserAsync(string userEmail)
+        public async Task<IEnumerable<BookingDto>> GetBookingByUserAsync(int userId)
         {
-            var bookings = await _bookingRepository.GetBookingsByUserAsync(userEmail);
+            var bookings = await _bookingRepository.GetBookingsByUserAsync(userId);
 
             return bookings.Select(b => new BookingDto
             {
                 Id = b.Id,
                 EventId = b.EventId,
                 EventName = b.Event?.Title ?? "Unknown Event",
-                UserEmail = b.UserEmail,
-                UserName = b.UserName,
+                TicketCount = b.TicketCount,
                 BookingDate = b.BookingDate,
                 TicketNumber = b.TicketNumber,
-                PaymentStatus = b.PaymentStatus,
-                SeatIds = b.Seats?.Select(s => s.Id).ToList() ?? new(),
-                Quantity = b.Seats?.Count ?? 0,
-                TotalAmount = b.Seats?.Sum(s => s.Price) ?? 0
+                PaymentStatus = b.PaymentStatus
             });
         }
 
         public async Task CancelBookingAsync(int bookingId)
         {
-            var booking = await _bookingRepository.GetBookingByIdAsync(bookingId);
-
-            if (booking == null)
-                throw new Exception($"Booking not found");
+            var booking = await _bookingRepository.GetBookingByIdAsync(bookingId)
+                          ?? throw new Exception("Booking not found.");
 
             if (booking.PaymentStatus == PaymentStatus.Paid)
-                throw new Exception("Cannot cancel a completed booking.");
+                throw new Exception("Cannot cancel a paid booking.");
 
+            var evnt = await _eventRepository.GetByIdAsync(booking.EventId);
+
+            // Release reserved tickets safely
+            evnt.ReservedTickets = Math.Max(0, evnt.ReservedTickets - booking.TicketCount);
             booking.PaymentStatus = PaymentStatus.Cancelled;
 
-            await _bookingRepository.ReleaseSeatsAsync(bookingId);
+            await _eventRepository.UpdateAsync(evnt);
+            await _bookingRepository.UpdateAsync(booking);
         }
     }
 }

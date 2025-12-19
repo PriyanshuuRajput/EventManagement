@@ -82,6 +82,7 @@ namespace Applications.Dto
 
 
         public IFormFile? ImageFile { get; set; }
+        public int AvailableTickets { get; set; }
 
         public int TotalTickets { get; set; } = 0;
         public int SoldTickets { get; set; } = 0;

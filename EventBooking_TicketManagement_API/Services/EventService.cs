@@ -51,6 +51,9 @@ namespace EventBooking_TicketManagement_API.Services
                 Capacity = ev.Venue?.Capacity ?? 0,
                 ApprovedAt = ev.ApprovedAt,
                 IsPromoted = ev.IsPromoted,
+                TotalTickets= ev.TotalTickets,
+
+                
             });
         }
 
@@ -91,6 +94,7 @@ namespace EventBooking_TicketManagement_API.Services
                 Capacity = ev.Venue?.Capacity ?? 0,
                 IsAmountAccepted = ev.IsPrizePaid,
                 IsPromoted = ev.IsPromoted,
+                TotalTickets=ev.TotalTickets,
 
             };
         }
@@ -205,24 +209,28 @@ namespace EventBooking_TicketManagement_API.Services
             await _eventRepository.DeleteAsync(id);
         }
 
-        public async Task<IEnumerable<SeatDto>> GetSeatsByEventIdAsync(int eventId)
-        {
-            var ev = await _eventRepository.GetByIdAsync(eventId);
-            if (ev == null || ev.Seats == null) return Enumerable.Empty<SeatDto>();
+        //public async Task<IEnumerable<SeatDto>> GetSeatsByEventIdAsync(int eventId)
+        //{
+        //    var ev = await _eventRepository.GetByIdAsync(eventId);
+        //    if (ev == null || ev.Seats == null) return Enumerable.Empty<SeatDto>();
 
-            return ev.Seats.Select(s => new SeatDto
-            {
-                Id = s.Id,
-                SeatNumber = s.SeatNumber,
-                Category = s.Category,
-                IsBooked = s.IsBooked,
-                EventId = s.EventId
-            });
-        }
+        //    return ev.Seats.Select(s => new SeatDto
+        //    {
+        //        Id = s.Id,
+        //        SeatNumber = s.SeatNumber,
+        //        Category = s.Category,
+        //        IsBooked = s.IsBooked,
+        //        EventId = s.EventId
+        //    });
+        //}
 
 
         public async Task<EventDto> CreateEventAsync(ManagerEventDto mdto, int managerId, string managerName)
-        { 
+        {
+            var venue = await _eventRepository.GetVenueByIdAsync(mdto.VenueId);
+            if (venue == null)
+                throw new Exception("Venue not found");
+
             DateTime start = mdto.StartDateOnly.Date + mdto.StartTime;
 
             DateTime end;
@@ -267,8 +275,9 @@ namespace EventBooking_TicketManagement_API.Services
                 CreatedAt = DateTime.UtcNow,
                 IsPrizePaid = false,
                 EventAmount = 0m,
-                TotalTickets = mdto.TotalTickets,
+                TotalTickets = venue.Capacity,   
                 SoldTickets = 0,
+                ReservedTickets = 0,
                 OfferedEventAmount = mdto.OfferedEventAmount ?? 0m
             };
 
@@ -333,6 +342,12 @@ namespace EventBooking_TicketManagement_API.Services
         {
             var ev = await _eventRepository.GetByIdAsync(eventId)
                 ?? throw new Exception("Event not found");
+
+            if (ev.TotalTickets == 0)
+            {
+                ev.TotalTickets = ev.Venue?.Capacity ?? 0;
+            }
+
 
             ev.Status = EventStatus.AdminApproved;
             ev.ApprovedAt = DateTime.UtcNow;

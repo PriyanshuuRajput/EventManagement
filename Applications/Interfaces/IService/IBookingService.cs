@@ -4,9 +4,10 @@ namespace Applications.Interfaces.IService
 {
     public interface IBookingService
     {
-        Task CancelBookingAsync(int bookingId);
-        Task<BookingDto> CreateBookingAsync(BookingRequest request);
+
+        Task<BookingDto> CreateBookingAsync(BookingRequest request ,int userId);
         Task<IEnumerable<BookingDto>> GetAllBookingAsync();
-        Task<IEnumerable<BookingDto>> GetBookingByUserAsync(string userEmail);
+        Task<IEnumerable<BookingDto>> GetBookingByUserAsync(int userId);
+        Task CancelBookingAsync(int bookingId);
     }
 }

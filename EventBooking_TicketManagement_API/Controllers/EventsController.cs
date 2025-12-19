@@ -39,13 +39,13 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok(ev);
         }
 
-        // GET: api/events/{id}/seats
-        [HttpGet("{id:int}/seats")]
-        public async Task<IActionResult> GetSeatsByEventId(int id)
-        {
-            var seats = await _eventService.GetSeatsByEventIdAsync(id);
-            return Ok(seats);
-        }
+        //// GET: api/events/{id}/seats
+        //[HttpGet("{id:int}/seats")]
+        //public async Task<IActionResult> GetSeatsByEventId(int id)
+        //{
+        //    var seats = await _eventService.GetSeatsByEventIdAsync(id);
+        //    return Ok(seats);
+        //}
 
         // POST: api/events
         [HttpPost("create")]
