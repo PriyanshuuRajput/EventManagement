@@ -18,11 +18,7 @@ namespace Domains.Entities
 
         public string Title { get; set; } = string.Empty;
 
-        //public string EventType { get; set; } = string.Empty;
-
         public string Description { get; set; } = string.Empty;
-
-        //public string Genre { get; set; } = string.Empty;
 
         public string Language { get; set; } = string.Empty;
 
@@ -74,8 +70,9 @@ namespace Domains.Entities
         public bool IsPrizePaid { get; set; } = false;
 
         public DateTime? PrizePaidAt { get; set; }
-        //public string ManagerName { get; set; }
         public int TotalTickets { get; set; }
         public int SoldTickets { get; set; }
+
+        public bool IsPromoted { get; set;  }
     }
 }

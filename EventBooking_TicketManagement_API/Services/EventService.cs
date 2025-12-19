@@ -50,6 +50,7 @@ namespace EventBooking_TicketManagement_API.Services
                 CreatedAt = ev.CreatedAt,
                 Capacity = ev.Venue?.Capacity ?? 0,
                 ApprovedAt = ev.ApprovedAt,
+                IsPromoted = ev.IsPromoted,
             });
         }
 
@@ -88,7 +89,8 @@ namespace EventBooking_TicketManagement_API.Services
                 OfferedEventAmount = ev.OfferedEventAmount,
                 EventAmount = ev.EventAmount,
                 Capacity = ev.Venue?.Capacity ?? 0,
-                IsAmountAccepted = ev.IsPrizePaid
+                IsAmountAccepted = ev.IsPrizePaid,
+                IsPromoted = ev.IsPromoted,
 
             };
         }
@@ -427,6 +429,7 @@ namespace EventBooking_TicketManagement_API.Services
             TotalTickets = e.TotalTickets,
             SoldTickets = e.SoldTickets,
             Address = e.Venue?.Address ?? string.Empty,
+            IsPromoted = e.IsPromoted,
             // VenueId = e.VenueId
 
 
@@ -593,6 +596,12 @@ namespace EventBooking_TicketManagement_API.Services
                 PageSize = pagedEvents.PageSize,
                 TotalCount = pagedEvents.TotalCount
             };
+        }
+
+        public async Task<IEnumerable<EventDto>> GetPromotedEventsAsync()
+        {
+            var events = await _eventRepository.GetPromotedEventsAsync();
+            return events.Select(MapToDto);
         }
 
     }

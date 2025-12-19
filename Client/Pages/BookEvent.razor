@@ -228,8 +228,8 @@ else
                 </div>
             </div>
             <!-- 💳 Right Section: Booking Summary -->
-            <div class="col-lg-4 mt-5">
-                <div class="card shadow-lg border-0 rounded-4 sticky-top " style="top: 90px; margin-top: 32px">
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 sticky-top " style="top: 90px; margin-top: 43px">
                     <div class="card-body">
                         <ul class="list-unstyled mb-4">
                             <li class="d-flex align-items-center mb-2">
@@ -372,13 +372,21 @@ else
     private bool isInterested = false;
     private string interestKey => $"event_{eventId}_interested";
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         spinnerService.Show();
-        await Task.Delay(200);
 
-        evtDetails = await Http.GetFromJsonAsync<EventDto>($"api/events/{eventId}");
-        var allSeats = await Http.GetFromJsonAsync<List<SeatDto>>($"api/seats/event/{eventId}");
+        evtDetails = null;
+        seatCategories.Clear();
+        suggestedEvents.Clear();
+
+        evtDetails = await Http.GetFromJsonAsync<EventDto>(
+            $"api/events/{eventId}"
+        );
+
+        var allSeats = await Http.GetFromJsonAsync<List<SeatDto>>(
+            $"api/seats/event/{eventId}"
+        );
 
         if (allSeats != null && allSeats.Any())
         {
@@ -392,9 +400,12 @@ else
                 })
                 .ToList();
         }
+
         await LoadSuggestedEvents();
+
         spinnerService.Hide();
     }
+
 
     private void Increase(SeatCategory category)
     {
@@ -409,7 +420,7 @@ else
     }
     private async Task LoadSuggestedEvents()
     {
-        var allEvents = await Http.GetFromJsonAsync<List<EventDto>>("api/events");
+        var allEvents = await Http.GetFromJsonAsync<List<EventDto>>("api/Events/approved");
 
         suggestedEvents = allEvents?
             .Where(e => e.Id != eventId &&

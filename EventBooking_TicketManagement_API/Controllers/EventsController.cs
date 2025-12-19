@@ -209,5 +209,13 @@ namespace EventBooking_TicketManagement_API.Controllers
             var result = await _eventService.GetPagedEventAsync(req);
             return Ok(result);
         }
+
+        [HttpGet("promoted")]
+        public async Task<IActionResult> GetPromotedEvents()
+        {
+            var events = await _eventService.GetPromotedEventsAsync();
+            return Ok(events);
+        }
+
     }
 }

@@ -28,6 +28,9 @@ namespace Applications.Interfaces.IRepository
 
         Task<Manager?> GetManagerByIdAsync(int id);
 
+        Task<IEnumerable<Event>> GetPromotedEventsAsync();
+
+
 
     }
 }

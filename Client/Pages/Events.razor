@@ -10,7 +10,24 @@
 
     .card-img-wrapper {
         position: relative;
+        height: 180px; 
+        overflow: hidden;
     }
+        .card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+    .event-card {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .event-card .card-body {
+            flex-grow: 1;
+        }
+
 
     .category-badge {
         position: absolute;
@@ -148,13 +165,12 @@
                 {
                     @foreach (var ev in filteredEvents)
                     {
-                        <div class="col" style="padding:0px 10px">
+                        <div class="col mb-4" style="padding:0px 10px">
                             <div class="card h-100 shadow-sm event-card">
                                 <div class="card-img-wrapper position-relative">
                                     <img src="@((!string.IsNullOrEmpty(ev.ImageUrl)) ? ev.ImageUrl : "images/default-event.png")"
                                          class="card-img-top"
-                                         alt="@ev.Title"
-                                         style="object-fit:cover;" />
+                                         alt="@ev.Title" />
 
                                     <span class="category-badge px-2 bg-white rounded-3">
                                         @ev.CategoryName
@@ -184,7 +200,7 @@
                                 </div>
                                 <div class="card-footer bg-white border-0">
                                     <span class="fw-bold">₹@ev.TicketPrice</span>
-                                    <button class="btn btn-danger btn-sm float-end"
+                                    <button class="btn btn-danger btn-sm w-50 float-end"
                                             @onclick="@(() => Nav.NavigateTo("/book-event/" + ev.Id))">
                                         View
                                     </button>
