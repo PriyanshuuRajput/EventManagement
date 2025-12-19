@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Event Dashboard</title>
     <base href="/" />
-    
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui/dist/semantic.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui/dist/components/calendar.min.js"></script>
@@ -23,18 +23,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fomantic-ui/dist/semantic.min.css" />
 
 
-    <!--<script>
-        window.initSingleDatePicker = function (dotNetObj) {
-            $('#singleDatePicker').calendar({
-                type: 'date',
-                onChange: function (date) {
-                    if (date) {
-                        dotNetObj.invokeMethodAsync("OnSemanticDateSelected", date.toISOString());
-                    }
-                }
-            });
-        }
-    </script>-->
+   <script>
+            window.scrollByAmount = (element, amount) => {
+            element.scrollBy({
+            left: amount,
+            behavior: 'smooth'
+        });
+    };
+
+        </script>
     <!--<link href="_content/Blazored.Toast/blazored-toast.css" rel="stylesheet" />-->
 
 

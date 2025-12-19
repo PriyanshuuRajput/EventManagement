@@ -139,7 +139,7 @@
         scroll-behavior: smooth;
         padding-bottom: 10px;
         scrollbar-width: none; 
-        gap:36px
+        gap: 30px
         /* -ms-overflow-style: none; */
     }
 
@@ -152,6 +152,28 @@
             background: #ccc;
             border-radius: 10px;
         }
+
+    .scroll-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,.2);
+    }
+
+        .scroll-arrow.left {
+            left: -20px;
+        }
+
+        .scroll-arrow.right {
+            right: -20px;
+        }
+
     .event-card {
         transition: transform .25s ease, box-shadow .25s ease;
         width:200px
@@ -262,12 +284,18 @@
 <section class="bg-light py-4">
     <div class="container">
         <h2 class="m-4 fw-bold">Popular Events</h2>
-
-        <div class="d-flex flex-nowrap scroll-container">
+        <div class="position-relative">
+            <button class="btn btn-light scroll-arrow left" @onclick="ScrollLeft">
+                <i class="bi bi-chevron-left text-danger"></i>
+            </button>
+            <button class="btn btn-light scroll-arrow right" @onclick="ScrollRight">
+                <i class="bi bi-chevron-right text-danger"></i>
+            </button>
+        <div class="d-flex flex-nowrap scroll-container"
+             @ref="scrollContainer">
         
             @foreach (var ev in events)
             {
-                @* <div class="col-6 col-md-2 mb-4"> *@
                     <div class="card shadow-sm event-card position-relative flex-shrink-0"
                          @onclick="() => GoToEventDetails(ev.Id)">
 
@@ -295,18 +323,9 @@
                                 View Details
                             </button>
                         </div>
-                    </div>
-                @* </div> *@
+                    </div>  
             }
-            @* <button class="btn btn-light arrow left"
-                    @onclick="ScrollLeft">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="btn btn-light arrow right"
-                    @onclick="ScrollRight">
-                <i class="bi bi-chevron-right"></i>
-            </button> *@
-
+        </div>
         </div>
     </div>
 </section>
@@ -316,8 +335,16 @@
 <section class="py-5 bg-light">
     <div class="container">
         <h2 class="fw-bold m-4">Artists in your EventiGo </h2>
+        <div class="position-relative">
+            <button class="btn btn-light scroll-arrow left"style="top:23%;transform:translateY(23%)" @onclick="ScrollArtistLeft">
+                <i class="bi bi-chevron-left text-danger"></i>
+            </button>
+            <button class="btn btn-light scroll-arrow right" style="top:23%;transform:translateY(23%)" @onclick="ScrollArtistRight">
+                <i class="bi bi-chevron-right text-danger"></i>
+            </button>
 
-        <div class="row">
+            <div class="d-flex flex-nowrap scroll-container"
+                 @ref="scrollArtistContainer">
 
             <div class="col-4 col-md-2 mb-4">
                 <div class="d-flex flex-column align-items-center">
@@ -376,6 +403,43 @@
                     <h6 class="fw-semibold mb-0">Prem Dhillon</h6>
                 </div>
             </div>
+             <div class="col-4 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                    <img src="https://imgs.search.brave.com/D-MneSYgGComz_hc4SnWB-JhVeV7U4eZsTTNWFnQrRg/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudG9paW1nLmNv/bS90aHVtYi9tc2lk/LTEyMjA4MzA4MCxp/bWdzaXplLTQ1Nzk4/LHdpZHRoLTQwMCxy/ZXNpemVtb2RlLTQv/UmFmdGFhci5qcGc"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">Raftaar</h6>
+                </div>
+            </div>
+             <div class="col-4 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                    <img src="https://imgs.search.brave.com/N1FYgCEXVjxP-v78QQVQPIxAkkbKJ9gx9br4CjvpxnI/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9oaW5k/aTIuZGpwdW5qYWIu/YXBwL2NvdmVyL0da/VnlJZHVVWnpGTS1y/TlFZck5ZNkE9PS80/LWFhZG1pLWNvdmVy/LWltYWdlLndlYnA"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">Sumit Patra</h6>
+                </div>
+            </div>
+            <div class="col-4 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                    <img src=https://imgs.search.brave.com/q_PNUVw_Y8uaBLzu2mNqpHC7DA1b2pMaCgswi3n4GsA/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pMS5z/bmRjZG4uY29tL2Fy/dHdvcmtzLUU3TE84/UVFwbXhONmM3bnMt/RE5hN3hRLXQxMDgw/eDEwODAuanBn"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">Cheema Y</h6>
+                </div>
+            </div>
+            <div class="col-4 col-md-2 mb-4">
+                <div class="d-flex flex-column align-items-center">
+                        <img src="https://imgs.search.brave.com/tBsN-W4DYX5mejJw0oyU_Q_4eu0gPOpvEJ4k7eRupCc/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9jb3Zl/ci5kanB1bmphYi5p/cy81NjUxOC8zMDB4/MzAwL3BhdGFuZGVy/LWFyamFuLWRoaWxs/b24ud2VicA"
+                         class="rounded-circle shadow mb-3"
+                         style="width:140px; height:140px; object-fit:cover;" />
+
+                    <h6 class="fw-semibold mb-0">Arjan Dhillon</h6>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
 </section>
@@ -451,7 +515,10 @@
     private List<EventDto> suggestionList = new();
     private List<EventDto> allEvents = new();
     // private CancellationTokenSource? debounceCts;
-    // private ElementReference scrollContainer;
+    private ElementReference scrollContainer;
+    private ElementReference scrollArtistContainer;
+    @inject IJSRuntime JS
+
 
     
 
@@ -492,17 +559,25 @@
 
         return $"{Http.BaseAddress}{imageUrl.TrimStart('/')}";
     }
-    // private async Task ScrollLeft()
-    // {
-    //     await scrollContainer.ScrollToAsync(
-    //         scrollContainer.ScrollLeft - 300, 0);
-    // }
+    private async Task ScrollLeft()
+    {
+        await JS.InvokeVoidAsync("scrollByAmount", scrollContainer, -300);
+    }
 
-    // private async Task ScrollRight()
-    // {
-    //     await scrollContainer.ScrollToAsync(
-    //         scrollContainer.ScrollLeft + 300, 0);
-    // }
+    private async Task ScrollRight()
+    {
+        await JS.InvokeVoidAsync("scrollByAmount", scrollContainer, 300);
+    }
+    private async Task ScrollArtistLeft()
+    {
+        await JS.InvokeVoidAsync("scrollByAmount", scrollArtistContainer, -300);
+    }
+
+    private async Task ScrollArtistRight()
+    {
+        await JS.InvokeVoidAsync("scrollByAmount", scrollArtistContainer, 300);
+    }
+
 
     void GoToEventDetails(int eventId)
     {
