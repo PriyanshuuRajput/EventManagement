@@ -1,0 +1,452 @@
+﻿@page "/book-event/{eventId:int}/checkout"
+@layout EmptyLayout;
+@using Applications.Dto
+
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+
+
+
+<PageTitle>Checkout</PageTitle>
+
+<style>
+    .step {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+
+        .step.active {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .step.done {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+    .line {
+        width: 60px;
+        height: 2px;
+        background: #ccc;
+    }
+</style>
+
+@if (evt == null)
+{
+    <div class="text-center mt-5">Loading...</div>
+}
+else
+{
+
+    <div class="container mt-4" style="max-width: 700px;">
+
+        <!-- STEPPER HEADER -->
+        <div class="d-flex align-items-center gap-4 mb-4  shadow-none "style="justify-content:space-around">
+           <button class="btn btn-link text-dark"
+                   disabled="@(step == 2 && isProcessing)"
+                   @onclick="Back">
+                   <i class="bi bi-chevron-left fs-4"></i>
+            </button>
+            <span class="step @(step == 1 ? "active" : "done")">1</span>
+            <span>Select Tickets</span>
+            <span class="line"></span>
+            <span class="step @(step == 2 ? "active" : "")">2</span>
+            <span>Review & Pay</span>
+        </div>
+
+        @if (step == 1)
+        {
+            <!-- STEP 1 -->
+            <div class="card shadow-sm border-0 p-4 mt-2" style="gap:10px">
+                <h3 class="fw-bold">@evt.Title</h3>
+               
+
+                @* <p class="small text-muted">
+                    @maxTickets tickets available
+                </p> *@
+                <p class="text-muted">You can add upto 10 tickets only</p>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold">Quantity</span>
+
+                    <div class="btn-group d-flex justify-content-center align-items-center">
+                        <button class="btn btn-outline-secondary btn-sm"
+                                @onclick="Decrease"
+                                disabled="@(ticketCount <= 1)">
+                            −
+                        </button>
+
+                        <span class="mx-3 fw-bold">@ticketCount</span>
+
+                        <button class="btn btn-outline-danger btn-sm"
+                                @onclick="Increase"
+                                disabled="@(ticketCount >= maxTickets || ticketCount>=10)">
+                            +
+                        </button>
+                    </div>
+            
+                </div>
+                <div>
+                    <p class="text-muted mb-4">₹@evt.TicketPrice per ticket</p>
+                </div>
+                @* @if (ticketCount > 1)
+                {
+                    <div class="mt-3">
+                        <button class="btn btn-outline-secondary btn-sm w-100 text-center"
+                                @onclick="() => showMembers = !showMembers">
+                            <i class="bi bi-people text-danger me-2"></i>
+                            Add member details
+                            <i class="bi @(showMembers ? "bi-chevron-up" : "bi-chevron-down") float-end"></i>
+                        </button>
+
+                        @if (showMembers)
+                        {
+                            <div class="mt-2">
+                                @for (int i = 0; i < Members.Count; i++)
+                                {
+                                    <div class="d-flex gap-4 mt-1">
+                                        <div class="flex-grow-1">
+                                            <label class="form-label small mb-1">Full Name<span class="text-danger">*</span></label>
+                                            <input class="form-control form-control-sm"
+                                                   @bind="Members[i].Name" />
+                                        </div>
+
+                                        <div style="width:100px">
+                                            <label class="form-label small mb-1">Age <span class="text-danger">*</span></label>
+                                            <input type="number"
+                                                   class="form-control form-control-sm"
+                                                   @bind="Members[i].Age" />
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(error))
+                {
+                    <div class="text-danger small mt-2">
+                        @error
+                    </div>
+                } *@
+
+                @if (maxTickets <= 0)
+                {
+                    <button class="btn btn-secondary w-100 mt-2" disabled>
+                        Sold Out
+                    </button>
+                }
+                else
+                {
+                <button class="btn btn-danger w-100 mt-2"
+                    disabled="@isLoginOpen" @onclick="ProceedToReview">
+                    Proceed
+                </button>
+
+                }
+               
+            </div>
+        }
+        else
+        {
+            <!-- STEP 2 : REVIEW & PAY -->
+            <div class="row g-3 mt-2">
+
+                <!-- LEFT: PAYMENT OPTIONS -->
+                <div class="col-md-8">
+                    <div class="card shadow-sm" style="height:100%">
+                        <div class="card-body" style="padding: 10px 10px">
+
+                            <h6 class="fw-bold mb-3">Payment options</h6>
+
+                            <div class="row">
+                                <!-- Payment Types -->
+                                <div class="col-4 border-end">
+                                    <div class="list-group list-group-flush small ">
+                                        <button class="list-group-item list-group-item-action active mb-2">
+                                            <i class="bi bi-upc-scan me-2"></i> UPI
+                                        </button>
+                                        <button class="list-group-item list-group-item-action mb-2">
+                                            <i class="bi bi-credit-card me-2"></i> Card
+                                        </button>
+                                        <button class="list-group-item list-group-item-action mb-2">
+                                            <i class="bi bi-wallet2 me-2"></i> Wallet
+                                        </button>
+                                        <button class="list-group-item list-group-item-action mb-2">
+                                            <i class="bi bi-bank me-2"></i> Net Banking
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Selected Payment UI -->
+                                <div class="col-8">
+                                    <h6 class="fw-semibold">Pay by any UPI App</h6>
+
+                                    <div class="border rounded p-2 mb-3 d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <strong>Google Pay</strong>
+                                            <div class="small text-muted">UPI linked</div>
+                                        </div>
+                                        <i class="bi bi-chevron-right"></i>
+                                    </div>
+
+                                    <div class="border rounded p-2 d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <strong>Add new UPI</strong>
+                                            <div class="small text-muted">Use any UPI ID</div>
+                                        </div>
+                                        <i class="bi bi-plus-circle text-danger"></i>
+                                    </div>
+
+                                    <div class="text-center text-muted my-3">OR</div>
+
+                                    <div class="border rounded p-2 d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <strong>Scan QR Code</strong>
+                                            <div class="small text-muted">Via UPI app</div>
+                                        </div>
+                                        <i class="bi bi-qr-code"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: ORDER SUMMARY -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm" >
+                        <div class="card-body">
+
+                            <h6 class="fw-bold">@evt.Title</h6>
+
+                            <div class="small text-muted mb-2">
+                                <div class=" card d-flex small text-muted" style="padding:5px 5px">
+                                    <span>
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        @evt.StartDate.ToString("ddd, dd MMM yyyy")
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-clock me-1"></i>
+                                        @{
+                                            var time = DateTime.Today.Add(evt.StartTime);
+                                        }
+                                        @time.ToString("hh:mm tt")
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        @evt.VenueName
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between small">
+                                <span>Ticket(s) quantity</span>
+                                <span>@ticketCount</span>
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between small">
+                                <span>Ticket(s) price</span>
+                                <span>₹@Subtotal</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between small">
+                                <span>Convenience fees</span>
+                                <span>₹@ServiceFee</span>
+                            </div>
+
+                            <hr />
+
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Order total</span>
+                                <span>₹@Total</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(successMessage))
+                            {
+                                <div class="alert alert-success mt-3 text-center">
+                                    @successMessage
+                                </div>
+                            }
+
+                            <button class="btn btn-danger w-100 mt-3"
+                                    disabled="@isProcessing"
+                                    @onclick="ConfirmBooking">
+
+                                @if (isProcessing)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    
+                                }
+                                else
+                                {
+                                    <span>Pay ₹@Total</span>
+                                }
+                            </button>
+
+                            <p class="small text-muted mt-2">
+                                By proceeding, you agree to complete this transaction.
+                            </p>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int eventId { get; set; }
+
+    private EventDto? evt;
+    private List<BookingMemberDto> Members = new();
+    private bool showMembers = false;
+    private string? successMessage;
+    private bool isProcessing = false;
+    private bool isLoginOpen = false;
+    private string? error;
+
+
+    private int step = 1;
+    private int ticketCount = 1;
+    private int maxTickets = 0;
+    private int TicketsPerUser = 10;
+
+
+    private decimal Subtotal => ticketCount * evt!.TicketPrice;
+    private decimal ServiceFee => Math.Round(Subtotal * 0.1m, 2);
+    private decimal Total => Subtotal + ServiceFee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        evt = await Http.GetFromJsonAsync<EventDto>($"api/events/{eventId}");
+
+        if (evt != null)
+        {
+            maxTickets = evt.TotalTickets - evt.SoldTickets;
+            if (maxTickets < 0) maxTickets = 0;
+        }
+
+        Members.Add(new BookingMemberDto()); // first ticket holder
+    }
+    private void Increase()
+    {
+        if (ticketCount < Math.Min(maxTickets, 10))
+        {
+            ticketCount++;
+            Members.Add(new BookingMemberDto());
+        }
+    }
+
+    private void Decrease()
+    {
+        if (ticketCount > 1)
+        {
+            ticketCount--;
+            Members.RemoveAt(Members.Count - 1);
+        }
+    }
+
+    private async Task Back()
+    {
+        if (step == 2)
+        {
+            step = 1;
+            return;
+        }
+
+        var confirm = await JS.InvokeAsync<bool>(
+            "confirm", "Are you sure you want to leave checkout?");
+        if (confirm)
+            Nav.NavigateTo("/events");
+    }
+
+    private bool ValidateMembers()
+    {
+        error=null;
+        if(ticketCount>1)
+        {
+            for(int i =0;i< Members.Count; i++)
+            {
+                if(string.IsNullOrWhiteSpace(Members[i].Name))
+                {
+                    error = "Please enter all member names ;";
+                    return false;
+                }
+                if (Members[i].Age <= 0)
+                {
+                    error = "Please enter valid age for all members.";
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private async Task ProceedToReview()
+    {
+        if (maxTickets<=0)
+        {
+            return;
+        }
+        // if (!ValidateMembers())
+        //     return;
+
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            isLoginOpen = true;
+            await JS.InvokeVoidAsync("alert", "Please login to continue booking");
+            MainLayout.Instance?.ShowLoginOverlay();
+            return;
+        }
+
+        step = 2;
+    }
+    private async Task ConfirmBooking()
+    {
+        if (isProcessing) return;
+
+        isProcessing = true;
+
+        var booking = new BookingRequest
+        {
+            EventId = eventId,
+            TicketCount = ticketCount
+        };
+
+        var res = await Http.PostAsJsonAsync("api/Booking", booking);
+
+        if (res.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                "Booking successful!\nCheck your email for details."
+            );
+
+            Nav.NavigateTo("/events");
+        }
+        else
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                "Booking failed. Please try again."
+            );
+        }
+
+        isProcessing = false;
+    }
+
+}

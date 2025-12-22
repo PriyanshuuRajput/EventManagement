@@ -7,4 +7,5 @@ public interface IBookingRepository
     Task<Booking?> GetBookingByIdAsync(int id);
     Task<IEnumerable<Booking>> GetBookingsByUserAsync(int userId);
     Task UpdateAsync(Booking booking);
+    Task <AdminUser?> GetUserByIdAsync(int userId);
 }

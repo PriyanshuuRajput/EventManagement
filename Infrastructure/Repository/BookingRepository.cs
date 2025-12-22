@@ -50,5 +50,11 @@ namespace Infrastructure.Repository
             _db.Bookings.Update(booking);
             await _db.SaveChangesAsync();
         }
+
+        public async Task<AdminUser?> GetUserByIdAsync(int userId)
+        {
+            return await _db.Users
+                .FirstOrDefaultAsync(b => b.Id == userId);
+        }
     }
 }

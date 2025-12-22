@@ -18,5 +18,8 @@ namespace Applications.Dto
 
         // Payment
         public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
+
+        public string QrCode { get;set; } = string.Empty;
     }
+
 }

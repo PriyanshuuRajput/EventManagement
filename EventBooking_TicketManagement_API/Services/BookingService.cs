@@ -2,6 +2,8 @@
 using Applications.Interfaces.IRepository;
 using Applications.Interfaces.IService;
 using Domains.Entities;
+using EventBooking_TicketManagement_API.Helpers;
+
 
 namespace EventBooking_TicketManagement_API.Services
 {
@@ -9,16 +11,26 @@ namespace EventBooking_TicketManagement_API.Services
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IEventRepository _eventRepository;
+        private readonly IEmailService _emailService;
+        private readonly IQrCodeService _qrCodeService;
+        
+
 
         public BookingService(
-            IBookingRepository bookingRepository,
-            IEventRepository eventRepository)
+     IBookingRepository bookingRepository,
+     IEventRepository eventRepository,
+     IEmailService emailService,
+     IQrCodeService qrCodeService
+            )
         {
             _bookingRepository = bookingRepository;
             _eventRepository = eventRepository;
+            _emailService = emailService;
+            _qrCodeService = qrCodeService;
+
         }
 
-        public async Task<BookingDto> CreateBookingAsync(BookingRequest request , int userId)
+        public async Task<BookingDto> CreateBookingAsync(BookingRequest request, int userId)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
@@ -26,36 +38,69 @@ namespace EventBooking_TicketManagement_API.Services
             if (request.TicketCount <= 0)
                 throw new Exception("Ticket count must be greater than zero.");
 
-            // 1 Get Event
+            // 1️⃣ Get Event
             var evnt = await _eventRepository.GetByIdAsync(request.EventId)
-                       ?? throw new Exception($"Event with Id {request.EventId} does not exist.");
+                       ?? throw new Exception("Event does not exist.");
 
-            // 2️ Check availability
+            // 2️⃣ Check availability
             int availableTickets =
                 evnt.TotalTickets - (evnt.SoldTickets + evnt.ReservedTickets);
 
             if (request.TicketCount > availableTickets)
                 throw new Exception("Not enough tickets available.");
 
-            // 3️ Reserve tickets
+            // 3️⃣ Reserve tickets
             evnt.ReservedTickets += request.TicketCount;
             await _eventRepository.UpdateAsync(evnt);
 
-            // 4️ Create booking
+            // 4️⃣ Create booking
             var booking = new Booking
             {
                 EventId = request.EventId,
-                UserId = userId, 
+                UserId = userId,
                 TicketCount = request.TicketCount,
                 BookingDate = DateTime.UtcNow,
                 TicketNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
-                PaymentStatus = PaymentStatus.Pending
+                PaymentStatus = PaymentStatus.Pending,
+                QrCode = Guid.NewGuid().ToString(),
+                UsedEntries = 0
             };
-
 
             var savedBooking = await _bookingRepository.CreateBookingAsync(booking);
 
-            // 5️ Return DTO
+            // 5️⃣ EMAIL (DO NOT BREAK BOOKING IF EMAIL FAILS)
+            try
+            {
+                var user = await _bookingRepository.GetUserByIdAsync(userId);
+
+                if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+                {
+                    var scanUrl =
+                        $"https://yourdomain.com/api/booking/scan?token={savedBooking.QrCode}";
+
+                    var qrImage = _qrCodeService.GenerateQr(scanUrl);
+
+                    var emailBody = EmailTemplates.BookingConfirmation(
+                        evnt.Title,
+                        savedBooking.TicketCount,
+                        savedBooking.TicketNumber
+                    );
+
+                    await _emailService.SendEmailWithQrAsync(
+                        user.Email,
+                        "🎟 Booking Confirmed – EventiGO",
+                        emailBody,
+                        qrImage
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                // LOG ONLY — booking should not fail
+                Console.WriteLine($"Email failed: {ex.Message}");
+            }
+
+            // 6️⃣ Return DTO
             return new BookingDto
             {
                 Id = savedBooking.Id,
@@ -64,9 +109,11 @@ namespace EventBooking_TicketManagement_API.Services
                 TicketCount = savedBooking.TicketCount,
                 BookingDate = savedBooking.BookingDate,
                 TicketNumber = savedBooking.TicketNumber,
-                PaymentStatus = savedBooking.PaymentStatus
+                PaymentStatus = savedBooking.PaymentStatus,
+                QrCode = savedBooking.QrCode
             };
         }
+
 
         public async Task<IEnumerable<BookingDto>> GetAllBookingAsync()
         {

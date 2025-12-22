@@ -40,6 +40,8 @@ namespace Domains.Entities
         public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
 
         public PaymentMode? PaymentMode { get; set; } 
+        public  string QrCode {  get; set; } = string.Empty;
+        public int UsedEntries { get; set; } 
 
     }
 
