@@ -3,6 +3,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject LoginOverlayService LoginOverlayService
 
 <style>
 
@@ -140,17 +141,32 @@
 
 @if (userRole != "Admin")
 {
+
 <nav class="navbar navbar-dark py-1 px-3" style="background-color:#596066">
     <div class="container-fluid">
 
         <!-- Logo + App Name -->
-        <a class="navbar-brand d-flex align-items-center" href="/">
-            <img src="logo2.png" alt="Logo" height="40" class="me-2" />
-            <span>EventiGO</span>
-        </a>
+            @if (IsCheckout)
+            {
+                <div class="navbar-brand d-flex align-items-center"
+                     style="cursor:not-allowed; opacity:.85">
+                    <img src="logo2.png" height="40" class="me-2" />
+                    <span>EventiGO</span>
+                </div>
+            }
+            else
+            {
+                <a class="navbar-brand d-flex align-items-center" href="/">
+                    <img src="logo2.png" height="40" class="me-2" />
+                    <span>EventiGO</span>
+                </a>
+            }
+
 
        
          <!---Search bar    -->
+         @if(!IsCheckout)
+         {
             <div class="d-none d-lg-flex mx-auto position-relative" style="width:450px">
 
                 <input class="form-control pe-5"
@@ -188,8 +204,7 @@
                     </div>
                     }
                     </div>
-
-
+                    }
         <!-- Right Section: Profile/Login + Dashboard -->
         <div class="d-flex align-items-center " style="margin-right:30px">
 
@@ -201,7 +216,7 @@
                 <button class="btn btn-danger d-flex align-items-center justify-content-center"
                         style="width:80px;height:30px"
                         aria-label="Sign In"
-                        @onclick="() => OnShowLogin.InvokeAsync()">
+                            @onclick="() => LoginOverlayService.ShowLogin()">
                     Sign In
                 </button>
             }
@@ -225,7 +240,7 @@
                     </ul>
                 </div>
             }
-
+            
             <!-- Dashboard Offcanvas Toggle Button (now active) -->
             <!--<button class="btn btn-outline-light rounded-circle p-2 d-flex align-items-center justify-content-center dashboard-btn"
                     type="button"
@@ -235,11 +250,12 @@
                     aria-label="Dashboard">
                 <i class="bi bi-list fs-5"></i>
             </button>-->
-
         </div>
     </div>
 </nav>
 }
+@if(!IsCheckout)
+{
 <!-- Category Strip -->
 <nav class="navbar navbar-expand shadow-sm sticky-nav py-0">
     <div class="container">
@@ -320,7 +336,7 @@
                     <button class="btn btn-danger d-flex align-items-center justify-content-center"
                             style="width:80px;height:30px"
                             aria-label="Sign In"
-                            @onclick="() => OnShowLogin.InvokeAsync()">
+                                @onclick="() => LoginOverlayService.ShowLogin()">
                         Sign In
                     </button>
                 }
@@ -367,7 +383,7 @@
         {
             <li class="nav-item">
                 <NavLink class="nav-link" href="/my-bookings" Match="NavLinkMatch.Prefix">
-                    <i class="bi bi-ticket-perforated me-1"></i> My Bookings
+                    <i class="bi bi-ticket-perforated me-1"></i>Booking
                 </NavLink>
             </li>
 
@@ -380,7 +396,7 @@
     </ul>
     </div>
 </nav>
-
+}
 <!-- Offcanvas Dashboard -->
 <div class="offcanvas offcanvas-end text-dark bg-light" tabindex="-1" id="dashboardOffcanvas">
     <div class="offcanvas-header border-bottom">
@@ -414,7 +430,7 @@
         {
             <div class="p-3 text-center">
                 <a href="javascript:void(0)" class="btn btn-danger w-100"
-                   @onclick="() => MainLayout.Instance?.ShowLoginOverlay()">
+                   @onclick="() => LoginOverlayService.ShowLogin()">
                     Sign In
                 </a>
             </div>
@@ -425,7 +441,8 @@
 @code {
     private string? userRole;
     private string? userName;
-    [Parameter] public EventCallback OnShowLogin { get; set; }
+    // [Parameter] public EventCallback OnShowLogin { get; set; }
+    private bool IsCheckout;
 
     private string searchText = "";
 
@@ -446,6 +463,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Navigation.LocationChanged += OnLocationChanged;
+        UpdateCheckoutState();
+        //LoginOverlayService.OnShowLogin += ShowLoginOverlay;
+        //LoginOverlayService.OnShowManagerSignup += ShowManagerSignup;
         AuthStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
         allEvents = await Http.GetFromJsonAsync<List<EventDto>>("api/Events/approved") ?? new();
         await LoadUserState();
@@ -583,17 +604,29 @@
 
     private record MenuItem(string Label, string Url, string Icon);
 
-    public void Dispose()
-    {
-        AuthStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
-    }
-
     void ManagerSignup()
     {
-        MainLayout.Instance?.ShowManagerSignup();
+        LoginOverlayService.ShowManagerSignup();
     }
+
     void GoToEvents()
     {
         Navigation.NavigateTo("/events", true);
+    }
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        UpdateCheckoutState();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateCheckoutState()
+    {
+        IsCheckout = Navigation.Uri.Contains("/checkout");
+    }
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
+        Navigation.LocationChanged -= OnLocationChanged;
     }
 }

@@ -38,22 +38,22 @@ namespace EventBooking_TicketManagement_API.Services
             if (request.TicketCount <= 0)
                 throw new Exception("Ticket count must be greater than zero.");
 
-            // 1️⃣ Get Event
+            // 1️ Get Event
             var evnt = await _eventRepository.GetByIdAsync(request.EventId)
                        ?? throw new Exception("Event does not exist.");
 
-            // 2️⃣ Check availability
+            // 2️ Check availability
             int availableTickets =
                 evnt.TotalTickets - (evnt.SoldTickets + evnt.ReservedTickets);
 
             if (request.TicketCount > availableTickets)
                 throw new Exception("Not enough tickets available.");
 
-            // 3️⃣ Reserve tickets
+            // 3️ Reserve tickets
             evnt.ReservedTickets += request.TicketCount;
             await _eventRepository.UpdateAsync(evnt);
 
-            // 4️⃣ Create booking
+            // 4️ Create booking
             var booking = new Booking
             {
                 EventId = request.EventId,
@@ -68,7 +68,7 @@ namespace EventBooking_TicketManagement_API.Services
 
             var savedBooking = await _bookingRepository.CreateBookingAsync(booking);
 
-            // 5️⃣ EMAIL (DO NOT BREAK BOOKING IF EMAIL FAILS)
+            // 5️ EMAIL 
             try
             {
                 var user = await _bookingRepository.GetUserByIdAsync(userId);
@@ -135,16 +135,43 @@ namespace EventBooking_TicketManagement_API.Services
         {
             var bookings = await _bookingRepository.GetBookingsByUserAsync(userId);
 
-            return bookings.Select(b => new BookingDto
+            var now = DateTime.UtcNow;
+
+            return bookings.Select(b =>
             {
-                Id = b.Id,
-                EventId = b.EventId,
-                EventName = b.Event?.Title ?? "Unknown Event",
-                TicketCount = b.TicketCount,
-                BookingDate = b.BookingDate,
-                TicketNumber = b.TicketNumber,
-                PaymentStatus = b.PaymentStatus
+                BookingStatus status;
+
+                if (b.PaymentStatus == PaymentStatus.Cancelled)
+                {
+                    status = BookingStatus.Cancelled;
+                }
+                else if (b.Event.EndDate < now)
+                {
+                    status = BookingStatus.Completed;
+                }
+                else
+                {
+                    status = BookingStatus.Upcoming;
+                }
+                return new BookingDto
+                {
+                    Id = b.Id,
+                    EventId = b.EventId,
+                    EventName = b.Event?.Title ?? "Unknown Event",
+                    EventStartDate = b.Event?.StartDate ?? DateTime.MinValue,
+                    EventEndDate = b.Event?.EndDate ?? DateTime.MinValue,
+                    TicketPrice = b.Event?.TicketPrice ?? 0,
+                    ImageUrl = b.Event?.ImageUrl ?? string.Empty,
+                    VenueName = b.Event?.Venue?.VenueName ?? "Venue not available",
+                    TicketCount = b.TicketCount,
+                    BookingDate = b.BookingDate,
+                    TicketNumber = b.TicketNumber,
+                    PaymentStatus = b.PaymentStatus,
+                    QrCode = b.QrCode,
+                    Status = status,
+                };
             });
+
         }
 
         public async Task CancelBookingAsync(int bookingId)

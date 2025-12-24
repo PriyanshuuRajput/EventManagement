@@ -1,7 +1,8 @@
 ﻿@page "/book-event/{eventId:int}/checkout"
-@layout EmptyLayout;
+@layout MainLayout;
 @using Applications.Dto
 
+@inject LoginOverlayService LoginOverlayService
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager Nav
@@ -9,7 +10,7 @@
 
 
 
-<PageTitle>Checkout</PageTitle>
+<PageTitle>EventiGo-Checkout</PageTitle>
 
 <style>
     .step {
@@ -41,6 +42,9 @@
     }
 </style>
 
+<NavigationLock ConfirmExternalNavigation="true"
+                OnBeforeInternalNavigation="ConfirmLeave" />
+
 @if (evt == null)
 {
     <div class="text-center mt-5">Loading...</div>
@@ -51,14 +55,14 @@ else
     <div class="container mt-4" style="max-width: 700px;">
 
         <!-- STEPPER HEADER -->
-        <div class="d-flex align-items-center gap-4 mb-4  shadow-none "style="justify-content:space-around">
+        <div class="d-flex align-items-center gap-4 mb-4  shadow-sm "style="justify-content:space-around">
            <button class="btn btn-link text-dark"
                    disabled="@(step == 2 && isProcessing)"
                    @onclick="Back">
                    <i class="bi bi-chevron-left fs-4"></i>
             </button>
             <span class="step @(step == 1 ? "active" : "done")">1</span>
-            <span>Select Tickets</span>
+            <span>Tickets</span>
             <span class="line"></span>
             <span class="step @(step == 2 ? "active" : "")">2</span>
             <span>Review & Pay</span>
@@ -148,7 +152,7 @@ else
                 else
                 {
                 <button class="btn btn-danger w-100 mt-2"
-                    disabled="@isLoginOpen" @onclick="ProceedToReview">
+                    @onclick="ProceedToReview">
                     Proceed
                 </button>
 
@@ -250,7 +254,7 @@ else
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between small">
-                                <span>Ticket(s) quantity</span>
+                                <span>Ticket Count</span>
                                 <span>@ticketCount</span>
                             </div>
                             <hr />
@@ -314,7 +318,7 @@ else
     private bool showMembers = false;
     private string? successMessage;
     private bool isProcessing = false;
-    private bool isLoginOpen = false;
+    private bool allowNavigation = false;
     private string? error;
 
 
@@ -370,6 +374,25 @@ else
             "confirm", "Are you sure you want to leave checkout?");
         if (confirm)
             Nav.NavigateTo("/events");
+
+    }
+    private async Task ConfirmLeave(LocationChangingContext context)
+    {
+        if (allowNavigation)
+            return;
+        if (step == 2)
+        {
+            step = 1;
+            context.PreventNavigation();
+            return;
+        }
+        var confirmed = await JS.InvokeAsync<bool>(
+            "confirm","Are you sure you want to leave this checkout?");
+
+        if (!confirmed)
+        {
+            context.PreventNavigation();
+        }
     }
 
     private bool ValidateMembers()
@@ -407,9 +430,9 @@ else
 
         if (string.IsNullOrWhiteSpace(token))
         {
-            isLoginOpen = true;
+            // isLoginOpen = true;
             await JS.InvokeVoidAsync("alert", "Please login to continue booking");
-            MainLayout.Instance?.ShowLoginOverlay();
+            LoginOverlayService.ShowLogin(Nav.Uri);
             return;
         }
 
@@ -417,6 +440,7 @@ else
     }
     private async Task ConfirmBooking()
     {
+        allowNavigation = true;
         if (isProcessing) return;
 
         isProcessing = true;

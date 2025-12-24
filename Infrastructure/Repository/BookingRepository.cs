@@ -40,6 +40,7 @@ namespace Infrastructure.Repository
         {
             return await _db.Bookings
                 .Include(b => b.Event)
+                    .ThenInclude(e=>e.Venue)
                 .Where(b => b.UserId == userId)
                 .OrderByDescending(b => b.BookingDate)
                 .ToListAsync();

@@ -2,6 +2,8 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@inject LoginOverlayService LoginOverlayService
+
 @using System.Text
 @using EventBooking.Client.Pages.AccountPages
 
@@ -66,8 +68,7 @@
 <div class="d-flex flex-column min-vh-100">
 
     <!-- Top Navbar -->
-    <NavMenu OnShowLogin="ShowLoginOverlay" />
-
+    <NavMenu/>
 
     <!-- Page content -->
     <main class="flex-grow-1 container-fluid p-4">
@@ -99,11 +100,13 @@
 
 
 
-
-    <!-- Footer -->
-    <footer class="bg-dark text-light text-center py-3 mt-auto">
-        <small>© 2025 EventiGO - All rights reserved.</small>
-    </footer>
+    @if (!IsCheckout())
+    {
+        <!-- Footer -->
+        <footer class="bg-dark text-light text-center py-3 mt-auto">
+            <small>© 2025 EventiGO - All rights reserved.</small>
+        </footer>
+    }
 </div>
 
 @if (IsLoginVisible || IsSignupVisible)
@@ -117,7 +120,7 @@
 
                 <!-- Reusable Login Component -->
                 <UserLogin email="@email"
-                           OnSuccess="CloseOverlay"
+                           OnSuccess="OnLoginSuccess"
                            OnCancel="CloseOverlay"
                            OnSwitchToSignup="ShowUserSignup" />
             }
@@ -141,15 +144,16 @@
 @code {
     private bool IsLoginVisible = false;
     private bool IsSignupVisible = false;
-
     private string SignupMode = "User";
 
-    public static MainLayout Instance { get; private set; }
+    // public static MainLayout Instance { get; private set; }
+    // MainLayout.Instance?.ShowLoginOverlay();
+
     private string? email;
     protected override void OnInitialized()
     {
-        Instance = this;
-
+        // Instance = this;
+        LoginOverlayService.OnShowLogin += ShowLoginOverlay;
         var uri = new Uri(Navigation.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
@@ -173,7 +177,25 @@
             return;
         }
     }
+  
+    private void OnLoginSuccess()
+    {
+        IsLoginVisible = false;
+        IsSignupVisible = false;
 
+        var returnUrl = LoginOverlayService.ReturnUrl;
+
+        LoginOverlayService.ClearReturnUrl();
+
+        if (!string.IsNullOrWhiteSpace(returnUrl))
+        {
+            Navigation.NavigateTo(returnUrl, replace: true);
+        }
+        else
+        {
+            Navigation.NavigateTo("/events");
+        }
+    }
 
 
     public void ShowLoginOverlay()
@@ -206,7 +228,14 @@
         StateHasChanged();
     }
 
-
+    private bool IsCheckout()
+    {
+        return Navigation.Uri.Contains("/checkout");
+    }
+    public void Dispose()
+    {
+        LoginOverlayService.OnShowLogin -= ShowLoginOverlay;
+    }
     //private void ShowSignupOverlay()
     //{
     //    IsLoginVisible = false;
