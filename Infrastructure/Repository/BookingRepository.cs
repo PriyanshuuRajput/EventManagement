@@ -25,7 +25,7 @@ namespace Infrastructure.Repository
         {
             return await _db.Bookings
                 .Include(b => b.Event)
-                .OrderByDescending(b => b.BookingDate)
+                .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
         }
 
@@ -33,6 +33,7 @@ namespace Infrastructure.Repository
         {
             return await _db.Bookings
                 .Include(b => b.Event)
+                    .ThenInclude(e => e.Venue)
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
@@ -40,10 +41,28 @@ namespace Infrastructure.Repository
         {
             return await _db.Bookings
                 .Include(b => b.Event)
-                    .ThenInclude(e=>e.Venue)
-                .Where(b => b.UserId == userId)
-                .OrderByDescending(b => b.BookingDate)
+                    .ThenInclude(e => e.Venue)
+                .Where(b => b.UserId == userId && b.Event != null)
+                .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
+        }
+        public async Task<int> GetActiveTicketCountByEventAsync(int eventId)
+        {
+            return await _db.Bookings
+                .Where(b =>
+                    b.EventId == eventId &&
+                    b.PaymentStatus != PaymentStatus.Cancelled)
+                .SumAsync(b => b.TicketCount);
+        }
+
+        public async Task<int> GetUserTicketCountByEventAsync(int eventId, int userId)
+        {
+            return await _db.Bookings
+                .Where(b =>
+                    b.EventId == eventId &&
+                    b.UserId == userId &&
+                    b.PaymentStatus != PaymentStatus.Cancelled)
+                .SumAsync(b => b.TicketCount);
         }
 
         public async Task UpdateAsync(Booking booking)
@@ -57,5 +76,14 @@ namespace Infrastructure.Repository
             return await _db.Users
                 .FirstOrDefaultAsync(b => b.Id == userId);
         }
+        public async Task<Booking?> GetBookingByQrAsync(string qrCode)
+        {
+            return await _db.Bookings
+                .Include(b => b.Event)
+                    .ThenInclude(e => e.Venue)
+                .FirstOrDefaultAsync(b => b.QrCode == qrCode);
+        }
+
+
     }
 }

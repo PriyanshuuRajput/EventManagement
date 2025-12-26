@@ -58,6 +58,7 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<IEventCategoryService,EventCategoryService>();
             builder.Services.AddScoped<IQrCodeService, QrCodeService>();
 
+
             // ---------------------------------------------------------
             // Security Services
             // ---------------------------------------------------------

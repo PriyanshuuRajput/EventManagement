@@ -20,7 +20,8 @@ namespace Applications.Dto
         public int TicketCount { get; set; }
 
         // Booking info
-        public DateTime BookingDate { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? CancelledAt { get; set; }
         public string TicketNumber { get; set; } = string.Empty;
 
         // Payment
@@ -28,9 +29,7 @@ namespace Applications.Dto
 
         public string QrCode { get;set; } = string.Empty;
         public BookingStatus Status { get; set; }
-
     }
-
 
     public enum BookingStatus
     {
@@ -38,6 +37,5 @@ namespace Applications.Dto
         Completed,
         Cancelled
     }
-
 
 }

@@ -14,7 +14,7 @@
 
         <div style='background:#dc3545; padding:20px; text-align:center; color:white;'>
             <h2 style='margin:0;'>EventiGO</h2>
-            <p style='margin:0;'>Booking Confirmed 🎟</p>
+            <p style='margin:0;'>Booking Confirmed </p>
         </div>
 
         <div style='padding:25px;'>

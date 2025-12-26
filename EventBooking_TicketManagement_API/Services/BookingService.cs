@@ -2,6 +2,7 @@
 using Applications.Interfaces.IRepository;
 using Applications.Interfaces.IService;
 using Domains.Entities;
+using EventBooking_TicketManagement_API.Helper;
 using EventBooking_TicketManagement_API.Helpers;
 
 
@@ -13,7 +14,7 @@ namespace EventBooking_TicketManagement_API.Services
         private readonly IEventRepository _eventRepository;
         private readonly IEmailService _emailService;
         private readonly IQrCodeService _qrCodeService;
-        
+
 
 
         public BookingService(
@@ -42,24 +43,37 @@ namespace EventBooking_TicketManagement_API.Services
             var evnt = await _eventRepository.GetByIdAsync(request.EventId)
                        ?? throw new Exception("Event does not exist.");
 
-            // 2️ Check availability
-            int availableTickets =
-                evnt.TotalTickets - (evnt.SoldTickets + evnt.ReservedTickets);
+            //// 2️ Check availability
+            //int availableTickets =evnt.TotalTickets - (evnt.SoldTickets + evnt.ReservedTickets);
+
+            //if (request.TicketCount > availableTickets)
+            //    throw new Exception("Not enough tickets available.");
+
+            // 🔒 USER LIMIT (MAX 10 PER EVENT)
+            var userBookedTickets =
+                await _bookingRepository.GetUserTicketCountByEventAsync(evnt.Id, userId);
+
+            if (userBookedTickets + request.TicketCount > 10)
+            {
+                throw new Exception("You can book a maximum of 10 tickets for this event.");
+            }
+
+            var activeTickets = await _bookingRepository.GetActiveTicketCountByEventAsync(evnt.Id);
+
+            var availableTickets = evnt.TotalTickets - activeTickets;
 
             if (request.TicketCount > availableTickets)
                 throw new Exception("Not enough tickets available.");
 
-            // 3️ Reserve tickets
-            evnt.ReservedTickets += request.TicketCount;
-            await _eventRepository.UpdateAsync(evnt);
 
             // 4️ Create booking
             var booking = new Booking
             {
+
                 EventId = request.EventId,
                 UserId = userId,
                 TicketCount = request.TicketCount,
-                BookingDate = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
                 TicketNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
                 PaymentStatus = PaymentStatus.Pending,
                 QrCode = Guid.NewGuid().ToString(),
@@ -68,38 +82,41 @@ namespace EventBooking_TicketManagement_API.Services
 
             var savedBooking = await _bookingRepository.CreateBookingAsync(booking);
 
-            // 5️ EMAIL 
-            try
+            _ = Task.Run(async () =>
             {
-                var user = await _bookingRepository.GetUserByIdAsync(userId);
-
-                if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+                try
                 {
-                    var scanUrl =
-                        $"https://yourdomain.com/api/booking/scan?token={savedBooking.QrCode}";
+                    var user = await _bookingRepository.GetUserByIdAsync(userId);
 
-                    var qrImage = _qrCodeService.GenerateQr(scanUrl);
+                    if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+                    {
+                        var qrBytes = _qrCodeService.GenerateQr(savedBooking.QrCode);
 
-                    var emailBody = EmailTemplates.BookingConfirmation(
-                        evnt.Title,
-                        savedBooking.TicketCount,
-                        savedBooking.TicketNumber
-                    );
+                        var emailHtml = TicketTemplate.TicketHtml(
+                            evnt.Title,
+                            evnt.Venue?.VenueName ?? "Venue",
+                            evnt.StartDate,
+                            savedBooking.TicketCount,
+                            savedBooking.TicketNumber,
+                            evnt.TicketPrice * savedBooking.TicketCount,
+                            "cid:ticketQr"
+                        );
 
-                    await _emailService.SendEmailWithQrAsync(
-                        user.Email,
-                        "🎟 Booking Confirmed – EventiGO",
-                        emailBody,
-                        qrImage
-                    );
+                        await _emailService.SendEmailWithQrAsync(
+                            user.Email,
+                            "🎟 Your Event Ticket – EventiGO",
+                            emailHtml,
+                            qrBytes,
+                            "ticketQr"
+                        );
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                // LOG ONLY — booking should not fail
-                Console.WriteLine($"Email failed: {ex.Message}");
-            }
-
+                catch (Exception ex)
+                {
+                    // LOG ONLY
+                    Console.WriteLine($"Email failed: {ex.Message}");
+                }
+            });
             // 6️⃣ Return DTO
             return new BookingDto
             {
@@ -107,7 +124,7 @@ namespace EventBooking_TicketManagement_API.Services
                 EventId = savedBooking.EventId,
                 EventName = evnt.Title,
                 TicketCount = savedBooking.TicketCount,
-                BookingDate = savedBooking.BookingDate,
+                CreatedAt = savedBooking.CreatedAt,
                 TicketNumber = savedBooking.TicketNumber,
                 PaymentStatus = savedBooking.PaymentStatus,
                 QrCode = savedBooking.QrCode
@@ -125,7 +142,7 @@ namespace EventBooking_TicketManagement_API.Services
                 EventId = b.EventId,
                 EventName = b.Event?.Title ?? "Unknown Event",
                 TicketCount = b.TicketCount,
-                BookingDate = b.BookingDate,
+                CreatedAt = b.CreatedAt,
                 TicketNumber = b.TicketNumber,
                 PaymentStatus = b.PaymentStatus
             });
@@ -145,9 +162,13 @@ namespace EventBooking_TicketManagement_API.Services
                 {
                     status = BookingStatus.Cancelled;
                 }
-                else if (b.Event.EndDate < now)
+                else if (b.Event != null && b.Event.EndDate < now)
                 {
                     status = BookingStatus.Completed;
+                }
+                else if (b.Event == null)
+                {
+                    status = BookingStatus.Cancelled;
                 }
                 else
                 {
@@ -164,7 +185,7 @@ namespace EventBooking_TicketManagement_API.Services
                     ImageUrl = b.Event?.ImageUrl ?? string.Empty,
                     VenueName = b.Event?.Venue?.VenueName ?? "Venue not available",
                     TicketCount = b.TicketCount,
-                    BookingDate = b.BookingDate,
+                    CreatedAt = b.CreatedAt,
                     TicketNumber = b.TicketNumber,
                     PaymentStatus = b.PaymentStatus,
                     QrCode = b.QrCode,
@@ -179,17 +200,43 @@ namespace EventBooking_TicketManagement_API.Services
             var booking = await _bookingRepository.GetBookingByIdAsync(bookingId)
                           ?? throw new Exception("Booking not found.");
 
-            if (booking.PaymentStatus == PaymentStatus.Paid)
-                throw new Exception("Cannot cancel a paid booking.");
+            if (booking.PaymentStatus == PaymentStatus.Cancelled)
+                return;
 
-            var evnt = await _eventRepository.GetByIdAsync(booking.EventId);
-
-            // Release reserved tickets safely
-            evnt.ReservedTickets = Math.Max(0, evnt.ReservedTickets - booking.TicketCount);
             booking.PaymentStatus = PaymentStatus.Cancelled;
+            booking.CancelledAt = DateTime.UtcNow;
 
-            await _eventRepository.UpdateAsync(evnt);
             await _bookingRepository.UpdateAsync(booking);
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var user = await _bookingRepository.GetUserByIdAsync(booking.UserId);
+
+                    if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+                    {
+                        var emailBody = CancelTicketEmailTemplate.CancelHtml(
+                            booking.Event!.Title,
+                            booking.Event.Venue?.VenueName ?? "Venue",
+                            booking.Event.StartDate,
+                            booking.TicketNumber,
+                            booking.TicketCount
+                        );
+
+                        await _emailService.SendEmailAsync(
+                            user.Email,
+                            "Booking Cancelled – EventiGO",
+                            emailBody
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Cancel email failed: {ex.Message}");
+                }
+            });
         }
+
     }
 }

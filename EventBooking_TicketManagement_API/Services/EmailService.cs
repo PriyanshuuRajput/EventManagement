@@ -43,7 +43,8 @@ namespace EventBooking_TicketManagement_API.Services
     string toEmail,
     string subject,
     string htmlBody,
-    byte[] qrImage)
+    byte[] qrImage,
+    string contentId)
         {
             var smtpHost = _configuration["Smtp:Host"];
             var smtpPort = int.Parse(_configuration["Smtp:Port"]!);
@@ -65,15 +66,13 @@ namespace EventBooking_TicketManagement_API.Services
 
             mail.To.Add(toEmail);
 
-            // HTML view
             var view = AlternateView.CreateAlternateViewFromString(
                 htmlBody, null, "text/html");
 
-            // QR as inline image
-            var qrStream = new MemoryStream(qrImage);
-            var qrResource = new LinkedResource(qrStream, "image/png")
+            var qrResource = new LinkedResource(new MemoryStream(qrImage), "image/png")
             {
-                ContentId = "bookingQr"
+                ContentId = contentId, // 🔑 dynamic
+                TransferEncoding = System.Net.Mime.TransferEncoding.Base64
             };
 
             view.LinkedResources.Add(qrResource);

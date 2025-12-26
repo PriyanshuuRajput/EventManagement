@@ -32,15 +32,14 @@ namespace Domains.Entities
         [ForeignKey(nameof(UserId))]
         public AdminUser AdminUser { get; set; }
         public int TicketCount { get; set; }
-
-        // Booking details
-        public DateTime BookingDate { get; set; } = DateTime.UtcNow;
-        public string TicketNumber { get; set; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+        public string TicketNumber { get; set; } = string.Empty;
+        public string QrCode { get; set; } = string.Empty;
 
         public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
-
         public PaymentMode? PaymentMode { get; set; } 
-        public  string QrCode {  get; set; } = string.Empty;
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? CancelledAt { get; set; }
         public int UsedEntries { get; set; } 
 
     }
