@@ -7,7 +7,7 @@
 @inject HttpClient http
 @inject NavigationManager Navigation
 
-<PageTitle>Eventigo-Booking</PageTitle>
+<PageTitle>EventiGo-Booking</PageTitle>
 
 <style>
     .nav-pills .nav-link 
@@ -317,72 +317,6 @@
         </div>
     </div>
 }
-
-
-
-    @* @if(showTicketModal && selectedBooking !=null)
-                        {
-
-                            <div class="modal fade show d-block"
-         style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px)">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content custom-modal-content">
-
-                <div class="modal-header border-0">
-                    <h5 class="fw-bold">Your Ticket</h5>
-                    <button class="btn-close" @onclick="CloseTicketModal"></button>
-                </div>
-
-                <div class="modal-body">
-
-                    <div id="ticketContent" class="p-3">
-
-                        <h5>@selectedBooking.EventName</h5>
-
-                        <p class="text-muted mb-1">
-                            <i class="bi bi-calendar-event"></i>
-                            @selectedBooking.EventStartDate.ToString("dd MMM yyyy, hh:mm tt")
-                        </p>
-
-                        <p class="text-muted">
-                            <i class="bi bi-geo-alt"></i>
-                            @selectedBooking.VenueName
-                        </p>
-
-                        <hr />
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Booking ID:</strong> @selectedBooking.TicketNumber</p>
-                                <p><strong>Tickets:</strong> @selectedBooking.TicketCount</p>
-                                <p><strong>Total:</strong> ₹@selectedBooking.TotalAmount</p>
-                            </div>
-
-                                    <div class="col-md-6 text-center">
-                                        <img src="@($"/api/booking/{selectedBooking.Id}/qr")"
-                                             style="width:160px"
-                                             alt="QR Code" />
-
-                                        <div class="small text-muted mt-1">
-                                            Scan at entry
-                                        </div>
-                                    </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-outline-secondary"
-                            @onclick="DownloadTicket">
-                        Download Ticket
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-    } *@
 
 @code {
     private List<BookingDto> allBookings = new();

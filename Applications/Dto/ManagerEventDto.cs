@@ -129,5 +129,7 @@ namespace Applications.Dto
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public string? ManagerName { get; set; }
         //public int EventCategoryId { get; set; }
+        public decimal Revenue { get; set; }
+
     }
 }

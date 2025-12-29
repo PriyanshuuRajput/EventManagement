@@ -139,6 +139,30 @@
         width: 6px;
     }
 
+    /* .revenue-panel {
+        background: #ffffff;
+    } */
+
+    .revenue-item {
+        padding: 16px 10px;
+    }
+
+    .revenue-label {
+        font-size: 16px;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .revenue-value {
+        font-size: 26px;
+        font-weight: 800;
+        color: #212529;
+    }
+
+
 
     /* Timeline Container */
 
@@ -289,6 +313,7 @@
     .table-container {
         max-height: 420px;
         overflow-y: auto;
+        overflow-x:hidden;
         border-radius: 10px;
     }
 
@@ -502,9 +527,8 @@
                             <i class="@card.Icon dashboard-icon-bg"></i>
 
                             <div class="content text-dark">
-                                <div class="number">@card.Value</div>
+                                <div class="number">@FormateNumber(card.Value)</div>
                                 <div class="title">@card.Title</div>
-
                                 <div class="card-footer">
                                     <i class="bi bi-arrow-right text-danger fs-3"></i>
                                 </div>
@@ -525,9 +549,10 @@
                 <div class="card-header d-flex justify-content-between align-items-center fw-semibold"
                      style="background-color:#dee2e6">
                     Notifications
-                    <span class="badge bg-danger">
-                        @(PendingEventsCount + PendingManagersCount)
-                    </span>
+                    @if (Notifications.Any())
+                    {
+                        <span class="badge bg-danger">@Notifications.Count</span>
+                    }
                 </div>
 
                 <div class="card-body notification-list p-3">
@@ -563,51 +588,55 @@
     </div>
 
     </div>
+<div class="card shadow-sm border-0 rounded-2 mb-4 revenue-panel">
+    <div class="card-body">
 
-    @*<div class="col-md-6 mb-3 mb-md-0 mt-2">
-            <div class="input-group shadow-sm">
-                <span class="input-group-text bg-white">
-                    <i class="bi bi-search"></i>
-                </span>
-                <input class="form-control"
-                       placeholder="Search event name or email..."
-                       @bind="SearchTerm"
-                       @bind:event="oninput" />
+        <div class="row g-3 text-center">
+
+            <!-- Gross Revenue -->
+            <div class="col-md-4">
+                <div class="revenue-item">
+                    <div class="revenue-label">Gross Revenue</div>
+                    <div class="revenue-value">
+                        ₹ @TotalGrossRevenue
+                    </div>
+                </div>
             </div>
-        </div>*@
 
-
-    <!-- Search Bar -->
-    <!--<!--<div class="d-flex align-items-center gap-3" style="max-width: 50%; min-width: 300px;">
-
-        <!-- Checkbox (Single Line) -->
-    <!--<div class="form-check m-0 d-flex align-items-center">--><!---->
-    <!---->@*<input class="form-check-input me-2 mb-1"
-        type="checkbox"
-        style="padding:10px"
-        id="enableDateFilter"
-        checked="@EnableDateFilter"
-        @onchange="OnDateFilterChanged" />*@-->
-
-    <!--<label class="form-check-label no-wrap" for="enableDateFilter" style="font-weight:600">
-            Enable Date Filter
-        </label>
-    </div>-->
-    <!-- Timeline -->
-    <!--<div class="date-container flex-grow-1">
-        @foreach (var d in TimelineDates)
-        {
-            bool isActive = SelectedTimelineDate.Date == d.Date;
-
-            <div class="date-item @(isActive ? "active" : "")"
-                 @onclick="() => SelectDate(d)">
-                <div class="day">@d.ToString("ddd").ToUpper()</div>
-                <div class="num">@d.Day</div>
+            <!-- Commission -->
+            <div class="col-md-4">
+                <div class="revenue-item border-start">
+                    <div class="revenue-label">Platform Commission</div>
+                    <div class="revenue-value text-danger">
+                        ₹ @TotalCommission
+                    </div>
+                </div>
             </div>
-        }
-    </div>-->
-    <!--</div>-->
-    <!--</div>-->
+
+            <!-- Manager Payout -->
+            <div class="col-md-4">
+                <div class="revenue-item border-start">
+                    <div class="revenue-label">Manager Payout</div>
+                    <div class="revenue-value text-dark">
+                        ₹ @TotalPayout
+                    </div>
+                </div>
+            </div>
+
+            @* <!-- Tickets Sold -->
+            <div class="col-md-3">
+                <div class="revenue-item border-start">
+                    <div class="revenue-label">Tickets Sold</div>
+                    <div class="revenue-value">
+                        @TotalTicketsSold
+                    </div>
+                </div>
+            </div> *@
+
+        </div>
+    </div>
+</div>
+
     <!-- Search Bar + Date Picker -->
     <div class="d-flex align-items-center gap-3 flex-wrap">
         <!-- SEARCH BAR -->
@@ -689,103 +718,107 @@
                 <table class="table event-table table-hover mb-0">
                     <thead class="sticky-top shadow-sm" style="top:0; z-index:10;">
                         <tr>
-                            <th>Event Name</th>
+                            <th>Event </th>
+                            <th>Location</th>
+                            <th>Event Creation Date</th>
+                            @* <th>Created</th>
+                            <th>Location</th> *@
+                            <th>Gross Revenue</th>
+                            <th>Commission</th>
+                            <th>Manager Payout</th>
                             <th>Manager Name</th>
-                            <th>Address</th>
-                            <th>Event Date</th>
-                            <th>Created</th>
-                            <th>Amount</th>
                             <th>Status</th>
                         </tr>
                     </thead>
 
-                    <tbody class="table-fade @(fadeClass)">
-                        @if (!filteredEvents.Any())
+                <tbody class="table-fade @(fadeClass)">
+                    @if (!filteredEvents.Any())
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                No events found
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var evt in filteredEvents)
                         {
-                            <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">
-                                    No events found
+                            <tr class="event-row">
+
+                                <!-- EVENT INFO -->
+                                <td style="min-width:220px">
+                                    <div class="event-title">@evt.Title</div>
+                                    <div class="event-sub">
+                                        @evt.CategoryName • @evt.StartDate.ToString("dd MMM yyyy, hh:mm tt")
+                                    </div>
                                 </td>
+
+                                <!-- LOCATION -->
+                                <td style="min-width:180px">
+                                    <div class="event-title">@evt.VenueName</div>
+                                    <div class="event-sub">@evt.CityName</div>
+                                </td>
+                                <td class="text-center">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
+
+                                <!-- REVENUE -->
+                                <td class="text-center">
+                                    <div class="fw-bold text-dark">₹ @evt.GrossRevenue</div>
+                                    <div class="event-sub">Gross</div>
+                                </td>
+
+                                <!-- COMMISSION -->
+                                <td class="text-center">
+                                    <div class="fw-bold text-success">₹ @evt.CommissionAmount</div>
+                                    <div class="event-sub">Commission</div>
+                                </td>
+
+                                <!-- PAYOUT -->
+                                <td class="text-center">
+                                    <div class="fw-bold text-primary">₹ @evt.ManagerPayout</div>
+                                    <div class="event-sub">Manager</div>
+                                </td>
+
+                                <!-- MANAGER -->
+                                <td>
+                                    <div class="event-title">
+                                        @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
+                                    </div>
+                                </td>
+
+                                <!-- STATUS -->
+                                <td class="text-center">
+                                    @if (evt.Status == EventStatus.Pending)
+                                    {
+                                        <div class="pending-wrapper">
+                                            <span class="status-badge bg-warning text-white pending-label">
+                                                Pending
+                                            </span>
+
+                                            <button class="btn btn-danger btn-sm approve-btn"
+                                                    @onclick="(() => EventApprove(evt.Id))">
+                                                Approve
+                                            </button>
+                                        </div>
+                                    }
+                                    else if (evt.Status == EventStatus.AdminApproved)
+                                    {
+                                        <span class="status-badge bg-success text-white">
+                                            Approved
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge bg-danger text-white">
+                                            Rejected
+                                        </span>
+                                    }
+                                </td>
+
                             </tr>
                         }
-                        else
-                        {
-                            @foreach (var evt in filteredEvents)
-                            {
-                                <tr>
-                                    @*<tr class="@(evt.Status == EventStatus.Pending ? "pending-row" : "")"
-                                        @onclick="() => OnRowClick(evt)">*@
-
-                                    <!-- Event Name -->
-                                    <td>
-                                        <div class="event-title">@evt.Title</div>
-                                        <div class="event-sub">@evt.CategoryName</div>
-                                    </td>
-
-                                    <!-- Manager -->
-                                    <td class="event-title">
-                                        @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
-                                    </td>
-
-                                    <!-- Address -->
-                                    <td>
-                                        <div class="event-title">@evt.VenueName</div>
-                                        <div class="event-sub">@evt.CityName</div>
-                                    </td>
-
-                                    <!-- Event Date -->
-                                    <td>
-                                        <div class="event-title">@evt.StartDate.ToString("dd-MMM-yyyy")</div>
-                                        <div class="event-sub">@evt.StartDate.ToString("hh:mm tt")</div>
-                                    </td>
-
-                                    <!-- Created -->
-                                    <td class="event-sub">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
-
-                                    <!-- Price -->
-                                    <td>
-                                        <span class="price-badge d-flex justify-content-center align-items-center">₹ @evt.EventAmount</span>
-                                    </td>
-
-                                    <!-- Status -->
-
-                                    <td>
-                                        @if (evt.Status == EventStatus.Pending)
-                                        {
-                                            @*<a class="status-badge text-white bg-warning "
-                                                   style="cursor:pointer; padding:8px 14px"
-                                                   @onclick="(() => EventApprove(evt.Id))">
-                                                    Pending
-                                                </a>*@
-                                            <div class=" pending-wrapper">
-                                                <span class="status-badge bg-warning text-white pending-label" style="padding:6px 13px">
-                                                    Pending
-                                                </span>
-
-                                                <!-- HOVER (Approve Button) -->
-                                                <button class="btn btn-danger btn-sm approve-btn "
-                                                        style="padding:6px 13px"
-                                                        @onclick="(() => EventApprove(evt.Id))">
-                                                    Approve
-                                                </button>
-
-                                            </div>
-                                        }
-                                        else if (evt.Status == EventStatus.AdminApproved)
-                                        {
-                                            <span class="status-badge text-white bg-success">Approved</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="status-badge  text-white bg-danger">Rejected</span>
-                                        }
-                                    </td>
-
-
-                                </tr>
-                            }
-                        }
-                    </tbody>
+                    }
+                </tbody>
                 </table>
             </div>
         </div>
@@ -845,10 +878,14 @@
                                 <div class="card border-0 shadow-sm rounded-4 h-100">
                                     <img src="@evt.ImageUrl" class="card-img-top rounded-top-4" style="height:180px; object-fit:cover;" alt="@evt.Title" />
                                     <div class="card-body">
-                                        <h5 class="fw-bold text-primary">@evt.Title</h5>
+                                        <h5 class="fw-bold text-danger">@evt.Title</h5>
                                         <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
-                                        <p class="mb-1"><strong>Date:</strong> @evt.StartDate.ToString("dd MMM yyyy")</p>
-                                        <p class="mb-0"><strong>Ticket Price:</strong> @evt.TicketPrice.ToString("C")</p>
+                                    <p class="mb-1">
+                                        <strong>Date & Time:</strong>
+                                        @evt.StartDate.ToString("dd MMM yyyy")
+                                        @DateTime.Today.Add(evt.StartTime).ToString("hh:mm tt")
+                                    </p>
+                                    <p class="mb-0"><strong>Ticket Price:</strong> ₹@evt.TicketPrice.ToString()</p>
                                     </div>
                                 </div>
                             </div>
@@ -882,10 +919,14 @@
                                 <div class="card border-0 shadow-sm rounded-4 h-100">
                                     <img src="@evt.ImageUrl" class="card-img-top rounded-top-4" style="height:180px; object-fit:cover;" alt="@evt.Title" />
                                     <div class="card-body">
-                                        <h5 class="fw-bold text-secondary">@evt.Title</h5>
+                                        <h5 class="fw-bold text-danger">@evt.Title</h5>
                                         <p class="mb-1 text-muted">@evt.VenueName, @evt.CityName</p>
-                                        <p class="mb-1"><strong>Date:</strong> @evt.StartDate.ToString("dd MMM yyyy")</p>
-                                        <p class="mb-0"><strong>Price:</strong> ₹@evt.TicketPrice.ToString()</p>
+                                    <p class="mb-1">
+                                        <strong>Date & Time:</strong>
+                                        @evt.StartDate.ToString("dd MMM yyyy")
+                                        @DateTime.Today.Add(evt.StartTime).ToString("hh:mm tt")
+                                    </p>
+                                        <p class="mb-0"><strong>Ticket Price:</strong> ₹@evt.TicketPrice.ToString()</p>
                                     </div>
                                 </div>
                             </div>
@@ -905,9 +946,7 @@
     private List<EventDto> Events = new();
     private List<ManagerProfileDto> Managers = new();
     private List<(string Message, DateTime Date ,string Route)> Notifications = new();
-    private int PendingEventsCount => Events.Count(e => e.Status == EventStatus.Pending);
 
-    private int PendingManagersCount =>Managers.Count(m => !m.IsApproved);
     private DateTime? filterDate = null;
     //private List<DateTime> TimelineDates = new();
     //private DateTime SelectedTimelineDate = DateTime.Today;
@@ -921,6 +960,10 @@
     private int RejectedCount => Events.Count(e => e.Status == EventStatus.Rejected);
     //private int TotalCount => Events.Count;
 
+    decimal TotalGrossRevenue => Events.Sum(e => e.GrossRevenue);
+    decimal TotalCommission => Events.Sum(e => e.CommissionAmount);
+    decimal TotalPayout => Events.Sum(e => e.ManagerPayout);
+    // int TotalTicketsSold => Events.Sum(e => e.SoldTickets);
 
     private PagedResult<EventDto> PagedResult = new();
     private int PageSize = 5;
@@ -946,7 +989,7 @@
     private bool showOngoing = false;
     private bool showUpcoming = false;
 
-    private int BookingsCount = 0;
+    private int BookingsCount => Events.Sum(e => e.SoldTickets);
     private int CurrentEvents = 0;
 
     private List<EventDto> OngoingEvents =>Events.Where(e =>e.Status == EventStatus.AdminApproved && e.StartDate.Date == DateTime.Today).ToList();
@@ -987,7 +1030,6 @@
         spinnerService.Show();
         await Task.Delay(200);
         Events = await adminService.GetAllEventsAsync();
-        BookingsCount = 0;
         Managers = await adminService.GetAllManagersAsync();
         CurrentEvents = Events.Count( e => e.Status == EventStatus.AdminApproved && e.StartDate.Date >= DateTime.Today
         );
@@ -997,7 +1039,7 @@
 {
     ("Total Events",     "bi bi-calendar-event",    Events.Count,      "bg-blue","/manage-events"),
     ("Live Events",   "bi bi-calendar2-event",   CurrentEvents,     "bg-green","/events"),
-    ("Total Bookings",   "bi bi-ticket-detailed",   BookingsCount,     "bg-orange","/bookings"),
+    ("Total Bookings",   "bi bi-ticket-detailed",   BookingsCount,     "bg-orange","/admin-bookings"),
     ("Total Managers",   "bi bi-people-fill",       Managers.Count,    "bg-red" ,"/managers")
 };
 
@@ -1103,11 +1145,13 @@
         }
         foreach (var manager in Managers)
         {
-            if ((DateTime.UtcNow - manager.CreatedAt).TotalHours <= 48)
+            if (!manager.IsApproved &&
+    (DateTime.UtcNow - manager.CreatedAt).TotalHours <= 48)
             {
                 Notifications.Add((
-                    $"New Manager Request !!",
-                    manager.CreatedAt,"/managers"
+                    "New Manager Approval Request",
+                    manager.CreatedAt,
+                    "/managers"
                 ));
             }
         }
@@ -1175,6 +1219,16 @@
         await ApplyFilters(); 
     }
 
+    private string FormateNumber(int value)
+    {
+        if (value >=1_000_000)
+            return (value / 1_000_000d).ToString("0.#") + "M";
+
+        if (value >= 1_000)
+            return (value / 1_000d).ToString("0.#") + "K";
+
+        return value.ToString();
+    }
     private void EventApprove(int eventId)
     {
         Navigation.NavigateTo($"/approval-manager-events/{eventId}");

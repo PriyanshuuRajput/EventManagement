@@ -87,6 +87,10 @@ namespace Applications.Dto
         public int TotalTickets { get; set; } = 0;
         public int SoldTickets { get; set; } = 0;
 
+        public decimal GrossRevenue { get; set; }       
+        public decimal CommissionAmount { get; set; }  
+        public decimal ManagerPayout { get; set; }    
+
         public int? ManagerId { get; set; }
         public string? ManagerName { get; set; }
 
@@ -100,9 +104,9 @@ namespace Applications.Dto
         public int Capacity { get; set; }
 
 
-        public decimal EventAmount { get; set; }
+        //public decimal EventAmount { get; set; }
 
-        public decimal? OfferedEventAmount { get; set; }
+        //public decimal? OfferedEventAmount { get; set; }
         public bool IsAmountAccepted { get; set; }
         public bool PrizePaid { get; set; } = false;
         public DateTime? PrizePaidAt { get; set; }

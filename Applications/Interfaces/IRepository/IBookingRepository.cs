@@ -1,4 +1,5 @@
-﻿using Domains.Entities;
+﻿using Applications.Dto;
+using Domains.Entities;
 
 public interface IBookingRepository
 {
@@ -11,6 +12,7 @@ public interface IBookingRepository
     Task UpdateAsync(Booking booking);
     Task <AdminUser?> GetUserByIdAsync(int userId);
     Task<Booking?> GetBookingByQrAsync(string qrCode);
+    Task<ManagerRevenueDto?> GetEventStatsAsync(int eventId);
 
 
 }

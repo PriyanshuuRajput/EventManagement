@@ -4,6 +4,7 @@ using Applications.Interfaces.IService;
 using Domains.Entities;
 using EventBooking_TicketManagement_API.Helper;
 using EventBooking_TicketManagement_API.Helpers;
+using Infrastructures.DbContexts;
 
 
 namespace EventBooking_TicketManagement_API.Services
@@ -15,21 +16,21 @@ namespace EventBooking_TicketManagement_API.Services
         private readonly IEmailService _emailService;
         private readonly IQrCodeService _qrCodeService;
 
-
-
+        private readonly AppDbContext _db;
         public BookingService(
-     IBookingRepository bookingRepository,
-     IEventRepository eventRepository,
-     IEmailService emailService,
-     IQrCodeService qrCodeService
-            )
+            IBookingRepository bookingRepository,
+            IEventRepository eventRepository,
+            IEmailService emailService,
+            IQrCodeService qrCodeService,
+            AppDbContext db)
         {
             _bookingRepository = bookingRepository;
             _eventRepository = eventRepository;
             _emailService = emailService;
             _qrCodeService = qrCodeService;
-
+            _db = db;
         }
+
 
         public async Task<BookingDto> CreateBookingAsync(BookingRequest request, int userId)
         {
@@ -39,98 +40,102 @@ namespace EventBooking_TicketManagement_API.Services
             if (request.TicketCount <= 0)
                 throw new Exception("Ticket count must be greater than zero.");
 
-            // 1️ Get Event
             var evnt = await _eventRepository.GetByIdAsync(request.EventId)
                        ?? throw new Exception("Event does not exist.");
 
-            //// 2️ Check availability
-            //int availableTickets =evnt.TotalTickets - (evnt.SoldTickets + evnt.ReservedTickets);
-
-            //if (request.TicketCount > availableTickets)
-            //    throw new Exception("Not enough tickets available.");
-
-            // 🔒 USER LIMIT (MAX 10 PER EVENT)
+            // USER LIMIT
             var userBookedTickets =
                 await _bookingRepository.GetUserTicketCountByEventAsync(evnt.Id, userId);
 
             if (userBookedTickets + request.TicketCount > 10)
-            {
                 throw new Exception("You can book a maximum of 10 tickets for this event.");
-            }
 
-            var activeTickets = await _bookingRepository.GetActiveTicketCountByEventAsync(evnt.Id);
+            var activeTickets =
+                await _bookingRepository.GetActiveTicketCountByEventAsync(evnt.Id);
 
-            var availableTickets = evnt.TotalTickets - activeTickets;
-
-            if (request.TicketCount > availableTickets)
+            if (request.TicketCount > evnt.TotalTickets - activeTickets)
                 throw new Exception("Not enough tickets available.");
 
+            using var tx = await _db.Database.BeginTransactionAsync();
 
-            // 4️ Create booking
-            var booking = new Booking
+            try
             {
+                var booking = new Booking
+                {
+                    EventId = request.EventId,
+                    UserId = userId,
+                    TicketCount = request.TicketCount,
+                    CreatedAt = DateTime.UtcNow,
+                    TicketNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
+                    PaymentStatus = PaymentStatus.Pending,
+                    QrCode = Guid.NewGuid().ToString(),
+                    UsedEntries = 0
+                };
 
-                EventId = request.EventId,
-                UserId = userId,
-                TicketCount = request.TicketCount,
-                CreatedAt = DateTime.UtcNow,
-                TicketNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
-                PaymentStatus = PaymentStatus.Pending,
-                QrCode = Guid.NewGuid().ToString(),
-                UsedEntries = 0
-            };
+                var savedBooking = await _bookingRepository.CreateBookingAsync(booking);
 
-            var savedBooking = await _bookingRepository.CreateBookingAsync(booking);
+                evnt.SoldTickets += request.TicketCount;
+                await _eventRepository.UpdateAsync(evnt);
 
+                await tx.CommitAsync();
+
+                SendTicketEmailAsync(savedBooking, evnt, userId);
+
+                return new BookingDto
+                {
+                    Id = savedBooking.Id,
+                    EventId = savedBooking.EventId,
+                    EventName = evnt.Title,
+                    TicketCount = savedBooking.TicketCount,
+                    CreatedAt = savedBooking.CreatedAt,
+                    TicketNumber = savedBooking.TicketNumber,
+                    PaymentStatus = savedBooking.PaymentStatus,
+                    QrCode = savedBooking.QrCode
+                };
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        private void SendTicketEmailAsync(Booking booking, Event evnt, int userId)
+        {
             _ = Task.Run(async () =>
             {
                 try
                 {
                     var user = await _bookingRepository.GetUserByIdAsync(userId);
+                    if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                        return;
 
-                    if (user != null && !string.IsNullOrWhiteSpace(user.Email))
-                    {
-                        var qrBytes = _qrCodeService.GenerateQr(savedBooking.QrCode);
+                    var qrBytes = _qrCodeService.GenerateQr(booking.QrCode);
 
-                        var emailHtml = TicketTemplate.TicketHtml(
-                            evnt.Title,
-                            evnt.Venue?.VenueName ?? "Venue",
-                            evnt.StartDate,
-                            savedBooking.TicketCount,
-                            savedBooking.TicketNumber,
-                            evnt.TicketPrice * savedBooking.TicketCount,
-                            "cid:ticketQr"
-                        );
+                    var emailHtml = TicketTemplate.TicketHtml(
+                        evnt.Title,
+                        evnt.Venue?.VenueName ?? "Venue",
+                        evnt.StartDate,
+                        booking.TicketCount,
+                        booking.TicketNumber,
+                        evnt.TicketPrice * booking.TicketCount,
+                        "cid:ticketQr"
+                    );
 
-                        await _emailService.SendEmailWithQrAsync(
-                            user.Email,
-                            "🎟 Your Event Ticket – EventiGO",
-                            emailHtml,
-                            qrBytes,
-                            "ticketQr"
-                        );
-                    }
+                    await _emailService.SendEmailWithQrAsync(
+                        user.Email,
+                        "🎟 Your Event Ticket – EventiGO",
+                        emailHtml,
+                        qrBytes,
+                        "ticketQr"
+                    );
                 }
                 catch (Exception ex)
                 {
-                    // LOG ONLY
                     Console.WriteLine($"Email failed: {ex.Message}");
                 }
             });
-            // 6️⃣ Return DTO
-            return new BookingDto
-            {
-                Id = savedBooking.Id,
-                EventId = savedBooking.EventId,
-                EventName = evnt.Title,
-                TicketCount = savedBooking.TicketCount,
-                CreatedAt = savedBooking.CreatedAt,
-                TicketNumber = savedBooking.TicketNumber,
-                PaymentStatus = savedBooking.PaymentStatus,
-                QrCode = savedBooking.QrCode
-            };
         }
-
 
         public async Task<IEnumerable<BookingDto>> GetAllBookingAsync()
         {
@@ -205,6 +210,17 @@ namespace EventBooking_TicketManagement_API.Services
 
             booking.PaymentStatus = PaymentStatus.Cancelled;
             booking.CancelledAt = DateTime.UtcNow;
+
+            var evnt = await _eventRepository.GetByIdAsync(booking.EventId);
+            if (evnt != null)
+            {
+                evnt.SoldTickets -= booking.TicketCount;
+                if (evnt.SoldTickets < 0)
+                    evnt.SoldTickets = 0;
+
+                await _eventRepository.UpdateAsync(evnt);
+            }
+
 
             await _bookingRepository.UpdateAsync(booking);
 

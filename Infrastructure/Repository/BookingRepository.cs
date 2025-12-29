@@ -1,4 +1,5 @@
-﻿using Applications.Interfaces.IRepository;
+﻿using Applications.Dto;
+using Applications.Interfaces.IRepository;
 using Domains.Entities;
 using Infrastructures.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +83,28 @@ namespace Infrastructure.Repository
                 .Include(b => b.Event)
                     .ThenInclude(e => e.Venue)
                 .FirstOrDefaultAsync(b => b.QrCode == qrCode);
+        }
+
+
+        public async Task<ManagerRevenueDto> GetEventStatsAsync(int eventId)
+        {
+            return await _db.Bookings
+                .Where(b => b.EventId == eventId &&
+                            b.PaymentStatus != PaymentStatus.Cancelled)
+                .Select(b => new
+                {
+                    b.TicketCount,
+                    TicketPrice = b.Event!.TicketPrice
+                })
+                .GroupBy(_ => 1)
+                .Select(g => new ManagerRevenueDto
+                {
+                    TicketsSold = g.Sum(x => x.TicketCount),
+                    Revenue = g.Sum(x => x.TicketCount * x.TicketPrice),
+                    BookingCount = g.Count()
+                })
+                .FirstOrDefaultAsync()
+                ?? new ManagerRevenueDto();
         }
 
 

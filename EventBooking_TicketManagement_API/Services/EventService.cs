@@ -10,6 +10,8 @@ namespace EventBooking_TicketManagement_API.Services
     {
         private readonly IEventRepository _eventRepository;
         private readonly IEmailService _emailService;
+        private const decimal COMMISSION_PERCENT = 10; 
+
 
         public EventService(IEventRepository eventRepository, IEmailService emailService)
         {
@@ -21,39 +23,51 @@ namespace EventBooking_TicketManagement_API.Services
         {
             var events = await _eventRepository.GetAllAsync();
 
-            return events.Select(ev => new EventDto
+            return events.Select(ev =>
             {
-                Id = ev.Id,
-                Title = ev.Title,
+                var grossRevenue = ev.SoldTickets * ev.TicketPrice;
+                var commission = grossRevenue * COMMISSION_PERCENT / 100;
+                var payout = grossRevenue - commission;
 
-                EventCategoryId = ev.EventCategoryId??0,
-                CategorySlug = ev.EventCategory?.Slug,
-                CategoryName = ev.EventCategory?.Name,
+                return new EventDto
+                {
+                    Id = ev.Id,
+                    Title = ev.Title,
 
-                Description = ev.Description,
-                Language = ev.Language,
-                Duration = ev.Duration,
-                StartDateOnly = ev.StartDate,
-                EndDateOnly = ev.EndDate,
-                
+                    EventCategoryId = ev.EventCategoryId ?? 0,
+                    CategorySlug = ev.EventCategory?.Slug,
+                    CategoryName = ev.EventCategory?.Name,
 
-                VenueId = ev.VenueId,
-                VenueName = ev.Venue?.VenueName ?? string.Empty,
-                CityName = ev.Venue?.City?.CityName ?? string.Empty,
-                TicketPrice = ev.TicketPrice,
-                ImageUrl = ev.ImageUrl,
-                Status = ev.Status,
-                ManagerId = ev.ManagerId,
-                ManagerName = ev.Managers?.ManagerName?? string.Empty,
-                EventAmount = ev.EventAmount,
-                OfferedEventAmount = ev.OfferedEventAmount,
-                CreatedAt = ev.CreatedAt,
-                Capacity = ev.Venue?.Capacity ?? 0,
-                ApprovedAt = ev.ApprovedAt,
-                IsPromoted = ev.IsPromoted,
-                TotalTickets= ev.TotalTickets,
+                    Description = ev.Description,
+                    Language = ev.Language,
+                    Duration = ev.Duration,
+                    StartDateOnly = ev.StartDate,
+                    EndDateOnly = ev.EndDate,
 
-                
+
+                    VenueId = ev.VenueId,
+                    VenueName = ev.Venue?.VenueName ?? string.Empty,
+                    CityName = ev.Venue?.City?.CityName ?? string.Empty,
+                    ImageUrl = ev.ImageUrl,
+                    Status = ev.Status,
+                    ManagerId = ev.ManagerId,
+                    ManagerName = ev.Managers?.ManagerName ?? string.Empty,
+                    //EventAmount = ev.EventAmount,
+                    //OfferedEventAmount = ev.OfferedEventAmount,
+                    CreatedAt = ev.CreatedAt,
+                    Capacity = ev.Venue?.Capacity ?? 0,
+                    ApprovedAt = ev.ApprovedAt,
+                    IsPromoted = ev.IsPromoted,
+
+                    TotalTickets = ev.TotalTickets,
+                    SoldTickets = ev.SoldTickets,
+                    TicketPrice = ev.TicketPrice,
+
+                    GrossRevenue = grossRevenue,
+                    CommissionAmount = commission,
+                    ManagerPayout = grossRevenue - commission,
+                };
+
             });
         }
 
@@ -89,8 +103,8 @@ namespace EventBooking_TicketManagement_API.Services
                 ManagerId = ev.ManagerId,
                 ManagerName = ev.Managers?.ManagerName??"",
                 AdminNote = ev.AdminNote,
-                OfferedEventAmount = ev.OfferedEventAmount,
-                EventAmount = ev.EventAmount,
+                //OfferedEventAmount = ev.OfferedEventAmount,
+                //EventAmount = ev.EventAmount,
                 Capacity = ev.Venue?.Capacity ?? 0,
                 IsAmountAccepted = ev.IsPrizePaid,
                 IsPromoted = ev.IsPromoted,
@@ -132,8 +146,8 @@ namespace EventBooking_TicketManagement_API.Services
                 SoldTickets = dto.SoldTickets,
                 IsPrizePaid = false,
                 PrizePaidAt = null,
-                EventAmount = dto.EventAmount,
-                OfferedEventAmount = dto.OfferedEventAmount ?? 0m
+                //EventAmount = dto.EventAmount,
+                //OfferedEventAmount = dto.OfferedEventAmount ?? 0m
             };
 
             await _eventRepository.AddAsync(ev);
@@ -323,8 +337,8 @@ namespace EventBooking_TicketManagement_API.Services
                 TotalTickets = ev.TotalTickets,
                 SoldTickets = ev.SoldTickets,
                 Capacity = ev.Venue?.Capacity ?? 0,
-                EventAmount = ev.EventAmount,
-                OfferedEventAmount = ev.OfferedEventAmount,
+                //EventAmount = ev.EventAmount,
+                //OfferedEventAmount = ev.OfferedEventAmount,
                 VenueId = ev.VenueId,
                 VenueName = ev.Venue?.VenueName ?? string.Empty,
                 Address = ev.Venue?.Address ?? string.Empty
@@ -437,8 +451,8 @@ namespace EventBooking_TicketManagement_API.Services
             AdminNote = e.AdminNote,
             CreatedAt = e.CreatedAt,
             ApprovedAt = e.ApprovedAt,
-            OfferedEventAmount = e.OfferedEventAmount,
-            EventAmount = e.EventAmount,
+            //OfferedEventAmount = e.OfferedEventAmount,
+            //EventAmount = e.EventAmount,
             IsAmountAccepted = e.IsPrizePaid,
 
             TotalTickets = e.TotalTickets,
@@ -488,8 +502,8 @@ namespace EventBooking_TicketManagement_API.Services
 
 
 
-                OfferedEventAmount = e.OfferedEventAmount,
-                EventAmount = e.EventAmount,
+                //OfferedEventAmount = e.OfferedEventAmount,
+                //EventAmount = e.EventAmount,
 
 
                 TotalTickets = e.TotalTickets,
@@ -565,42 +579,47 @@ namespace EventBooking_TicketManagement_API.Services
             var pagedEvents = await _eventRepository.GetPagedEventAsync(req);
 
 
-            var mappedItems = pagedEvents.Items.Select(e => new EventDto
+            var mappedItems = pagedEvents.Items.Select(e =>
             {
-                Id = e.Id,
-                Title = e.Title,
-                EventCategoryId = e.EventCategoryId??0,
-                Description = e.Description ?? "",
-                Language = e.Language ?? "",
-                Duration = e.Duration,
-                StartDateOnly = e.StartDate,
-                EndDateOnly = e.EndDate,
-                CategorySlug = e.EventCategory?.Slug,
-                CategoryName = e.EventCategory?.Name,
+            var grossRevenue = e.SoldTickets * e.TicketPrice;
+            var commission = grossRevenue * COMMISSION_PERCENT / 100;
+                return new EventDto
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    EventCategoryId = e.EventCategoryId ?? 0,
+                    Description = e.Description ?? "",
+                    Language = e.Language ?? "",
+                    Duration = e.Duration,
+                    StartDateOnly = e.StartDate,
+                    EndDateOnly = e.EndDate,
+                    CategorySlug = e.EventCategory?.Slug,
+                    CategoryName = e.EventCategory?.Name,
 
-                TicketPrice = e.TicketPrice,
-                ImageUrl = e.ImageUrl,
+                    TicketPrice = e.TicketPrice,
+                    ImageUrl = e.ImageUrl,
 
-                VenueId = e.VenueId,
-                VenueName = e.Venue?.VenueName ?? string.Empty,
-                CityName = e.Venue?.City?.CityName ?? string.Empty,
-                Address = e.Venue?.Address ?? string.Empty,
-                Capacity = e.Venue?.Capacity ?? 0,
+                    VenueId = e.VenueId,
+                    VenueName = e.Venue?.VenueName ?? string.Empty,
+                    CityName = e.Venue?.City?.CityName ?? string.Empty,
+                    Address = e.Venue?.Address ?? string.Empty,
+                    Capacity = e.Venue?.Capacity ?? 0,
 
-                ManagerId = e.ManagerId,
-                ManagerName = e.Managers?.ManagerName??"",
+                    ManagerId = e.ManagerId,
+                    ManagerName = e.Managers?.ManagerName ?? "",
 
-                Status = e.Status,
-                AdminNote = e.AdminNote,
-                CreatedAt = e.CreatedAt,
-                ApprovedAt = e.ApprovedAt,
+                    Status = e.Status,
+                    AdminNote = e.AdminNote,
+                    CreatedAt = e.CreatedAt,
+                    ApprovedAt = e.ApprovedAt,
 
-                TotalTickets = e.TotalTickets,
-                SoldTickets = e.SoldTickets,
-
-                EventAmount = e.EventAmount,
-                OfferedEventAmount = e.OfferedEventAmount,
-                IsAmountAccepted = e.IsAmountAccepted
+                    TotalTickets = e.TotalTickets,
+                    SoldTickets = e.SoldTickets,
+                    GrossRevenue = grossRevenue,
+                    CommissionAmount = commission,
+                    ManagerPayout = grossRevenue-commission,
+                    IsAmountAccepted = e.IsAmountAccepted
+                };
             }).ToList();
 
 
