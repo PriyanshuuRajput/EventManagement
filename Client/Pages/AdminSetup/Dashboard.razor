@@ -1036,12 +1036,12 @@
 
 
         SummaryCards = new()
-{
+    {
     ("Total Events",     "bi bi-calendar-event",    Events.Count,      "bg-blue","/manage-events"),
     ("Live Events",   "bi bi-calendar2-event",   CurrentEvents,     "bg-green","/events"),
     ("Total Bookings",   "bi bi-ticket-detailed",   BookingsCount,     "bg-orange","/admin-bookings"),
     ("Total Managers",   "bi bi-people-fill",       Managers.Count,    "bg-red" ,"/managers")
-};
+    };
 
 
         filteredEvents = new List<EventDto>(Events);

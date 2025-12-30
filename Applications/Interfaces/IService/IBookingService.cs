@@ -2,12 +2,14 @@
 
 namespace Applications.Interfaces.IService
 {
-    public interface IBookingService
+    public interface 
+        IBookingService
     {
 
         Task<BookingDto> CreateBookingAsync(BookingRequest request ,int userId);
         Task<IEnumerable<BookingDto>> GetAllBookingAsync();
         Task<IEnumerable<BookingDto>> GetBookingByUserAsync(int userId);
+        Task<IEnumerable<BookingDto>> GetBookingsByManagerAsync(int managerId);
         Task CancelBookingAsync(int bookingId);
     }
 }

@@ -13,6 +13,7 @@ public interface IBookingRepository
     Task <AdminUser?> GetUserByIdAsync(int userId);
     Task<Booking?> GetBookingByQrAsync(string qrCode);
     Task<ManagerRevenueDto?> GetEventStatsAsync(int eventId);
+    Task<List<BookingDto>> GetBookingsByManagerIdAsync(int managerId);
 
 
 }

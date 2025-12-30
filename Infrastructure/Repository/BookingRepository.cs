@@ -107,6 +107,38 @@ namespace Infrastructure.Repository
                 ?? new ManagerRevenueDto();
         }
 
+        public async Task<List<BookingDto>> GetBookingsByManagerIdAsync(int managerId)
+        {
+            return await _db.Bookings
+                .AsNoTracking()
+                .Include(b => b.Event)
+                .Where(b =>
+                    b.Event != null &&
+                    b.Event.ManagerId == managerId &&
+                    b.PaymentStatus == PaymentStatus.Paid
+                )
+                .GroupBy(b => new
+                {
+                    b.EventId,
+                    b.Event.Title,
+                    b.Event.StartDate,
+                    b.Event.TicketPrice
+                })
+                .Select(g => new BookingDto
+                {
+                    EventId = g.Key.EventId,
+                    EventName = g.Key.Title,
+                    EventStartDate = g.Key.StartDate,
+                    TicketPrice = g.Key.TicketPrice,
+
+                    TicketCount = g.Sum(x => x.TicketCount),
+
+                    CreatedAt = g.Max(x => x.CreatedAt),
+                    PaymentStatus = PaymentStatus.Paid
+                })
+                .OrderByDescending(x => x.EventStartDate)
+                .ToListAsync();
+        }
 
     }
 }

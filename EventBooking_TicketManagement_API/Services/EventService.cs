@@ -10,7 +10,8 @@ namespace EventBooking_TicketManagement_API.Services
     {
         private readonly IEventRepository _eventRepository;
         private readonly IEmailService _emailService;
-        private const decimal COMMISSION_PERCENT = 10; 
+        private const decimal CONVENIENCE_FEE_PERCENT = 10;
+
 
 
         public EventService(IEventRepository eventRepository, IEmailService emailService)
@@ -25,9 +26,13 @@ namespace EventBooking_TicketManagement_API.Services
 
             return events.Select(ev =>
             {
-                var grossRevenue = ev.SoldTickets * ev.TicketPrice;
-                var commission = grossRevenue * COMMISSION_PERCENT / 100;
-                var payout = grossRevenue - commission;
+                var convenienceFee = ev.TicketPrice * CONVENIENCE_FEE_PERCENT / 100;
+
+                var adminRevenue = ev.SoldTickets * convenienceFee;
+
+                var managerPayout = ev.SoldTickets * ev.TicketPrice;
+
+                var grossRevenue = adminRevenue + managerPayout;
 
                 return new EventDto
                 {
@@ -64,8 +69,8 @@ namespace EventBooking_TicketManagement_API.Services
                     TicketPrice = ev.TicketPrice,
 
                     GrossRevenue = grossRevenue,
-                    CommissionAmount = commission,
-                    ManagerPayout = grossRevenue - commission,
+                    CommissionAmount = adminRevenue,
+                    ManagerPayout = managerPayout,
                 };
 
             });
@@ -581,8 +586,14 @@ namespace EventBooking_TicketManagement_API.Services
 
             var mappedItems = pagedEvents.Items.Select(e =>
             {
-            var grossRevenue = e.SoldTickets * e.TicketPrice;
-            var commission = grossRevenue * COMMISSION_PERCENT / 100;
+                var convenienceFee = e.TicketPrice * CONVENIENCE_FEE_PERCENT / 100;
+
+                var adminRevenue = e.SoldTickets * convenienceFee;
+
+                var managerPayout = e.SoldTickets * e.TicketPrice;
+
+                var grossRevenue = adminRevenue + managerPayout;
+
                 return new EventDto
                 {
                     Id = e.Id,
@@ -616,8 +627,8 @@ namespace EventBooking_TicketManagement_API.Services
                     TotalTickets = e.TotalTickets,
                     SoldTickets = e.SoldTickets,
                     GrossRevenue = grossRevenue,
-                    CommissionAmount = commission,
-                    ManagerPayout = grossRevenue-commission,
+                    CommissionAmount = adminRevenue,
+                    ManagerPayout = managerPayout,
                     IsAmountAccepted = e.IsAmountAccepted
                 };
             }).ToList();

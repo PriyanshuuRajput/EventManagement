@@ -254,5 +254,11 @@ namespace EventBooking_TicketManagement_API.Services
             });
         }
 
+        public async Task<IEnumerable<BookingDto>> GetBookingsByManagerAsync(int managerId)
+        {
+            return await _bookingRepository.GetBookingsByManagerIdAsync(managerId);
+        }
+
+
     }
 }

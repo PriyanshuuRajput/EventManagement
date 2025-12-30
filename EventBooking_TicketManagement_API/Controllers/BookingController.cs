@@ -1,14 +1,9 @@
 ﻿using Applications.Dto;
 using Applications.Interfaces.IService;
 using EventBooking_TicketManagement_API.Helper;
-using EventBooking_TicketManagement_API.Services;
-using Infrastructure.Repository;
-using Infrastructures.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Runtime.InteropServices;
 using System.Security.Claims;
-using System.Text.Unicode;
 
 namespace EventBooking_TicketManagement_API.Controllers
 {
@@ -49,7 +44,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             });
         }
 
-        // ✅ Get all bookings (Admin use)
+        // ✅ Get all bookings 
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllBookings()
@@ -62,11 +57,26 @@ namespace EventBooking_TicketManagement_API.Controllers
         [HttpGet("my")]
         public async Task<IActionResult> GetMyBookings()
         {
-            int userId = int.Parse(
+            var userId = int.Parse(
                 User.FindFirst(ClaimTypes.NameIdentifier)!.Value
             );
 
             var bookings = await _bookingService.GetBookingByUserAsync(userId);
+            return Ok(bookings);
+        }
+        [Authorize(Roles = "Manager")]
+        [HttpGet("manager/earning")]
+        public async Task<IActionResult> GetManagerBookingsAndEarning()
+        {
+            var managerIdClaim = User.FindFirst("ManagerId")?.Value;
+
+            if (string.IsNullOrWhiteSpace(managerIdClaim))
+                return Unauthorized("ManagerId missing in token");
+
+            int managerId = int.Parse(managerIdClaim);
+
+            var bookings = await _bookingService.GetBookingsByManagerAsync(managerId);
+
             return Ok(bookings);
         }
 
@@ -118,5 +128,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             await _bookingService.CancelBookingAsync(bookingId);
             return Ok(new { message = "Booking cancelled successfully." });
         }
+
+        
     }
 }

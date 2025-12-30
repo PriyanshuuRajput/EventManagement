@@ -87,6 +87,10 @@ namespace Applications.Dto
         public int TotalTickets { get; set; } = 0;
         public int SoldTickets { get; set; } = 0;
 
+        public decimal ConvenienceFeePercent { get; set; } = 10;
+
+        public decimal ConvenienceFeeAmount => Math.Round(TicketPrice * ConvenienceFeePercent / 100, 2);
+        public decimal FinalPrice => TicketPrice + ConvenienceFeeAmount;
         public decimal GrossRevenue { get; set; }       
         public decimal CommissionAmount { get; set; }  
         public decimal ManagerPayout { get; set; }    

@@ -14,7 +14,6 @@ namespace Applications.Dto
         public string ImageUrl { get; set; } = string.Empty;
         public string VenueName { get; set; } = string.Empty;
 
-        // UI helpers
         public decimal TotalAmount => TicketPrice * TicketCount;
         // Ticket info
         public int TicketCount { get; set; }
@@ -29,6 +28,20 @@ namespace Applications.Dto
 
         public string QrCode { get;set; } = string.Empty;
         public BookingStatus Status { get; set; }
+
+        public decimal ConvenienceFeePercent { get; set; } = 10;
+
+        public decimal ConvenienceFeePerTicket =>
+            Math.Round(TicketPrice * ConvenienceFeePercent / 100, 2);
+
+        public decimal PlatformFee =>
+            ConvenienceFeePerTicket * TicketCount;
+
+        public decimal ManagerEarning =>
+            TicketPrice * TicketCount;
+
+       public decimal GrossAmount => TicketPrice * TicketCount;
+
     }
 
     public enum BookingStatus
