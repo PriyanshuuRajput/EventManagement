@@ -1,4 +1,5 @@
 ﻿using Applications.Dto;
+using Applications.Dto.Pagination;
 using Applications.Interfaces.IService;
 using EventBooking_TicketManagement_API.Helper;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +17,7 @@ namespace EventBooking_TicketManagement_API.Controllers
         private readonly IBookingRepository _bookingRepository;
         private readonly IQrCodeService _qrCodeService;
 
-        public BookingController(IBookingService bookingService , IBookingRepository bookingRepository, IQrCodeService qrCodeService)
+        public BookingController(IBookingService bookingService, IBookingRepository bookingRepository, IQrCodeService qrCodeService)
         {
             _bookingService = bookingService;
             _bookingRepository = bookingRepository;
@@ -66,7 +67,7 @@ namespace EventBooking_TicketManagement_API.Controllers
         }
         [Authorize(Roles = "Manager")]
         [HttpGet("manager/earning")]
-        public async Task<IActionResult> GetManagerBookingsAndEarning()
+        public async Task<IActionResult> GetManagerBookingsAndEarning([FromQuery] PagedRequest request)
         {
             var managerIdClaim = User.FindFirst("ManagerId")?.Value;
 
@@ -75,10 +76,12 @@ namespace EventBooking_TicketManagement_API.Controllers
 
             int managerId = int.Parse(managerIdClaim);
 
-            var bookings = await _bookingService.GetBookingsByManagerAsync(managerId);
+            var result = await _bookingService
+                .GetBookingsByManagerAsync(managerId, request);
 
-            return Ok(bookings);
+            return Ok(result);
         }
+
 
         [AllowAnonymous]
         [HttpGet("{bookingId}/ticket")]

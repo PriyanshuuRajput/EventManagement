@@ -1,4 +1,5 @@
 ﻿using Applications.Dto;
+using Applications.Dto.Pagination;
 using Applications.Interfaces.IRepository;
 using Applications.Interfaces.IService;
 using Domains.Entities;
@@ -254,10 +255,12 @@ namespace EventBooking_TicketManagement_API.Services
             });
         }
 
-        public async Task<IEnumerable<BookingDto>> GetBookingsByManagerAsync(int managerId)
+        public async Task<PagedResult<BookingDto>> GetBookingsByManagerAsync(int managerId,PagedRequest request)
         {
-            return await _bookingRepository.GetBookingsByManagerIdAsync(managerId);
+            return await _bookingRepository
+                .GetBookingsByManagerIdAsync(managerId, request);
         }
+
 
 
     }

@@ -1,4 +1,5 @@
 ﻿using Applications.Dto;
+using Applications.Dto.Pagination;
 using Applications.Interfaces.IRepository;
 using Domains.Entities;
 using Infrastructures.DbContexts;
@@ -107,38 +108,84 @@ namespace Infrastructure.Repository
                 ?? new ManagerRevenueDto();
         }
 
-        public async Task<List<BookingDto>> GetBookingsByManagerIdAsync(int managerId)
+        public async Task<PagedResult<BookingDto>> GetBookingsByManagerIdAsync(int managerId,PagedRequest request)
         {
-            return await _db.Bookings
+            var query = _db.Bookings
                 .AsNoTracking()
                 .Include(b => b.Event)
+                    .ThenInclude(e => e.Venue)
+                .Include(b => b.Event)
+                    .ThenInclude(e => e.EventCategory)
                 .Where(b =>
                     b.Event != null &&
                     b.Event.ManagerId == managerId &&
                     b.PaymentStatus == PaymentStatus.Paid
                 )
+                .AsQueryable();
+
+            //  Search
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                query = query.Where(b =>
+                    b.Event!.Title.Contains(request.Search));
+            }
+
+            if (request.CategoryId.HasValue)
+            {
+                query = query.Where(b =>
+                    b.Event!.EventCategoryId == request.CategoryId);
+            }
+
+            //  Date filter
+            if (request.DateFilter.HasValue)
+            {
+                query = query.Where(b =>
+                    b.Event!.StartDate.Date == request.DateFilter.Value.Date);
+            }
+
+            //  Total Count
+            var totalCount = await query
+                .GroupBy(b => b.EventId)
+                .CountAsync();
+
+            //  Pagination 
+            var items = await query
                 .GroupBy(b => new
                 {
                     b.EventId,
                     b.Event.Title,
                     b.Event.StartDate,
-                    b.Event.TicketPrice
+                    b.Event.EndDate,
+                    b.Event.TicketPrice,
+                    VenueName = b.Event.Venue!.VenueName,
+                    CategoryName = b.Event.EventCategory!.Name
                 })
                 .Select(g => new BookingDto
                 {
                     EventId = g.Key.EventId,
                     EventName = g.Key.Title,
+                    CategoryName = g.Key.CategoryName,
                     EventStartDate = g.Key.StartDate,
+                    EventEndDate = g.Key.EndDate,
+                    VenueName = g.Key.VenueName,
                     TicketPrice = g.Key.TicketPrice,
-
-                    TicketCount = g.Sum(x => x.TicketCount),
-
-                    CreatedAt = g.Max(x => x.CreatedAt),
-                    PaymentStatus = PaymentStatus.Paid
+                    TicketCount = g.Sum(x => x.TicketCount)
                 })
                 .OrderByDescending(x => x.EventStartDate)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .ToListAsync();
+
+            return new PagedResult<BookingDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
+
+
 
     }
 }

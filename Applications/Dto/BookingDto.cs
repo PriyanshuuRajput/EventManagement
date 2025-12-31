@@ -8,6 +8,9 @@ namespace Applications.Dto
 
         public int EventId { get; set; }
         public string EventName { get; set; } = string.Empty;
+
+        public int? CategoryId { get; set; }
+        public string? CategoryName { get; set; } = string.Empty;
         public DateTime EventStartDate { get; set; }
         public DateTime EventEndDate { get; set; }
         public decimal TicketPrice { get; set; }

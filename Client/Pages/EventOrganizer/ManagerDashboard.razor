@@ -10,6 +10,12 @@
 
 
 <style>
+
+    .table td {
+    vertical-align: middle;
+    padding:6px 10px;
+}
+
     .suggestion-box {
         max-height: 250px;
         overflow-y: auto;
@@ -25,11 +31,48 @@
             border-radius: 10px;
         }
 
+    .float {
+        position: relative;
+    }
+
+        .float input{
+            width: 100%;
+            padding: 10px 10px 2px 10px;
+            font-size: 0.9rem;
+        }
+
+            .float input:focus,{
+                border-color: #dc3545;
+                box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.2);
+            }
+
+        .float label {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            color: #6c757d;
+            pointer-events: none;
+            transform: translateY(-50%);
+            transition: all 0.2s ease;
+            background: white;
+            padding: 0 4px;
+        }
+
+        .float input:focus + label,
+        .float input:not(:placeholder-shown) + label{
+            top: 0;
+            transform: translateY(-12px);
+            font-size: 1rem;
+            color: #dc3545;
+        }
     .truncate-text {
-        max-width: 200px;
-        white-space: nowrap;
+        max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp:3;
+        -webkit-box-orient:vertical;
+        line-height: 2.4em;
     }
 
 
@@ -161,15 +204,23 @@
 
 
     <div class="position-relative w-50">
-        <div class="input-group shadow-sm">
-            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+        <div class=" shadow-sm float">
             <input class="form-control"
-                   placeholder="Search events,address..."
+                   placeholder=""
                    @bind="searchText"
                    @bind:event="oninput"
                    @onfocus="() => showSuggestions = true"
                    @onblur="HideSuggestionsDelayed" />
+                   <label><i class="bi bi-search me-2"></i>Search event,address</label>
         </div>
+
+        @if (!string.IsNullOrWhiteSpace(searchText) || activeStatusFilter != null)
+        {
+            <button class="btn btn-outline-danger btn-sm"
+                    @onclick="ClearAllFilters">
+                Clear
+            </button>
+        }
 
         @if (showSuggestions && Suggestions.Any())
         {
@@ -186,6 +237,7 @@
                 }
             </ul>
         }
+
     </div>
 
     <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between">
@@ -225,11 +277,11 @@
         <table class="table table-hover align-middle table-borderless">
             <thead class="table-secondary">
                 <tr>
-                    <th>Event Name</th>
-                    <th>Description</th>
-                    <th style="width:150px;">Event Date</th>
-                    <th style="width:200px;">Address</th>
-                    <th style="width:100px">Revenue</th>
+                    <th style="font-size:16px">Event Name</th>
+                    <th style="font-size:16px; width:260px">Description</th>
+                    <th style="font-size:16px;width:150px;">Event Date</th>
+                    <th style="font-size:16px;width:200px;">Address</th>
+                    <th style="font-size:16px;width:100px">Revenue</th>
                     @*<th style="width:100px">Amount</th>*@
                     <th>Status</th>
                     <th class="text-center">Action</th>
@@ -249,7 +301,7 @@
                             </div>
                         </td>
 
-                        <td class=" truncate-text small  fw-semibold " data-bs-toggle="tooltip" data-placement="top" title="@ev.Description">@ev.Description</td>
+                        <td class=" truncate-text text-muted small  " data-bs-toggle="tooltip" data-placement="top" title="@ev.Description">@ev.Description</td>
 
                         <!-- Date -->
                         <td>
@@ -283,7 +335,7 @@
                             else if (ev.Status == EventStatus.AdminApproved)
                             {
                                 <span class="badge rounded-2 text-white bg-success"
-                                      style="padding:12px 12px">
+                                      style="padding:10px 10px">
                                     Approved & Live
                                 </span>
                             }
@@ -304,10 +356,10 @@
                         </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center">
-                                <button class="btn btn-sm btn-danger rounded-2" style="padding:6px 14px"
+                                <button class="btn btn-sm btn-danger rounded-2" style="padding:7px 24px"
                                         @onclick="() => OpenSidePanel(ev)">
-                                    <i class="bi bi-eye me-1"></i>
-                                    View
+                                    <i class="bi bi-eye "></i>
+                                  
                                 </button>
                             </div>
                         </td>
@@ -621,6 +673,16 @@
         isLoading = false;
         spinnerService.Hide();
             }
+    private void ClearAllFilters()
+    {
+        searchText = string.Empty;
+        activeStatusFilter = null;
+        showSuggestions = false;
+        currentPage = 1;
+
+        StateHasChanged();
+    }
+
 
 
             private void PageSizeChanged(ChangeEventArgs e)

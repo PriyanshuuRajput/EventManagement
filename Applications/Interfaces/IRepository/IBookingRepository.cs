@@ -1,4 +1,5 @@
 ﻿using Applications.Dto;
+using Applications.Dto.Pagination;
 using Domains.Entities;
 
 public interface IBookingRepository
@@ -13,7 +14,8 @@ public interface IBookingRepository
     Task <AdminUser?> GetUserByIdAsync(int userId);
     Task<Booking?> GetBookingByQrAsync(string qrCode);
     Task<ManagerRevenueDto?> GetEventStatsAsync(int eventId);
-    Task<List<BookingDto>> GetBookingsByManagerIdAsync(int managerId);
+    Task<PagedResult<BookingDto>> GetBookingsByManagerIdAsync(int managerId,PagedRequest request);
+
 
 
 }
