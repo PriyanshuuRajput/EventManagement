@@ -154,6 +154,7 @@
     {
         // Instance = this;
         LoginOverlayService.OnShowLogin += ShowLoginOverlay;
+        LoginOverlayService.OnShowManagerSignup += ShowManagerSignup;
         var uri = new Uri(Navigation.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
@@ -235,7 +236,9 @@
     public void Dispose()
     {
         LoginOverlayService.OnShowLogin -= ShowLoginOverlay;
+        LoginOverlayService.OnShowManagerSignup -= ShowManagerSignup; 
     }
+
     //private void ShowSignupOverlay()
     //{
     //    IsLoginVisible = false;

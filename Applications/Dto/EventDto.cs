@@ -30,21 +30,29 @@ namespace Applications.Dto
             get => Duration == null ? "" : Duration.Value.ToString(@"hh\:mm");
             set
             {
+                DurationError = null;
                 if (string.IsNullOrWhiteSpace(value))
                 {
                     Duration = null;
+                    DurationError = "Event Duration is required";
                     return;
                 }
 
-                if (TimeSpan.TryParse(value, out var parsed))
-                {
-                    Duration = parsed;
-                    DurationError = null;
-                }
-                else
-                {
-                    DurationError = "Invalid duration format (use HH:mm)";
-                }
+                if (!TimeSpan.TryParse(value, out var parsed))
+        {
+            DurationError = "Invalid duration format (use HH:mm)";
+            Duration = null;
+            return;
+        }
+
+        if (parsed.TotalMinutes < 20)
+        {
+            DurationError = "Minimum duration is 20 minutes.";
+            Duration = null;
+            return;
+        }
+
+        Duration = parsed;
             }
         }
         public string? DurationError { get; set; }

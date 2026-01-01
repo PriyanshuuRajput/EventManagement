@@ -1,0 +1,456 @@
+﻿@using Applications.Dto
+@using Domains.Entities
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+
+<style>
+
+    /* ---------- OVERLAY ---------- */
+    .drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.40);
+        backdrop-filter: blur(2px);
+        z-index: 2000;
+    }
+
+    /* ---------- DRAWER PANEL ---------- */
+    .drawer-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        /*    width: 60%;                   */
+        max-width: 60%;
+        height: 100vh;
+        background: #fff;
+        /*    border-left: 2px solid #dc3545;*/
+        display: flex;
+        flex-direction: column;
+        animation: slideIn .50s ease-out forwards;
+        z-index: 2000;
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(100%);
+        }
+
+        to {
+            transform: translateX(0);
+        }
+    }
+
+    .image-preview {
+        width: 150px;
+        height: 100px;
+        /*        border: 1px solid #ddd;*/
+        border-radius: 5px;
+        overflow: hidden;
+        display: inline-block;
+        background: #f8f9fa;
+    }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+
+    /* ---------- HEADER ---------- */
+    .drawer-header {
+        padding: 10px 20px;
+        background: #fff;
+        border-bottom: 2px solid #eee;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    /* ---------- BODY ---------- */
+    .drawer-body {
+        padding: 4px 18px;
+        overflow-y: auto;
+    }
+
+        .drawer-body::-webkit-scrollbar {
+            width: 0;
+        }
+
+    /* ---------- CARDS ---------- */
+    .drawer-panel .card {
+        /*    margin-bottom: 10px;*/
+        border-radius: 0px;
+    }
+
+    .drawer-panel .card-header {
+        padding: 10px 14px !important;
+        font-size: 16px;
+        background: #fafafa;
+    }
+
+    .drawer-panel .card-body {
+        padding: 12px 14px !important;
+    }
+
+
+    .drawer-panel .row.g-3 {
+        --bs-gutter-x: 0.5rem;
+        --bs-gutter-y: 0.5rem;
+    }
+
+    .drawer-panel .form-control,
+    .drawer-panel .form-select {
+        padding: 6px 10px !important;
+        font-size: 0.9rem;
+        border-radius: 6px;
+    }
+
+        .drawer-panel .form-control:focus,
+        .drawer-panel .form-select:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.20);
+        }
+
+    /* ---------- FOOTER ---------- */
+    .drawer-footer {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        padding: 10px 20px;
+        border-top: 1px solid #eee;
+    }
+
+        .drawer-footer button {
+            min-width: 110px;
+        }
+
+</style>
+@if (Show)
+{
+    @if (ShowManagerComponent)
+    {
+        <div class="manager-modal-container">
+            <Manager OnClose="HideManagerComponent" />
+        </div>
+    }
+
+    <div class="drawer-overlay" @onclick="Close"></div>
+
+    <div class="drawer-panel">
+        <div class="drawer-header d-flex justify-content-between align-items-center shadow-sm">
+            <h5 class="fw-bold" style="font-size:22px;margin-bottom:4px">
+                @(EditingEvent?.Id > 0 ? "Update Event" : "Add New Event")
+            </h5>
+
+            @if (IsAdmin)
+            {
+                <button class="btn btn-outline-danger me-4"
+                        @onclick="ShowManagerComponentMethod"
+                        style="padding:2px 16px">
+                    <i class="bi bi-person-fill" style="font-size:18px"></i>
+                </button>
+            }
+        </div>
+
+        <div class="drawer-body">
+            <EditForm Model="EditingEvent" OnValidSubmit="OnSave">
+                <DataAnnotationsValidator />
+
+                <div class="card shadow-sm mb-0 mt-2">
+                    <div class="card-header  text-dark fw-bold">
+                        General Information
+                    </div>
+                    <div class="card-body row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Event Name<span class="text-danger">*</span></label>
+                            <InputText @bind-Value="EditingEvent.Title" class="form-control" />
+                            <ValidationMessage For="@(() => EditingEvent.Title)" class="text-danger small" />
+
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Event Type <span class="text-danger">*</span></label>
+
+                            <InputSelect @bind-Value="EditingEvent.EventCategoryId" class="form-select">
+                                <option value="">-- Select Event Type --</option>
+
+                                @foreach (var c in CategoryList)
+                                {
+                                    <option value="@c.Id">@c.Name</option>
+                                }
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => EditingEvent.EventCategoryId)" class="text-danger small" />
+                        </div>
+
+
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Language</label>
+                            <InputText @bind-Value="EditingEvent.Language" class="form-control" />
+                            @*<ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />*@
+                        </div>
+
+                        <!-- ================== EVENT SCHEDULE ACCORDION ================== -->
+                        <div class="accordion mb-2" id="eventScheduleAccordion">
+
+                            <div class="accordion-item border-0 shadow-sm" style="margin-top:7px">
+                                <h2 class="accordion-header" id="scheduleHeader">
+                                    <button class="accordion-button py-2 px-3" type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#scheduleBody"
+                                            aria-expanded="true"
+                                            aria-controls="scheduleBody">
+
+                                        <span class="fw-bold">Event Date & Time</span>
+                                    </button>
+                                </h2>
+
+                                <div id="scheduleBody"
+                                     class="accordion-collapse collapse show">
+                                    <div class="accordion-body row g-4 align-items-end">
+
+                                        <!-- EVENT DURATION DROPDOWN -->
+                                        <div class="col-md-2" style="padding:0px 6px">
+                                            <label class="form-label fw-bold">Event Duration</label>
+                                            <select class="form-select" @bind="EventDay">
+                                                <option value="single">Single Day</option>
+                                                <option value="multi">Multiple Days</option>
+                                            </select>
+                                        </div>
+
+                                        <!--  SINGLE DAY -->
+                                        @if (EventDay == "single")
+                                        {
+                                            <!-- Start Date -->
+                                            <div class="col-md-5">
+                                                <label class="form-label fw-bold">Date & Time</label>
+                                                <div class="input-group">
+                                                    <input type="date"
+                                                           class="form-control"
+                                                           @bind="EditingEvent.StartDateOnly"
+                                                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                                                    <input type="time"
+                                                           class="form-control"
+                                                           value="@EditingEvent.StartTime.ToString(@"hh\:mm")"
+                                                           @oninput="e => { EditingEvent.StartTime = TimeSpan.Parse(e.Value!.ToString()); }" />
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <!-- ================== MULTIPLE DAYS ================== -->
+                                        @if (EventDay == "multi")
+                                        {
+
+                                            <!-- START DATE + TIME (same column) -->
+                                            <div class="col-md-5">
+                                                <label class="form-label fw-bold">Start Date & Time</label>
+
+                                                <div class="input-group">
+                                                    <input type="date"
+                                                           class="form-control"
+                                                           @bind="EditingEvent.StartDateOnly" />
+
+                                                    <input type="time"
+                                                           class="form-control"
+                                                           value="@EditingEvent.StartTime.ToString(@"hh\:mm")"
+                                                           @oninput="e => { EditingEvent.StartTime = TimeSpan.Parse(e.Value!.ToString()); }" />
+                                                </div>
+                                            </div>
+
+
+                                            <!-- END DATE + TIME (same column) -->
+                                            <div class="col-md-5">
+                                                <label class="form-label fw-bold">End Date & Time</label>
+
+                                                <div class="input-group">
+                                                    <input type="date"
+                                                           class="form-control"
+                                                           @bind="EditingEvent.EndDateOnly"
+                                                           min="@EditingEvent.StartDateOnly.ToString("yyyy-MM-dd")" />
+
+                                                    <input type="time"
+                                                           class="form-control"
+                                                           value="@EditingEvent.EndTime.ToString(@"hh\:mm")"
+                                                           @oninput="e => { EditingEvent.EndTime = TimeSpan.Parse(e.Value!.ToString()); }" />
+                                                </div>
+                                            </div>
+                                        }
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        @if (EventDay == "multi")
+                        {
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Duration</label>
+
+                                <input class="form-control" disabled
+                                       value="@(GetCalculatedDuration?.Invoke() ?? "")" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Duration (HH:MM)<span class="text-danger">*</span></label>
+                                <InputText class="form-control"
+                                           @bind-Value="EditingEvent.DurationInput" />
+                                @if (!string.IsNullOrEmpty(EditingEvent.DurationError))
+                                {
+                                    <div class="text-danger small">
+                                        @EditingEvent.DurationError
+                                    </div>
+                                }
+                                <ValidationMessage For="@(() => EditingEvent.Duration)" class="text-danger small" />
+                            </div>
+
+                        }
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Venue<span class="text-danger">*</span></label>
+                            <InputSelect @bind-Value="EditingEvent.VenueId" class="form-select" @onchange="OnVenueChanged">
+                                <option value="0">-- Select Venue --</option>
+                                @foreach (var venue in FilteredVenues)
+                                {
+                                    <option value="@venue.Id">@venue.VenueName</option>
+                                }
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => EditingEvent.VenueId)" class="text-danger small" />
+                        </div>
+                        @if (IsAdmin)
+                        {
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Manager</label>
+
+                                <InputSelect @bind-Value="EditingEvent.ManagerId" class="form-select">
+                                    <option value="0">-- Select Manager --</option>
+
+                                    @foreach (var m in Managers)
+                                    {
+                                        <option value="@m.Id">@m.ManagerName</option>
+                                    }
+                                </InputSelect>
+
+                                @* <ValidationMessage For="@(() => editingEvent.ManagerId)" class="text-danger small" /> *@
+                            </div>
+                        }
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Ticket Price (₹)</label>
+                            <InputNumber @bind-Value="EditingEvent.TicketPrice" class="form-control" />
+                            @*<ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />*@
+                        </div>
+
+
+                        <div class="col-md-12 d-flex align-items-start gap-3">
+                            <div class="flex-grow-1">
+                                <label class="form-label fw-bold">Event Image</label>
+                                <InputFile OnChange="e => OnImageSelected.InvokeAsync(e)" class="form-control" />
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(EditingEvent.ImageUrl))
+                            {
+                                <div class="image-preview">
+                                    <img src="@EditingEvent.ImageUrl" />
+                                </div>
+                            }
+                        </div>
+
+
+                        @*</div>*@
+                    </div>
+                </div>
+                <!-- Description -->
+                <div class="card shadow-sm mb-2">
+                    <div class="card-header  text-dark fw-bold">
+                        Description
+                    </div>
+                    <div class="card-body border-0">
+                        <InputTextArea @bind-Value="EditingEvent.Description" class="form-control" rows="4" placeholder="Write a short description..." />
+                        @*<ValidationMessage For="@(() => editingEvent.Description)" class="text-danger small" />*@
+                    </div>
+                    <!-- Footer -->
+                    <div class=" d-flex justify-content-end align-items-center gap-1 mb-2">
+                        <button type="button"
+                                class="btn btn-outline-secondary m-2"
+                                style="padding:4px 16px ; font-size:18px"
+                                @onclick="Close">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="btn btn-danger m-2"
+                                style="padding:5px 23px ; font-size:18px"
+                                disabled="@IsProcessing">
+                            @if (IsProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Save
+                        </button>
+                    </div>
+                </div>
+
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+
+    /* ---------- VISIBILITY ---------- */
+    [Parameter] public bool Show { get; set; }
+
+    /* ---------- STATE ---------- */
+    [Parameter] public bool IsAdmin { get; set; }
+    [Parameter] public bool IsProcessing { get; set; }
+
+    /* ---------- DATA ---------- */
+    [Parameter] public EventDto EditingEvent { get; set; } = new();
+    [Parameter] public List<EventCategoryDto> CategoryList { get; set; } = new();
+    [Parameter] public List<VenueDto> FilteredVenues { get; set; } = new();
+    [Parameter] public List<ManagerProfileDto> Managers { get; set; } = new();
+
+    /* ---------- EVENT STATE ---------- */
+    [Parameter] public string EventDay { get; set; }
+
+
+    /* ---------- CALLBACKS ---------- */
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<InputFileChangeEventArgs> OnImageSelected { get; set; }
+    [Parameter] public EventCallback<ChangeEventArgs> OnVenueChanged { get; set; }
+    [Parameter] public Func<string> GetCalculatedDuration { get; set; } = default!;
+
+
+    protected bool ShowManagerComponent { get; set; }
+
+    protected async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    protected void ShowManagerComponentMethod()
+    {
+        ShowManagerComponent = true;
+    }
+
+    protected void HideManagerComponent()
+    {
+        ShowManagerComponent = false;
+    }
+    protected override void OnParametersSet()
+    {
+        EventDay = EventDay?.ToLower() == "multi"
+            ? "multi"
+            : "single";
+    }
+    private void HandleInvalidSubmit()
+    {
+        // just force UI refresh
+        StateHasChanged();
+    }
+
+}
