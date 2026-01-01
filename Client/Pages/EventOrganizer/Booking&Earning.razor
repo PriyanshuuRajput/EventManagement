@@ -1,0 +1,533 @@
+﻿@page "/booking-earning"
+@using Applications.Dto.Pagination
+@using Microsoft.AspNetCore.WebUtilities
+@using EventBooking.Client.SpinnerService
+@using Applications.Dto
+
+@inject SpinnerService spinnerService
+@attribute [Authorize(Roles = "Manager")]
+
+<PageTitle>EventiGO-Bookings&Earning</PageTitle>
+
+<style>
+    .icon-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .float{
+        position:relative;
+    }
+    .float input,
+    .float select{
+            width: 100%;
+            padding: 5px 10px 5px 10px;
+            font-size: 0.9rem;
+    }
+
+    .float input:focus,
+    .float select:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.2);
+    }
+
+    .float label{
+        position:absolute;
+        top:50%;
+        left:10px;
+        font-size: 0.9rem;
+        color: #6c757d;
+        pointer-events: none;
+        transform: translateY(-50%);
+        transition: all 0.2s ease;
+        background: white;
+        padding: 0 4px;
+
+    }
+    .float input:focus + label,
+    .float input:not(:placeholder-shown)+label,
+    .float select:focus +label,
+    .float select:not([value=""])+label{
+        top:0;
+        transform:translateY(-12px);
+            font-size: 0.7rem;
+            color: #dc3545;
+    }
+
+    .float.dropdown-select::after {
+            content: "▾";
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 30px;
+            color: #6c757d;
+            pointer-events: none;
+    }
+    /* FOOTER BANNER */
+    .promo-banner {
+        background: linear-gradient(to right, #fff, #f8f9fa);
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .banner {
+        padding: 22px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+</style>
+
+<div class="container-fluid mt-3" @onclick="CloseEventDropdown">
+
+    <!--  HEADER -->
+    <h3 class="fw-bold mb-2" style="font-size:30px">
+        Bookings & Earning
+    </h3>
+
+    <!--  SUMMARY CARDS -->
+    <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 summary-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted mb-1">Active Events</p>
+                                <h3 class="fw-bold mb-0">@ActiveEvents</h3>
+                                <small class="text-muted">
+                                    @CompletedEvents completed
+                                </small>
+                            </div>
+                            <div class="icon-circle bg-success-subtle">
+                                <i class="bi bi-calendar-event text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tickets Sold -->
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm h-100 summary-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <p class="text-muted mb-1">Tickets Sold</p>
+                                    <h3 class="fw-bold mb-0">@TotalTicketsSold</h3>
+                                    <small class="text-muted">
+                                        Across all events
+                                    </small>
+                                </div>
+                                <div class="icon-circle bg-warning-subtle">
+                                    <i class="bi bi-ticket-perforated text-warning"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 summary-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <p class="text-muted mb-1">Total Revenue</p>
+                            <h3 class="fw-bold mb-0">₹@TotalRevenue</h3>
+                            <small class="text-muted">
+                                Ticket sales only
+                            </small>
+                        </div>
+                        <div class="icon-circle bg-danger-subtle">
+                            <i class="bi bi-currency-rupee text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 summary-card">
+                <div class="card-body">
+                    <p class="text-muted" style="margin-bottom:30px">Recent Activity</p>
+
+                    @if (LastBookingDate != null)
+                    {
+                        <h6 class="fw-semibold mb-0">
+                            Last booking on
+                        </h6>
+                        <small class="text-muted">
+                            @LastBookingDate.Value.ToString("dd MMM yyyy")
+                        </small>
+                    }
+                    else
+                    {
+                        <h6 class="fw-semibold mb-0">
+                            No bookings yet
+                        </h6>
+                        <small class="text-muted">
+                            Awaiting first booking
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-none mb-0 ">
+        <div class="card-body py-3">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <div class="float dropdown-select"
+                         @onclick:stopPropagation="true">
+                        <input class="form-control form-control-sm"
+                               placeholder=" "
+                               @bind="selectedEvent"
+                               @onfocus="OpenEventDropdown"
+                               @oninput="OnSearchInput" />
+                    <label>Search Event</label>
+
+                    @if(showEventDropdown)
+                    {
+                            <div class="dropdown-menu show w-100 "
+                                 style="max-height:220px; overflow-y:auto;">
+                                @foreach (var ev in Bookings
+                                                            .Select(b => b.EventName)
+                                                            .Distinct()
+                                                            .Where(e => string.IsNullOrEmpty(selectedEvent)
+                                                            || e.Contains(selectedEvent, StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    <button type="button"
+                                            class="dropdown-item mb-1"
+                                            @onclick="() => SelectEvent(ev)">
+                                        @ev
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="float">
+                        <select class="form-select form-select-sm"
+                                value="@SelectedCategoryId"
+                                @onchange="OnCategoryChanged">
+                            <option value="">All Category</option>
+                        @foreach (var cat in Categories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </select>
+                    <label>Category</label>
+                    </div>
+                </div>
+
+                <!--Date-->
+                <div class="col-md-2">
+                    <div class="float">
+                        <input type="date"
+                               class="form-control"
+                               value="@FilterDate?.ToString("yyyy-MM-dd")"
+                               @onchange="OnDateChanged" />
+                        <label>Date</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-danger" style="padding:5px 0px; width:60px"
+                            @onclick="ClearFilters">
+                        Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 🔹 BOOKINGS TABLE -->
+    <div class="card border-0 shadow-sm"
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-secondary">
+                    <tr>
+                        <th style="font-size:16px">Event Name</th>
+                        <th style="font-size:16px">Event Category</th>
+                        <th style="font-size:16px"> Event Date </th>
+                        <th class="text-center" style="font-size:16px">Tickets Sold </th>
+                        <th class="text-center" style="font-size:16px">Ticket Price</th>
+                        <th class="text-center" style="font-size:16px">Status</th>
+                        <th style="font-size:16px">Revenue</th>
+                    </tr>
+                </thead>
+                    <tbody>
+                        @if (!Bookings.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="bi bi-ticket-perforated text-muted fs-1"></i>
+
+                                    <div class="fw-semibold mt-3">
+                                        No bookings yet
+                                    </div>
+
+                                    <div class="text-muted small mt-1">
+                                        Your events haven’t received any paid bookings yet.
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        Once payment is completed, earnings will appear here.
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var e in Bookings)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">@e.EventName</div>
+                                         <small class="text-muted">@e.VenueName</small>
+                                    </td>
+                                            <td>
+                                                @e.CategoryName
+                                            </td>
+
+                                    <td>
+                                        @e.EventStartDate.ToString("dd MMM yyyy")
+                                    </td>
+
+                                    <td class="text-center">@e.TicketCount</td>
+
+                                    <td class=text-center>₹ @e.TicketPrice.ToString("N2")</td>
+                                    <td class="text-center">
+                                        @if (DateTime.Now < e.EventEndDate)
+                                            {
+                                                <span class="badge bg-success px-3 py-2">
+                                                    Active
+                                                </span>
+                                             }
+                                        else
+                                             {
+                                                <span class="badge bg-secondary px-3 py-2">
+                                                            Completed
+                                                </span>
+                                         }
+                                        </td>
+                                    
+                                    <td class="fw-bold text-success">
+                                        ₹ @(e.TicketPrice* e.TicketCount)
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center ">
+        <div class="small text-muted">
+            Showing
+            @((currentPage - 1) * pageSize + 1)
+            -
+            @(Math.Min(currentPage * pageSize, TotalCount))
+            of @TotalCount events
+        </div>
+        <Pagination Page="@currentPage"
+                    PageSize="@pageSize"
+                    TotalItems="@TotalCount"
+                    PageChanged="OnPageChanged" />
+
+
+    </div>
+
+     <div class="promo-banner banner mt-4 text-center">
+        <h4 class="fw-bold text-dark mb-1">
+            <i class="bi bi-collection-play text-danger me-2"></i>
+            Streamline Your Events
+        </h4>
+
+        <p class="text-muted small m-0">
+            Manage bookings, venues, and cities with ease.
+        </p>
+    </div>
+
+</div>
+
+@code
+{
+    private List<BookingDto> Bookings = new();
+    private int TotalCount;
+    private int ActiveEvents =>
+    Bookings
+        .Select(b => b.EventId)
+        .Distinct()
+        .Count(eventId =>
+            Bookings.Any(b =>
+                b.EventId == eventId &&
+                DateTime.Now < b.EventEndDate
+            )
+        );
+
+    private int CompletedEvents =>
+        Bookings
+            .Select(b => b.EventId)
+            .Distinct()
+            .Count(eventId =>
+                Bookings.All(b =>
+                    b.EventId == eventId &&
+                    DateTime.Now >= b.EventEndDate
+                )
+            );
+
+    private int TotalTicketsSold =>Bookings.Sum(b => b.TicketCount);
+
+    private decimal TotalRevenue =>Bookings.Sum(b => b.TicketCount * b.TicketPrice);
+
+    private DateTime? LastBookingDate =>Bookings.Any() ? Bookings.Max(b => b.CreatedAt) : null;
+
+    private string selectedEvent = "";
+    private DateTime? FilterDate;
+    private List<EventCategoryDto> Categories = new();
+    private int? SelectedCategoryId;
+    private bool showEventDropdown = false;
+
+    private int currentPage = 1;
+    private int pageSize = 5;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            spinnerService.Show();
+            await Task.Delay(150);
+
+            // Load bookings
+            await LoadBookings();
+
+            //  Load categories
+            Categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
+                "api/EventCategory"
+            ) ?? new List<EventCategoryDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            Bookings = new();
+            Categories = new();
+        }
+        finally
+        {
+            spinnerService.Hide();
+        }
+    }
+    private async Task LoadBookings()
+    {
+        spinnerService.Show();
+
+        var query = new Dictionary<string, string?>
+        {
+            ["Page"] = currentPage.ToString(),
+            ["PageSize"] = pageSize.ToString()
+        };
+
+        if (!string.IsNullOrWhiteSpace(selectedEvent))
+            query["Search"] = selectedEvent;
+
+        if (FilterDate.HasValue)
+            query["DateFilter"] = FilterDate.Value.ToString("yyyy-MM-dd");
+
+        if (SelectedCategoryId.HasValue)
+            query["CategoryId"] = SelectedCategoryId.Value.ToString();
+
+        var url = QueryHelpers.AddQueryString(
+            "api/Booking/manager/earning", query);
+
+        var result = await Http.GetFromJsonAsync<PagedResult<BookingDto>>(url);
+
+        Bookings = result?.Items ?? new();
+        TotalCount = result?.TotalCount ?? 0;
+
+        spinnerService.Hide();
+    }
+
+    private void OpenEventDropdown()
+    {
+        showEventDropdown = true;
+    }
+
+    private void CloseEventDropdown()
+    {
+        showEventDropdown = false;
+    }
+    private async Task SelectEvent(string eventName)
+    {
+
+        selectedEvent = eventName;
+        showEventDropdown = false;
+        currentPage = 1;
+        await LoadBookings();        
+    }
+
+    private async Task ClearFilters()
+    {
+        spinnerService.Show();
+
+        FilterDate = null;
+        selectedEvent = string.Empty;
+        SelectedCategoryId = null;
+
+        await LoadBookings();
+
+        spinnerService.Hide();
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        currentPage = 1;
+        await LoadBookings();
+        
+    }
+
+    private async Task OnDateChanged(ChangeEventArgs e)
+    {
+        FilterDate = string.IsNullOrEmpty(e.Value?.ToString())
+            ? null
+            : DateTime.Parse(e.Value.ToString()!);
+
+        currentPage = 1;
+        await LoadBookings();
+    }
+    private async Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        SelectedCategoryId = string.IsNullOrEmpty(e.Value?.ToString())
+            ? null
+            : int.Parse(e.Value.ToString()!);
+        currentPage = 1;
+        await LoadBookings();
+    }
+    private async Task OnPageChanged(int page)
+    {
+        if (page < 1 || page == currentPage)
+            return;
+
+        currentPage = page;
+        await LoadBookings();
+    }
+
+ 
+
+}

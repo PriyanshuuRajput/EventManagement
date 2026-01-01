@@ -23,10 +23,10 @@ public class ClientEventService
     }
 
     // Get seats for an event
-    public async Task<List<SeatDto>> GetSeatsByEventIdAsync(int id)
-    {
-        return await _http.GetFromJsonAsync<List<SeatDto>>($"api/events/{id}/seats") ?? new List<SeatDto>();
-    }
+    //public async Task<List<SeatDto>> GetSeatsByEventIdAsync(int id)
+    //{
+    //    return await _http.GetFromJsonAsync<List<SeatDto>>($"api/events/{id}/seats") ?? new List<SeatDto>();
+    //}
 
     // Create new event
     public async Task CreateEventAsync(EventDto dto)

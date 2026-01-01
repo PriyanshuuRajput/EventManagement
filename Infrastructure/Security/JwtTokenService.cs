@@ -20,15 +20,24 @@ namespace Infrastructure.Security
         public string GenerateToken(AdminUser admin)
         {
             var roleName = admin.Role?.Name ?? "User";
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
-                new Claim(ClaimTypes.Name, admin.Username),
-                new Claim(ClaimTypes.Role, roleName),
-                new Claim(ClaimTypes.Email, admin.Email ?? string.Empty)
-            };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
+        new Claim(ClaimTypes.Name, admin.Username),
+        new Claim(ClaimTypes.Role, roleName),
+        new Claim(ClaimTypes.Email, admin.Email ?? string.Empty),
+    };
+
+            if (roleName == "Manager" && admin.Manager != null)
+            {
+                claims.Add(new Claim("ManagerId", admin.Manager.Id.ToString()));
+            }
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)
+            );
+
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
@@ -41,6 +50,7 @@ namespace Infrastructure.Security
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
 
         public ClaimsPrincipal? ValidateToken(string token)
         {

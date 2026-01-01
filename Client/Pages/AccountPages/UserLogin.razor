@@ -1,6 +1,4 @@
-﻿@*@page "/login"
-@page "/login/{email}"*@
-
+﻿
 @using System.Text;
 @using Applications.Dto.AccountDto
 @inherits LoginBase
@@ -134,19 +132,12 @@
 
             await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
 
-            if (result.Role == "Manager")
+            if (AuthStateProvider is CustomAuthStateProvider customProvider)
             {
-                Navigation.NavigateTo("/manager-profile", true);
-                return;
+                customProvider.NotifyUserAuthentication(result.Token);
             }
 
-            if (result.Role == "User")
-            {
-                Navigation.NavigateTo("/", true);
-                return;
-            }
-
-            Navigation.NavigateTo("/", true);
+            await OnSuccess.InvokeAsync();
         }
         finally
         {

@@ -76,6 +76,7 @@ namespace Applications.Dto
         public int VenueId { get; set; }
 
         public string? VenueName { get; set; }
+        public int Capacity { get; set; }
 
         public int? CityId { get; set; }
 
@@ -128,5 +129,7 @@ namespace Applications.Dto
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public string? ManagerName { get; set; }
         //public int EventCategoryId { get; set; }
+        public decimal Revenue { get; set; }
+
     }
 }

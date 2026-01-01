@@ -1,14 +1,21 @@
-﻿using Domains.Entities;
+﻿using Applications.Dto;
+using Applications.Dto.Pagination;
+using Domains.Entities;
 
-namespace Applications.Interfaces.IRepository
+public interface IBookingRepository
 {
-    public interface IBookingRepository
-    {
-        Task<Booking> CreateBookingAsync(Booking booking);
-        Task<Booking?> GetBookingByIdAsync(int id);
-        Task<IEnumerable<Booking>> GetAllBookingAsync();
-        Task<IEnumerable<Booking>> GetBookingsByUserAsync(string userEmail);
-        Task<bool> DeleteBookingAsync(int id);
-        Task ReleaseSeatsAsync(int bookingId);
-    }
+    Task<Booking> CreateBookingAsync(Booking booking);
+    Task<IEnumerable<Booking>> GetAllBookingAsync();
+    Task<Booking?> GetBookingByIdAsync(int id);
+    Task<IEnumerable<Booking>> GetBookingsByUserAsync(int userId);
+    Task<int> GetActiveTicketCountByEventAsync(int eventId);
+    Task<int> GetUserTicketCountByEventAsync(int eventId, int userId);
+    Task UpdateAsync(Booking booking);
+    Task <AdminUser?> GetUserByIdAsync(int userId);
+    Task<Booking?> GetBookingByQrAsync(string qrCode);
+    Task<ManagerRevenueDto?> GetEventStatsAsync(int eventId);
+    Task<PagedResult<BookingDto>> GetBookingsByManagerIdAsync(int managerId,PagedRequest request);
+
+
+
 }

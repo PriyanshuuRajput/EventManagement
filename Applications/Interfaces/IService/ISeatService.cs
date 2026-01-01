@@ -5,10 +5,10 @@ namespace Applications.Interfaces.IService
     public interface ISeatService
     {
         // Get all seats for a specific event (for user seat selection)
-        Task<IEnumerable<SeatDto>> GetSeatsByEventAsync(int eventId);
+        //Task<IEnumerable<SeatDto>> GetSeatsByEventAsync(int eventId);
 
-        // Get all seats (for admin management)
-        Task<IEnumerable<SeatDto>> GetAllSeatsAsync();
+        //// Get all seats (for admin management)
+        //Task<IEnumerable<SeatDto>> GetAllSeatsAsync();
 
         // Admin: Add multiple seats to an event
         Task AddSeatsAsync(int eventId, int totalSeats, string category, decimal price);

@@ -22,7 +22,7 @@ namespace Infrastructures.Repository
                 .Include(e=> e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
-                .Include(e => e.Seats)
+                //.Include(e => e.Seats)
                 .Include(e => e.Managers)
                     .ThenInclude(m => m.User)
                 .AsNoTracking()
@@ -36,7 +36,7 @@ namespace Infrastructures.Repository
                 .Include(e=>e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
-                .Include(e => e.Seats)
+                //.Include(e => e.Seats)
                   .Include(e => e.Managers)
         .ThenInclude(m => m.User)
                 .FirstOrDefaultAsync(e => e.Id == id);
@@ -93,6 +93,12 @@ namespace Infrastructures.Repository
         {
             return await _context.Events.AnyAsync(e => e.Id == eventId);
         }
+        public async Task<Venue?> GetVenueByIdAsync(int venueId)
+        {
+            return await _context.Venues
+                .FirstOrDefaultAsync(v => v.Id == venueId);
+        }
+
 
         // Get events created by a specific Organizer
         public async Task<IEnumerable<Event>> GetEventsByManagerByIdAsync(int managerId)

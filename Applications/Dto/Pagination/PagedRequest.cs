@@ -7,6 +7,7 @@
         public string? Search { get; set; }
 
         public string? Status { get; set; }
+        public int? CategoryId { get; set; } 
         public DateTime? DateFilter { get; set; }
     }
 

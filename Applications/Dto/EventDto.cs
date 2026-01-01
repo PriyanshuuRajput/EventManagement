@@ -30,21 +30,29 @@ namespace Applications.Dto
             get => Duration == null ? "" : Duration.Value.ToString(@"hh\:mm");
             set
             {
+                DurationError = null;
                 if (string.IsNullOrWhiteSpace(value))
                 {
                     Duration = null;
+                    DurationError = "Event Duration is required";
                     return;
                 }
 
-                if (TimeSpan.TryParse(value, out var parsed))
-                {
-                    Duration = parsed;
-                    DurationError = null;
-                }
-                else
-                {
-                    DurationError = "Invalid duration format (use HH:mm)";
-                }
+                if (!TimeSpan.TryParse(value, out var parsed))
+        {
+            DurationError = "Invalid duration format (use HH:mm)";
+            Duration = null;
+            return;
+        }
+
+        if (parsed.TotalMinutes < 20)
+        {
+            DurationError = "Minimum duration is 20 minutes.";
+            Duration = null;
+            return;
+        }
+
+        Duration = parsed;
             }
         }
         public string? DurationError { get; set; }
@@ -82,9 +90,18 @@ namespace Applications.Dto
 
 
         public IFormFile? ImageFile { get; set; }
+        public int AvailableTickets { get; set; }
 
         public int TotalTickets { get; set; } = 0;
         public int SoldTickets { get; set; } = 0;
+
+        public decimal ConvenienceFeePercent { get; set; } = 10;
+
+        public decimal ConvenienceFeeAmount => Math.Round(TicketPrice * ConvenienceFeePercent / 100, 2);
+        public decimal FinalPrice => TicketPrice + ConvenienceFeeAmount;
+        public decimal GrossRevenue { get; set; }       
+        public decimal CommissionAmount { get; set; }  
+        public decimal ManagerPayout { get; set; }    
 
         public int? ManagerId { get; set; }
         public string? ManagerName { get; set; }
@@ -99,9 +116,9 @@ namespace Applications.Dto
         public int Capacity { get; set; }
 
 
-        public decimal EventAmount { get; set; }
+        //public decimal EventAmount { get; set; }
 
-        public decimal? OfferedEventAmount { get; set; }
+        //public decimal? OfferedEventAmount { get; set; }
         public bool IsAmountAccepted { get; set; }
         public bool PrizePaid { get; set; } = false;
         public DateTime? PrizePaidAt { get; set; }

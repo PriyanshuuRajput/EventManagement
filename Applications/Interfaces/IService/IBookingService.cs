@@ -1,12 +1,16 @@
 ﻿using Applications.Dto;
+using Applications.Dto.Pagination;
 
 namespace Applications.Interfaces.IService
 {
-    public interface IBookingService
+    public interface 
+        IBookingService
     {
-        Task CancelBookingAsync(int bookingId);
-        Task<BookingDto> CreateBookingAsync(BookingRequest request);
+
+        Task<BookingDto> CreateBookingAsync(BookingRequest request ,int userId);
         Task<IEnumerable<BookingDto>> GetAllBookingAsync();
-        Task<IEnumerable<BookingDto>> GetBookingByUserAsync(string userEmail);
+        Task<IEnumerable<BookingDto>> GetBookingByUserAsync(int userId);
+        Task<PagedResult<BookingDto>> GetBookingsByManagerAsync(int managerId,PagedRequest request);
+        Task CancelBookingAsync(int bookingId);
     }
 }

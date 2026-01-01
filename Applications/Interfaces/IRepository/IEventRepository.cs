@@ -14,6 +14,9 @@ namespace Applications.Interfaces.IRepository
 
         Task<bool> EventExistsAsync(int eventId);
 
+        Task<Venue?> GetVenueByIdAsync(int venueId);
+
+
         //Event Workflow Methods
 
         Task<IEnumerable<Event>> GetPendingEventsAsync();

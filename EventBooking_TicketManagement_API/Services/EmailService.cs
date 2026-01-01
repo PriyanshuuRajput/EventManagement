@@ -39,5 +39,47 @@ namespace EventBooking_TicketManagement_API.Services
 
             await client.SendMailAsync(mail);
         }
+        public async Task SendEmailWithQrAsync(
+    string toEmail,
+    string subject,
+    string htmlBody,
+    byte[] qrImage,
+    string contentId)
+        {
+            var smtpHost = _configuration["Smtp:Host"];
+            var smtpPort = int.Parse(_configuration["Smtp:Port"]!);
+            var smtpUser = _configuration["Smtp:Username"]!;
+            var smtpPass = _configuration["Smtp:Password"];
+
+            using var client = new SmtpClient(smtpHost, smtpPort)
+            {
+                Credentials = new NetworkCredential(smtpUser, smtpPass),
+                EnableSsl = true
+            };
+
+            var mail = new MailMessage
+            {
+                From = new MailAddress(smtpUser, "EventiGO"),
+                Subject = subject,
+                IsBodyHtml = true
+            };
+
+            mail.To.Add(toEmail);
+
+            var view = AlternateView.CreateAlternateViewFromString(
+                htmlBody, null, "text/html");
+
+            var qrResource = new LinkedResource(new MemoryStream(qrImage), "image/png")
+            {
+                ContentId = contentId, // 🔑 dynamic
+                TransferEncoding = System.Net.Mime.TransferEncoding.Base64
+            };
+
+            view.LinkedResources.Add(qrResource);
+            mail.AlternateViews.Add(view);
+
+            await client.SendMailAsync(mail);
+        }
+
     }
 }

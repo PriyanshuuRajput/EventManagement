@@ -91,72 +91,33 @@ namespace EventBooking_TicketManagement_API.Services
         {
             var venue = await _context.Venues
                 .Include(v => v.Events)
-                    .ThenInclude(e => e.Seats)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (venue == null)
                 throw new InvalidOperationException($"Venue with Id {id} does not exist.");
 
-            int oldCapacity = venue.Capacity;
             int newCapacity = dto.Capacity;
+
+            foreach (var evt in venue.Events)
+            {
+                if (evt.SoldTickets > newCapacity)
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot reduce capacity. Event '{evt.Title}' already has {evt.SoldTickets} sold tickets."
+                    );
+                }
+
+                evt.TotalTickets = newCapacity;
+            }
 
             venue.VenueName = dto.VenueName;
             venue.Address = dto.Address;
-            venue.Capacity = dto.Capacity;
+            venue.Capacity = newCapacity;
             venue.CityId = dto.CityId;
-
-            if (newCapacity > oldCapacity)
-            {
-                int extraSeats = newCapacity - oldCapacity;
-
-                foreach (var evt in venue.Events)
-                {
-                    // Generate seat numbers
-                    int currentCount = evt.Seats.Count;
-
-                    for (int i = 1; i <= extraSeats; i++)
-                    {
-                        _context.Seats.Add(new Seat
-                        {
-                            EventId = evt.Id,
-                            Category = "Regular",
-                            Price = evt.TicketPrice,
-                            IsBooked = false,
-                            SeatNumber = $"S{currentCount + i}"
-                        });
-                    }
-
-                    evt.TotalTickets += extraSeats;
-                }
-            }
-
-
-            if (newCapacity < oldCapacity)
-            {
-                int removeSeats = oldCapacity - newCapacity;
-
-                foreach (var evt in venue.Events)
-                {
-                    // seats that are free (not booked)
-                    var removable = evt.Seats
-                        .Where(s => s.IsBooked == false)
-                        .OrderByDescending(s => s.Id) // remove last added seats
-                        .Take(removeSeats)
-                        .ToList();
-
-                    // but what if not enough free seats?
-                    if (removable.Count < removeSeats)
-                        throw new InvalidOperationException(
-                            $"Cannot reduce capacity. Event '{evt.Title}' has too many booked seats.");
-
-                    _context.Seats.RemoveRange(removable);
-
-                    evt.TotalTickets -= removable.Count;
-                }
-            }
 
             await _context.SaveChangesAsync();
         }
+
 
 
         // Delete venue

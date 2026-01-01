@@ -43,7 +43,7 @@ namespace Domains.Entities
         public EventCategory? EventCategory { get; set; }
 
         // 🔗 Optional: Seats or bookings related to this event
-        public ICollection<Seat>? Seats { get; set; }
+        //public ICollection<Seat>? Seats { get; set; }
 
         [ForeignKey(nameof(Managers))]
         public int? ManagerId { get; set; }
@@ -72,6 +72,8 @@ namespace Domains.Entities
         public DateTime? PrizePaidAt { get; set; }
         public int TotalTickets { get; set; }
         public int SoldTickets { get; set; }
+        public int ReservedTickets { get; set; } // temporary hold
+
 
         public bool IsPromoted { get; set;  }
     }

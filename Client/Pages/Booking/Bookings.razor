@@ -1,0 +1,417 @@
+﻿@page "/my-bookings"
+@using Domains.Entities
+@using Applications.Dto
+@using EventBooking.Client.SpinnerService
+
+@inject SpinnerService spinnerService
+@inject HttpClient http
+@inject NavigationManager Navigation
+
+<PageTitle>EventiGo-Booking</PageTitle>
+
+<style>
+    .nav-pills .nav-link 
+    {
+        border-radius: 8px;
+        margin-right: 6px;
+        font-weight: 500;
+        color: #343a40 !important;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    .nav-pills .nav-link.active 
+    {
+            background-color: #dc3545 !important;
+            color: #fff !important;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+    }
+
+
+    .custom-modal-content 
+    {
+        border-radius: 16px !important;
+        border: none !important;
+        animation: scaleIn 0.25s ease-out;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+</style>
+
+<div class="container-fluid p-4">
+    <h4 class="fw-semibold text-dark m-2 mt-0" style="font-size:30px">My Bookings</h4>
+
+    <!-- TABS -->
+    <ul class="nav nav-pills m-2 mt-3 gap-2">
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "upcoming" ? "active" : "")"
+                    @onclick='() => ChangeTab("upcoming")'>
+                Upcoming
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "completed" ? "active" : "")"
+                    @onclick='() => ChangeTab("completed")'>
+                Completed
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "cancelled" ? "active" : "")"
+                    @onclick='() => ChangeTab("cancelled")'>
+                Cancelled
+            </button>
+        </li>
+    </ul>
+
+    <!-- BOOKINGS -->
+    <div class="row gap-5">
+    <div class="col-lg-8 mt-4 ms-4">
+
+        @foreach (var booking in CurrentBookings.Take(visibleCount))
+        {
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="row g-0">
+
+                    <!-- IMAGE -->
+                    <div class="col-md-3">
+                        <img src="@booking.ImageUrl"
+                             class="img-fluid h-100 rounded-start"
+                             style="object-fit:cover"
+                             alt="@booking.EventName" />
+                    </div>
+
+                    <!-- DETAILS -->
+                    <div class="col-md-9">
+                        <div class="card-body d-flex flex-column h-100">
+
+                            <div class="d-flex justify-content-between">
+                                <!-- LEFT -->
+                                <div>
+                                    <h5 class="fw-semibold mb-1">@booking.EventName</h5>
+
+                                    <div class="text-muted small">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        @booking.EventStartDate.ToString("ddd, dd MMM yyyy")
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-clock me-1"></i>
+                                        @booking.EventStartDate.ToString("hh:mm tt")
+                                    </div>
+
+                                    <div class="text-muted small mt-1">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        @booking.VenueName
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT -->
+                                <div class="text-end small">
+                                    <div><strong>Booking ID :</strong> @booking.TicketNumber</div>
+                                     <div><strong>Booking Date :</strong> @booking.CreatedAt.ToString("dd MMM yyyy")</div>
+                                    <div><strong>Tickets Count :</strong> @booking.TicketCount</div>
+                                    <div><strong>Price :</strong> ₹@booking.TotalAmount</div>
+                                </div>
+                            </div>
+
+                            <div class="flex-grow-1"></div>
+
+                            <!-- ACTIONS -->
+                            <div class="d-flex justify-content-end gap-4 mt-3">
+                                    @if (booking.Status == BookingStatus.Upcoming)
+                                    {
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                            @onclick ="()=> DownloadTicket(booking.Id)">
+                                        View Details
+                                    </button>
+                                    }
+
+                                @if (booking.Status == BookingStatus.Upcoming)
+                                {
+                                        <button class="btn btn-danger btn-sm"
+                                                @onclick="() => OpenCancelModal(booking)">
+                                            Cancel Booking
+                                        </button>
+                                }
+
+                                @if (booking.Status == BookingStatus.Cancelled)
+                                {
+                                    <button class="btn btn-outline-danger btn-sm"
+                                        @onclick ="() => BookAgain(booking.EventId)">
+                                        Book Again
+                                    </button>
+                                }
+                            </div>
+                                @if (booking.Status == BookingStatus.Completed)
+                                {
+                                    <div class="mt-3 text-muted small">
+                                        <span class="badge bg-success mb-2">
+                                            Event Completed
+                                        </span><br />
+
+                                        <div>
+                                            Event ended on:
+                                            <b>@booking.EventEndDate.ToString("dd MMM yyyy")</b>
+                                        </div>
+
+                                        <div>
+                                            Tickets booked:
+                                            <b>@booking.TicketCount</b>
+                                        </div>
+                                    </div>
+                                }
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+         }
+            @if (CurrentBookings.Count() > visibleCount)
+            {
+                <div class="text-center mt-4">
+                    <button class="btn btn-outline-secondary"
+                            @onclick="LoadMore">
+                        Load More
+                    </button>
+                </div>
+            }
+            @if (!CurrentBookings.Any())
+            {
+                <div class="text-center text-muted mt-5">
+                    No bookings found.
+                </div>
+            }
+       </div>  
+      
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="card shadow-sm position-sticky" style="top: 90px;">
+                <div class="card-body">
+
+                    <h6 class="fw-semibold mb-3">Need Help?</h6>
+
+                    <p class="small text-muted mb-2">
+                        • View and manage your event bookings and tickets from your account
+                    </p>
+
+                    <p class="small text-muted mb-2">
+                        • Download tickets and access your entry QR code anytime
+                    </p>
+
+                    <p class="small text-muted mb-2">
+                        • Cancel eligible bookings before the event start time
+                    </p>
+
+                    <p class="small text-muted mb-2">
+                        • Refunds (if applicable) are processed within 3–5 business days
+                    </p>
+
+                    <p class="small text-muted mb-2">
+                        • Entry is permitted only with a valid QR code at the venue
+                    </p>
+
+                    <hr />
+
+                    <div class="small text-muted">
+                        <i class="bi bi-headset me-1"></i>
+                        Support:
+                        <a href="mailto:support@eventigo.com" class="text-decoration-none">
+                            support@eventigo.com
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+@if (showCancelModal && selectedBooking != null)
+{
+    <div class="modal fade show d-block"
+         tabindex="-1"
+         style="background:rgba(0,0,0,0.55); backdrop-filter:blur(6px);">
+
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content custom-modal-content">
+
+                <div class="modal-header border-0 pb-1">
+                    <h5 class="modal-title fw-bold " style="font-size:18px">
+                        Cancel Ticket
+                    </h5>
+                </div>
+
+                <div class="modal-body pt-2">
+
+                    <div class="border rounded p-3 mb-3 bg-light">
+                        <div class="fw-semibold mb-1">
+                            @selectedBooking.EventName
+                        </div>
+
+                        <div class="small text-muted">
+                             @selectedBooking.VenueName <br />
+                             @selectedBooking.EventStartDate.ToString("dd MMM yyyy, hh:mm tt")
+                        </div>
+
+                        <hr class="my-2" />
+
+                        <div class="row small">
+                            <div class="col-6">
+                                <b>Booking ID</b><br />
+                                @selectedBooking.TicketNumber
+                            </div>
+                            <div class="col-6 text-end">
+                                <b>Tickets</b><br />
+                                @selectedBooking.TicketCount
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="fw-semibold mb-2">
+                        Are you sure you want to cancel this booking?
+                    </p>
+
+                    <div class="alert alert-warning small mb-3">
+                        <ul class="mb-0 ps-3">
+                            <li>This action <b>cannot be undone</b>.</li>
+                            <li>Your QR code will be <b>permanently invalidated</b>.</li>
+                            <li>Entry will not be allowed after cancellation.</li>
+                        </ul>
+                    </div>
+                    <div class="alert alert-info small mb-3">
+                        <b>Refund Information:</b>
+                        <ul class="mb-0 ps-3">
+                            <li>If eligible, refund will be processed within <b>3–5 business days</b>.</li>
+                            <li>Refund will be credited to the <b>original payment method</b>.</li>
+                            <li>Platform / convenience fees are <b>non-refundable</b>.</li>
+                        </ul>
+                    </div>
+
+                    <!-- EMAIL INFO -->
+                    <div class="small text-muted">
+                        A cancellation confirmation will be sent to your registered email address.
+                    </div>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer border-0 pt-1">
+                    <button class="btn btn-outline-secondary"
+                            style="width:120px"
+                            @onclick="CloseCancelModal">
+                        Keep Ticket
+                    </button>
+
+                    <button class="btn btn-danger"
+                            style="width:160px"
+                            disabled="@isCancelling"
+                            @onclick="ConfirmCancel">
+
+                        @if (isCancelling)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+
+                        Yes, Cancel Ticket
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<BookingDto> allBookings = new();
+    private BookingDto? selectedBooking;
+    private string activeTab = "upcoming";
+    private int visibleCount = 5;
+
+    private bool showCancelModal = false;
+    private bool isCancelling = false;
+    
+    // private bool showTicketModal = false;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        spinnerService.Show();
+        try
+        {
+            allBookings = await http.GetFromJsonAsync<List<BookingDto>>("api/Booking/my") ?? new();
+        }
+        catch
+        {
+            allBookings = new();
+        }
+
+        spinnerService.Hide();
+    }
+
+    private IEnumerable<BookingDto> CurrentBookings =>
+        activeTab switch
+        {
+            "upcoming" => allBookings.Where(b => b.Status == BookingStatus.Upcoming),
+            "completed" => allBookings.Where(b => b.Status == BookingStatus.Completed),
+            "cancelled" => allBookings.Where(b => b.Status == BookingStatus.Cancelled),
+            _ => Enumerable.Empty<BookingDto>()
+        };
+
+    private void ChangeTab(string tab) => activeTab = tab;
+
+    private void LoadMore()
+    {
+        visibleCount += 5; 
+    }
+
+    private void OpenCancelModal(BookingDto booking)
+    {
+        selectedBooking = booking;
+        showCancelModal = true;
+    }
+
+    private void CloseCancelModal()
+    {
+        showCancelModal = false;
+        selectedBooking = null;
+    }
+    private async Task ConfirmCancel()
+    {
+        if (selectedBooking == null) return;
+
+        isCancelling = true;
+
+        var response = await http.PostAsync(
+            $"api/Booking/{selectedBooking.Id}/cancel",null);
+
+        if (response.IsSuccessStatusCode)
+        {
+            selectedBooking.Status = BookingStatus.Cancelled;
+            showCancelModal = false;
+        }
+
+        isCancelling = false;
+    }
+
+    private void BookAgain(int eventId)
+    {
+        Navigation.NavigateTo($"/book-event/{eventId}");
+    }
+
+    // private void OpenTicketModal(BookingDto booking)
+    // {
+    //     selectedBooking = booking;
+    //     showTicketModal = true;
+    // }
+
+    // private void CloseTicketModal()
+    // {
+    //     showTicketModal = false;
+    //     selectedBooking = null;
+    // }
+    private void DownloadTicket(int bookingId)
+    {
+        Navigation.NavigateTo(
+            $"https://localhost:7239/api/Booking/{bookingId}/ticket",
+            true
+        );
+    }
+
+
+}

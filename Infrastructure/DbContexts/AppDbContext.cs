@@ -14,7 +14,7 @@ namespace Infrastructures.DbContexts
         public DbSet<Event> Events { get; set; }
         public DbSet<Venue> Venues { get; set; }
         public DbSet<City> Cities { get; set; }
-        public DbSet<Seat> Seats { get; set; }
+        //public DbSet<Seat> Seats { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<AdminUser> Users { get; set; }
         public DbSet<Country> Countries { get; set; }
@@ -55,12 +55,12 @@ namespace Infrastructures.DbContexts
 
 
             //  3. Booking ⇄ Seat (One-to-Many)
-            // ===========================
-            modelBuilder.Entity<Booking>()
-                .HasMany(b => b.Seats)
-                .WithOne(s => s.Booking)
-                .HasForeignKey(s => s.BookingId)
-                .OnDelete(DeleteBehavior.NoAction);
+            //// ===========================
+            //modelBuilder.Entity<Booking>()
+            //    //.HasMany(b => b.Seats)
+            //    .WithOne(s => s.Booking)
+            //    .HasForeignKey(s => s.BookingId)
+            //    .OnDelete(DeleteBehavior.NoAction);
 
             //  Country config
             // ===========================

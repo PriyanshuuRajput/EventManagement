@@ -76,33 +76,43 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("BookingDate")
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("EventId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("PaymentMode")
+                        .HasColumnType("int");
+
                     b.Property<int>("PaymentStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("QrCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TicketCount")
                         .HasColumnType("int");
 
                     b.Property<string>("TicketNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("UsedEntries")
+                        .HasColumnType("int");
 
-                    b.Property<string>("UserEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Bookings");
                 });
@@ -216,6 +226,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTime?>("PrizePaidAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("ReservedTickets")
+                        .HasColumnType("int");
 
                     b.Property<int>("SoldTickets")
                         .HasColumnType("int");
@@ -342,43 +355,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("Domains.Entities.Seat", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsBooked")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("SeatNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("EventId");
-
-                    b.ToTable("Seats");
-                });
-
             modelBuilder.Entity("Domains.Entities.State", b =>
                 {
                     b.Property<Guid>("Id")
@@ -447,6 +423,14 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domains.Entities.AdminUser", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdminUser");
+
                     b.Navigation("Event");
                 });
 
@@ -501,24 +485,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domains.Entities.Seat", b =>
-                {
-                    b.HasOne("Domains.Entities.Booking", "Booking")
-                        .WithMany("Seats")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Domains.Entities.Event", "Events")
-                        .WithMany("Seats")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Events");
-                });
-
             modelBuilder.Entity("Domains.Entities.State", b =>
                 {
                     b.HasOne("Domains.Entities.Country", "Country")
@@ -548,11 +514,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Manager");
                 });
 
-            modelBuilder.Entity("Domains.Entities.Booking", b =>
-                {
-                    b.Navigation("Seats");
-                });
-
             modelBuilder.Entity("Domains.Entities.City", b =>
                 {
                     b.Navigation("Venues");
@@ -561,11 +522,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domains.Entities.Country", b =>
                 {
                     b.Navigation("States");
-                });
-
-            modelBuilder.Entity("Domains.Entities.Event", b =>
-                {
-                    b.Navigation("Seats");
                 });
 
             modelBuilder.Entity("Domains.Entities.EventCategory", b =>

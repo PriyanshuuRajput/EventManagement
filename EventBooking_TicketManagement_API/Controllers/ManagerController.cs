@@ -3,6 +3,7 @@ using Applications.Dto.OrganizerDto;
 using Applications.Interfaces;
 using Applications.Interfaces.IService;
 using Domains.Entities;
+using Infrastructure.Repository;
 using Infrastructures.DbContexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,17 +24,24 @@ namespace EventBooking_TicketManagement_API.Controllers
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly AppDbContext _db;
         private readonly IPasswordHasher _passwordHasher;
-
-
-
-        public ManagerEventController(IEventService eventService, IWebHostEnvironment hostEnvironment, AppDbContext db, IPasswordHasher password, IManagerService managerService)
+        private readonly IBookingRepository _bookingRepository;
+        public ManagerEventController(
+            IEventService eventService,
+            IWebHostEnvironment hostEnvironment,
+            AppDbContext db,
+            IPasswordHasher password,
+            IManagerService managerService,
+            IBookingRepository bookingRepository   
+        )
         {
             _eventService = eventService;
             _hostEnvironment = hostEnvironment;
             _db = db;
             _passwordHasher = password;
             _managerService = managerService;
+            _bookingRepository = bookingRepository;
         }
+
         private async Task<Manager?> GetLoggedManager()
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -219,6 +227,42 @@ namespace EventBooking_TicketManagement_API.Controllers
                 return BadRequest(new { Error = ex.Message });
             }
         }
+
+        [Authorize(Roles = "Manager")]
+        [HttpGet("performance")]
+        public async Task<IActionResult> GetManagerPerformance()
+        {
+            var manager = await GetLoggedManager();
+            if (manager == null)
+                return Unauthorized("Manager not found.");
+
+            var events = await _eventService.GetManagerEventsAsync(manager.Id);
+
+            var result = new List<ManagerRevenueDto>();
+
+            foreach (var ev in events)
+            {
+                var stats = await _bookingRepository.GetEventStatsAsync(ev.Id);
+
+                result.Add(new ManagerRevenueDto
+                {
+                    EventId = ev.Id,
+                    Title = ev.Title,
+
+                    TotalTickets = ev.TotalTickets,
+                    TicketsSold = stats.TicketsSold,
+                    TicketsRemaining = ev.TotalTickets - stats.TicketsSold,
+
+                    Revenue = stats.Revenue,
+                    BookingCount = stats.BookingCount,
+
+                    Status = ev.Status
+                });
+            }
+
+            return Ok(result);
+        }
+
 
 
         // (Optional) Delete event before approval

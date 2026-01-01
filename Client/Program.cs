@@ -42,6 +42,8 @@ namespace Client
             builder.Services.AddBlazoredToast();
             builder.Services.AddBlazoredSessionStorage();
             //builder.Services.AddBlazoredLocalStorage();
+            builder.Services.AddScoped<LoginOverlayService>();
+
 
 
             // Auth state provider
