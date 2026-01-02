@@ -35,19 +35,49 @@ namespace Infrastructure.Repository
         public async Task<List<HomeBannerDto>> GetActiveAsync()
         {
             return await _db.HomeBanners
-                .Where(b=>b.Status)
-                .OrderBy(b=>b.Position)
-                .Select(b=>ToDto(b))
+                .Include(b => b.Event)
+                .Where(b => b.Status)
+                .OrderBy(b => b.Position)
+                .Select(b => new HomeBannerDto
+                {
+                    Id = b.Id,
+                    Image = b.Image,
+                    Title = b.EventId != null
+                            ? b.Event!.Title
+                            : b.Title,
+
+                    EventId = b.EventId,
+                    EventTitle = b.Event != null ? b.Event.Title : null,
+                    Link = b.Link,
+                    Position = b.Position,
+                    Status = b.Status
+                })
                 .ToListAsync();
         }
+
 
         public async Task<List<HomeBannerDto>> GetAllAsync()
         {
             return await _db.HomeBanners
+                .Include(b => b.Event)           
                 .OrderBy(b => b.Position)
-                .Select(b => ToDto(b))
+                .Select(b => new HomeBannerDto
+                {
+                    Id = b.Id,
+                    Image = b.Image,
+                    Title = b.EventId != null
+                            ? b.Event!.Title          
+                            : b.Title,
+
+                    EventId = b.EventId,
+                    EventTitle = b.Event != null ? b.Event.Title : null,
+                    Link = b.Link,
+                    Position = b.Position,
+                    Status = b.Status
+                })
                 .ToListAsync();
         }
+
 
         public async Task<HomeBannerDto?> GetByIdAsync(int id)
         {
@@ -62,12 +92,16 @@ namespace Infrastructure.Repository
             var banner = await _db.HomeBanners.FindAsync(dto.Id);
             if (banner == null) return;
 
-            banner.Position = dto.Position;
-            banner.Title = dto.Title;
+            banner.EventId = dto.EventId;
+
+            banner.Title = dto.EventId != null
+                ? banner.Title    
+                : dto.Title;
+
             banner.Image = dto.Image;
-            banner.EventId  = dto.EventId;
+            banner.Position = dto.Position;
             banner.Status = dto.Status;
-            banner.Link = dto.Link; 
+            banner.Link = dto.Link;
 
             await _db.SaveChangesAsync();
         }
@@ -85,7 +119,6 @@ namespace Infrastructure.Repository
                 Status = entity.Status
             };
         }
-
         private static HomeBanner ToEntity(HomeBannerDto dto)
         {
             return new HomeBanner
@@ -98,5 +131,7 @@ namespace Infrastructure.Repository
                 Status = dto.Status
             };
         }
+
+
     }
 }

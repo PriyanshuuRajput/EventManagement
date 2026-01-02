@@ -1,5 +1,5 @@
 ﻿using Applications.Dto;
-using EventBooking_TicketManagement_API.Services;
+using Applications.Interfaces.IService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventBooking_TicketManagement_API.Controllers
@@ -8,8 +8,8 @@ namespace EventBooking_TicketManagement_API.Controllers
     [ApiController]
     public class HomeBannerController : ControllerBase
     {
-        private readonly HomeBannerService _homeBannerService;
-        public HomeBannerController( HomeBannerService homeBannerService)
+        private readonly IHomeBannerService _homeBannerService;
+        public HomeBannerController( IHomeBannerService homeBannerService)
         {
             _homeBannerService = homeBannerService;
         }
@@ -58,5 +58,12 @@ namespace EventBooking_TicketManagement_API.Controllers
             await _homeBannerService.DeleteAsync(id);
             return Ok();
         }
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            var imagePath = await _homeBannerService.UploadImageAsync(file);
+            return Ok(imagePath);
+        }
+
     }
 }

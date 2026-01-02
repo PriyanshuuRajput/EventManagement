@@ -6,15 +6,6 @@
 @inject LoginOverlayService LoginOverlayService
 
 <style>
-
-    /* Sticky category bar */
-    /*.sticky-nav 
-    {
-        position: sticky;
-        top: 60px; 
-        z-index: 999;
-        background: #f8f9fa;
-    }*/
     .nav-logo {
         transition: transform .3s ease, filter .3s ease;
     }
@@ -47,6 +38,7 @@
                 background-color: #dc3545;
                 transition: all .3s ease;
                 transform: translateX(-50%);
+
                 border-radius: 10px;
             }
 
@@ -325,7 +317,7 @@
                 </NavLink>
                 </li>
             <li class="nav-item">
-                <NavLink class="nav-link" href="/reports" Match="NavLinkMatch.Prefix">
+                <NavLink class="nav-link" href="/appearance/home" Match="NavLinkMatch.Prefix">
                     <i class="bi bi-palette text-danger me-1"></i> Appearance
                 </NavLink>
             </li>

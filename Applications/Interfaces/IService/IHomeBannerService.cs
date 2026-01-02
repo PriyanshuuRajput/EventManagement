@@ -1,9 +1,5 @@
 ﻿using Applications.Dto;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace Applications.Interfaces.IService
 {
@@ -15,5 +11,7 @@ namespace Applications.Interfaces.IService
         Task AddAsync(HomeBannerDto dto);
         Task UpdateAsync(HomeBannerDto dto);
         Task DeleteAsync(int id);
+
+        Task<string> UploadImageAsync(IFormFile file);
     }
 }

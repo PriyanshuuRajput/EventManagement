@@ -1,0 +1,619 @@
+﻿@page "/appearance/banner"
+@using EventBooking.Client.SpinnerService
+@layout AppearanceLayout
+@attribute [Authorize(Roles = "Admin")]
+@inject SpinnerService spinnerService
+@inject HttpClient Http
+
+
+<style>
+    .banner-table th {
+        background: #dee2e6;
+        font-size: 16px;
+        font-weight: 600;
+        padding: 14px 12px !important;
+        white-space: nowrap;
+    }
+
+    .banner-table td {
+        padding: 12px 12px !important;
+        vertical-align: middle;
+        font-size: 14px;
+    }
+
+    .banner-table tr:hover {
+        background-color: #fff5f5;
+        /*        transform: scale(1.002);*/
+        transition: 0.2s ease;
+    }
+    .custom-modal-content {
+        border-radius: 16px !important;
+        border: none !important;
+        animation: scaleIn 0.25s ease-out;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    /* Tooltip wrapper */
+    .tooltip-icon {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+        /* Tooltip bubble */
+        .tooltip-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 130%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #212529;
+            color: #fff;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease, transform .2s ease;
+            z-index: 1000;
+        }
+
+        /* Tooltip arrow */
+        .tooltip-icon::before {
+            content: "";
+            position: absolute;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #212529 transparent transparent transparent;
+            opacity: 0;
+            transition: opacity .2s ease;
+        }
+
+        /* Show on hover */
+        .tooltip-icon:hover::after,
+        .tooltip-icon:hover::before {
+            opacity: 1;
+        }
+
+    .banner-preview-wrapper {
+        width: 100%;
+        height: 220px;
+        background: #000;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(0,0,0,.25);
+        position: relative;
+    }
+
+    .banner-preview-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+    .remove-image-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 5;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.65);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .remove-image-btn:hover {
+            background: #dc3545;
+            transform: scale(1.1);
+        }
+
+
+
+</style>
+
+<PageTitle>EventiGo-Banner</PageTitle>
+
+
+
+<div class="d-flex justify-content-between align-items-center ">
+    <div>
+    <h2 class="fw-bold mb-1">
+        Banners
+    </h2>
+    <p class="text-muted  mb-4">
+        Manage carousel images and add banners.
+    </p>
+    </div>
+    <button class="btn btn-danger" @onclick="OpenAddModal">
+        <i class="bi bi-plus-circle me-1"></i> Add Banner
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover banner-table align-middle mb-0">
+            <thead class="table-secondary shadow-sm">
+                <tr>
+                    <th class="text-center">Image</th>
+                    <th class="text-center">Title</th>
+                    <th class=" text-center">Status</th>
+                    <th class="text-center">Position</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!banners.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No  banners found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var banner in banners)
+                    {
+                        <tr>
+                            <td class="text-center">
+                                <img src="@GetBannerPreviewImage(banner)"
+                                     style="width:90px;height:50px;object-fit:cover"
+                                     class="rounded" />
+                            </td>
+
+                            <td class="text-center">
+                                @if (banner.EventId != null)
+                                {
+                                    <div class="small fw-semibold">@banner.EventTitle</div>
+                                }
+                                else
+                                {
+                                    <div class="small fw-semibold">@banner.Title</div>
+                                }
+                            </td>
+
+
+                            <td class="text-center">
+                                @if (banner.Status)
+                                {
+                                    <span class="badge bg-success" style="padding:8px 8px ">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary" style="padding:8px 8px ">Inactive</span>
+                                }
+                            </td>
+
+                            <td class="text-center">@banner.Position</td>
+
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-warning me-1"
+                                        @onclick="() => EditBanner(banner)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <button class="btn btn-sm btn-outline-danger"
+                                        @onclick="() => OpenDeleteModal(banner)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL -->
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content custom-modal-content">
+
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fs-3 fw-bold bold">
+                        @(isEdit ? "Edit Banner " : "Add Banner ")
+                    </h5>
+                    @* <button class="btn-close" @onclick="CloseModal"></button> *@
+                </div>
+
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <p class="text-muted small mb-3">
+                            This image will be displayed on the home page.
+                            You can promote an event, show a  banner, or add a custom promotional image.
+                            <br />
+                            <strong>Note:</strong> Active banners appear on the home page based on their position order.
+                        </p>
+                        <div class="col-md-3">
+                            <label class="form-label">Title
+                            <span class="tooltip-icon ms-1 text-muted"
+                                  data-tooltip="Optional. Displayed as text overlay on the banner.">
+                                <i class="bi bi-info-circle"></i>
+                            </span>
+                            </label>
+                            <input class="form-control"
+                                   @bind="model.Title"
+                                   disabled="@(model.EventId !=null)" />
+                            @if (model.EventId != null)
+                            {
+                                <small class="text-muted">
+                                    Title is filled from selected event
+                                </small>
+                            }
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Display Position
+                                <span class="tooltip-icon ms-1 text-muted"
+                                      data-tooltip="Lower number appears first in the carousel.">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                            </label>
+                            <select class="form-select"
+                                @bind="model.Position">
+                                    <option value="0">-- Select Position --</option>
+                                        @foreach (var pos in AvailablePositions)
+                                        {
+                                            <option value="@pos">
+                                                Position @pos
+                                            </option>
+                                        }   
+                            </select>
+
+    <small class="text-muted">
+        Max 5 banners allowed to display.
+    </small>
+                        </div>
+                        
+
+                        <div class="col-md-6">
+                            <label class="form-label">Event (optional)
+                                <span class="tooltip-icon ms-1 text-muted"
+                                      data-tooltip="Select an event to redirect users to its booking page.">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                            </label>
+                            <select class="form-select"
+                                    @bind="model.EventId">
+                                <option value="">-- Select Event --</option>
+                                @foreach (var ev in events)
+                                {
+                                    <option value="@ev.Id">@ev.Title</option>
+                                }
+                            </select>
+                        </div>
+
+                        @* <div class="col-md-6">
+                            <label class="form-label">Redirect Link
+                                <span class="tooltip-icon ms-1 text-muted"
+                                      data-tooltip="Used only when no event is selected (e.g. company website).">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                            </label>
+                            <input class="form-control"
+                                   @bind="model.Link"
+                                   disabled="@(model.EventId != null)" />
+                            @if (model.EventId != null)
+                            {
+                                <small class="text-muted">
+                                    Link disabled because an event is selected
+                                </small>
+                            }
+                        </div> *@
+                        <div class="col-12">
+                            <label class="form-label">
+                                Upload Banner Image
+                                <span class="tooltip-icon ms-1 text-muted"
+                                      data-tooltip="Main image shown on home page . Recommended size: 1920×600.">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                            </label>
+
+                            @if (string.IsNullOrWhiteSpace(model.Image))
+                            {
+                                <!-- UPLOAD STATE -->
+                                <div class="border rounded p-4 text-center bg-light">
+                                    <InputFile OnChange="UploadImage" accept="image/*"  style="margin-left:100px"/>
+
+                                    <div class="small text-muted mt-2">
+                                        JPG, PNG, WEBP • Max 5MB
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- PREVIEW STATE -->
+                                <div class="banner-preview-wrapper position-relative">
+
+                                    <!-- REMOVE ICON -->
+                                    <button type="button"
+                                            class="remove-image-btn"
+                                            title="Remove image"
+                                            @onclick="RemoveImage">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+
+                                    <!-- IMAGE -->
+                                    <img src="@(string.IsNullOrEmpty(LocalPreviewImage)
+                                                     ? GetImage(model.Image)
+                                                     : LocalPreviewImage)"
+                                         class="banner-preview-img" />
+                                </div>
+
+                            }
+                        </div>
+
+
+                        <div class="col-md-4">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input border-danger"
+                                       type="checkbox"
+                                       @bind="model.Status" />
+                                <label class="form-check-label">
+                                    Active (Show on home page)
+                                    <span class="tooltip-icon ms-1 text-muted"
+                                          data-tooltip="Only active banners are visible on the home page.">
+                                        <i class="bi bi-info-circle"></i>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+               
+                <div class="alert alert-light border small">
+                    After saving, this banner will appear on the home page
+                    if it is marked as <strong>Active</strong>.
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" style="padding:5px 20px" @onclick="CloseModal">
+                        Cancel
+                    </button>
+                    <button class="btn btn-danger" style=" padding:5px 25px" @onclick="SaveBanner">
+                        Save
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop fade show"></div>
+}
+
+@if (showDeleteModal)
+{
+    <div class=" modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);animation: fadein 0.3s ease-out ">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content custom-modal-content">
+
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Confirm Delete !</h5>
+                </div>
+
+                <div class="modal-body">
+                    <p>
+                        <text>Are you sure you want to delete this permanently?</text>
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDeleteModal">Cancel</button>
+                    <button class="btn btn-danger" @onclick="()=>ConfirmDeleteBanner()">Delete</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+@code {
+
+    public List<EventDto> events = new();
+    public List<HomeBannerDto> banners = new();
+    public HomeBannerDto model = new();
+    bool showModal;
+    bool isEdit;
+    string LocalPreviewImage ="null";
+    bool showDeleteModal = false;
+    int deleteBannerId;
+    string deleteBannerTitle = "";
+
+    List<int> AllPositions => Enumerable.Range(1, 5).ToList();
+
+    List<int> USedPositions => banners
+                                .Where(b => !isEdit || b.Id != model.Id)
+                                .Select(b => b.Position)
+                                .ToList();
+    List <int> AvailablePositions => AllPositions.Except(USedPositions).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        spinnerService.Show();
+        await Task.Delay(150);
+        await LoadBanners();
+        events = await Http.GetFromJsonAsync<List<EventDto>>("api/Events/approved") ?? new();
+        spinnerService.Hide();
+    }
+
+    async Task LoadBanners()
+    {
+        banners = await Http.GetFromJsonAsync<List<HomeBannerDto>>("api/HomeBanner")
+                  ?? new();
+    }
+
+
+    void OpenAddModal()
+    {
+        model = new HomeBannerDto { Status = true };
+        isEdit = false;
+        showModal = true;
+    }
+    void OnEventChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var eventId))
+        {
+            model.EventId = eventId;
+
+            var ev = events.FirstOrDefault(x => x.Id == eventId);
+            if (ev != null)
+            {
+                model.Title = ev.Title;   
+            }
+        }
+        else
+        {
+            model.EventId = null;
+            model.Title = string.Empty;
+        }
+    }
+
+    async Task UploadImage(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream(5_000_000).ReadAsync(buffer);
+        LocalPreviewImage = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+
+        var content = new MultipartFormDataContent();
+        content.Add(
+            new StreamContent(new MemoryStream(buffer)),
+            "file",
+            file.Name
+        );
+
+        var response = await Http.PostAsync("api/HomeBanner/upload", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var path = await response.Content.ReadAsStringAsync();
+            model.Image = path.Trim('"'); 
+        }
+
+        StateHasChanged();
+    }
+
+    void RemoveImage()
+    {
+        model.Image = string.Empty;
+        LocalPreviewImage = string.Empty;
+        StateHasChanged();
+    }
+
+
+    void EditBanner(HomeBannerDto banner)
+    {
+        model = new HomeBannerDto
+        {
+            Id = banner.Id,
+            Title = banner.Title,
+            Image = banner.Image,
+            EventId = banner.EventId,
+            Link = banner.Link,
+            Position = banner.Position,
+            Status = banner.Status
+        };
+
+        isEdit = true;
+        showModal = true;
+    }
+
+    async Task SaveBanner()
+    {
+        if (model.Position < 1 || model.Position > 5)
+        {
+            return; 
+        }
+
+        if (USedPositions.Contains(model.Position))
+        {
+            return;
+        }
+        if (isEdit)
+        {
+            await Http.PutAsJsonAsync("api/HomeBanner", model);
+        }
+        else
+        {
+            await Http.PostAsJsonAsync("api/HomeBanner", model);
+        }
+
+        showModal = false;
+        await LoadBanners();
+    }
+
+
+    string GetImage(string image)
+    {
+        if (string.IsNullOrWhiteSpace(image))
+            return "/images/default-banner.jpg";
+
+        if (image.StartsWith("http"))
+            return image;
+
+        return $"{Http.BaseAddress}{image.TrimStart('/')}";
+    }
+    string GetEventImage(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+            return "/images/default-banner.jpg";
+
+        if (imageUrl.StartsWith("http"))
+            return imageUrl;
+
+        return $"{Http.BaseAddress}{imageUrl.TrimStart('/')}";
+    }
+
+    string GetBannerPreviewImage(HomeBannerDto banner)
+    {
+        // 1 If banner is linked to event → use event image
+        if (banner.EventId != null)
+        {
+            var ev = events.FirstOrDefault(e => e.Id == banner.EventId);
+            if (ev != null)
+                return GetEventImage(ev.ImageUrl);
+        }
+
+        //  Else use uploaded banner image
+        if (!string.IsNullOrWhiteSpace(banner.Image))
+            return GetImage(banner.Image);
+
+        //  Fallback
+        return "/images/default-banner.jpg";
+    }
+
+    void OpenDeleteModal(HomeBannerDto banner)
+    {
+        deleteBannerId = banner.Id;
+        deleteBannerTitle = banner.Title ?? "selected Banner";
+        showDeleteModal = true;
+    }
+    void CloseDeleteModal() => showDeleteModal = false;
+
+    async Task ConfirmDeleteBanner()
+    {
+        await Http.DeleteAsync($"api/HomeBanner/{deleteBannerId}");
+        showDeleteModal = false;
+        await LoadBanners();
+    }
+
+
+    void CloseModal() => showModal = false;
+}

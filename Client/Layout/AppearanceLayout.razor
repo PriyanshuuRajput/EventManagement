@@ -1,0 +1,122 @@
+﻿@inherits LayoutComponentBase
+@layout MainLayout
+@attribute [Authorize(Roles = "Admin")]
+
+<style>
+    /* Sidebar base */
+    .appearance-sidebar {
+        width: 250px;
+        background: #fff;
+    }
+
+    /* Nav links */
+    .side-link {
+        color: #212529;
+        text-decoration: none;
+        padding: 12px 16px;
+        transition: all 0.2s ease;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+        /* Hover */
+        .side-link:hover {
+            color: #dc3545 !important;
+            background-color: #f8f9fa;
+            transform: translateX(4px);
+        }
+
+        /* Active */
+        .side-link.active {
+            background-color: #f8d7da;
+            color: #dc3545 !important;
+            font-weight: 600;
+            box-shadow: inset 4px 0 0 #dc3545;
+        }
+
+        /* Icon polish */
+        .side-link i {
+            font-size: 1.1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .side-link:hover i {
+            transform: scale(1.1);
+        }
+
+    /* Coming soon */
+    .coming-soon {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        color: #adb5bd;
+        margin: 14px 0 6px;
+        padding-left: 14px;
+    }
+
+</style>
+
+<div class="d-flex min-vh-100">
+
+    <!-- SIDEBAR -->
+    <aside class="appearance-sidebar border-end shadow-sm">
+
+        <!-- HEADER -->
+        <div class="p-3 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-palette fs-3 text-danger"></i>
+                <div>
+                    <div class="fw-bold text-danger text-uppercase" style="font-size:16px">
+                        Appearance
+                    </div>
+                    <small class="text-muted">Customize UI</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- MENU -->
+        <ul class="nav flex-column p-2">
+
+            <li class="nav-item">
+                <NavLink class="nav-link side-link d-flex align-items-center gap-3"
+                         href="/appearance/home"
+                         Match="NavLinkMatch.Prefix">
+                    <i class="bi bi-house-door"></i>
+                    <span>Home Page</span>
+                </NavLink>
+            </li>
+
+            <li class="nav-item">
+                <NavLink class="nav-link side-link d-flex align-items-center gap-3"
+                         href="/appearance/banner"
+                         Match="NavLinkMatch.Prefix">
+                    <i class="bi bi-images"></i>
+                    <span>Banner</span>
+                </NavLink>
+            </li>
+
+            <div class="coming-soon">COMING SOON</div>
+
+            <li class="nav-item">
+                <span class="nav-link d-flex align-items-center gap-3 text-muted ps-3">
+                    <i class="bi bi-layout-text-window"></i>
+                    <span>Footer</span>
+                </span>
+            </li>
+
+            <li class="nav-item">
+                <span class="nav-link d-flex align-items-center gap-3 text-muted ps-3">
+                    <i class="bi bi-moon-stars"></i>
+                    <span>Theme</span>
+                </span>
+            </li>
+            
+
+        </ul>
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="flex-grow-1 p-4 bg-body">
+        @Body
+    </div>
+
+</div>
