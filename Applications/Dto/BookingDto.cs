@@ -39,6 +39,8 @@ namespace Applications.Dto
 
         public decimal PlatformFee =>
             ConvenienceFeePerTicket * TicketCount;
+        public int? ManagerId { get; set; }
+        public string? ManagerName { get; set; }
 
         public decimal ManagerEarning =>
             TicketPrice * TicketCount;

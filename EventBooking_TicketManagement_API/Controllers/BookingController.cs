@@ -24,7 +24,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             _qrCodeService = qrCodeService;
         }
 
-        //  Create booking (User from JWT)
+        //  Create booking 
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequest request)
@@ -45,7 +45,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             });
         }
 
-        // ✅ Get all bookings 
+        //  Get all bookings 
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllBookings()
@@ -54,8 +54,8 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok(bookings);
         }
 
-        // ✅ Get bookings of logged-in user
-        [HttpGet("my")]
+        //  Get bookings of logged-in user
+        [HttpGet("admin/earning")]
         public async Task<IActionResult> GetMyBookings()
         {
             var userId = int.Parse(
@@ -81,7 +81,13 @@ namespace EventBooking_TicketManagement_API.Controllers
 
             return Ok(result);
         }
-
+        //[Authorize(Roles ="Admin")]
+        //[HttpGet("admin/earning")]
+        //public async Task<IActionResult> GetAdminBookings([FromQuery] PagedRequest request)
+        //{
+        //    var result = await _bookingService.GetAllBookingsForAdminAsync(request);
+        //    return Ok(result);
+        //}
 
         [AllowAnonymous]
         [HttpGet("{bookingId}/ticket")]

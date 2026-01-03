@@ -241,48 +241,52 @@
                             <br />
                             <strong>Note:</strong> Active banners appear on the home page based on their position order.
                         </p>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label">Title
-                            <span class="tooltip-icon ms-1 text-muted"
-                                  data-tooltip="Optional. Displayed as text overlay on the banner.">
+                            @* <span class="tooltip-icon ms-1 text-muted"
+                                  data-tooltip="Displayed as text overlay on the banner.">
                                 <i class="bi bi-info-circle"></i>
-                            </span>
+                            </span> *@
                             </label>
-                            <input class="form-control"
-                                   @bind="model.Title"
-                                   disabled="@(model.EventId !=null)" />
+                            <input class="form-control bg-light"
+                                   value="@model.Title"
+                                   disabled />
+
                             @if (model.EventId != null)
                             {
                                 <small class="text-muted">
-                                    Title is filled from selected event
+                                    Auto-filled from selected event
                                 </small>
                             }
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label">Display Position
                                 <span class="tooltip-icon ms-1 text-muted"
-                                      data-tooltip="Lower number appears first in the carousel.">
+                                      data-tooltip="Lower number appears first in the carousel. Max 5 Only active banners are visible on the home pag">
                                     <i class="bi bi-info-circle"></i>
                                 </span>
                             </label>
-                            <select class="form-select"
-                                @bind="model.Position">
-                                    <option value="0">-- Select Position --</option>
-                                        @foreach (var pos in AvailablePositions)
-                                        {
-                                            <option value="@pos">
-                                                Position @pos
-                                            </option>
-                                        }   
+                            <select class="form-select" @bind="model.Position">
+                                <option value="0" disabled>-- Select Position --</option>
+
+                                @foreach (var pos in AllPositions)
+                                {
+                                    var isUsed = USedPositions.Contains(pos);
+
+                                    <option value="@pos" disabled="@isUsed">
+                                        Position @pos @(isUsed ? "(Already Used)" : "")
+                                    </option>
+                                }
                             </select>
-
-    <small class="text-muted">
-        Max 5 banners allowed to display.
-    </small>
+                            @if (model.Position == 0)
+                            {
+                                <div class="text-muted small mt-1">
+                                    Please select a display position
+                                </div>
+                            }
                         </div>
-                        
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label">Event (optional)
                                 <span class="tooltip-icon ms-1 text-muted"
                                       data-tooltip="Select an event to redirect users to its booking page.">
@@ -290,7 +294,8 @@
                                 </span>
                             </label>
                             <select class="form-select"
-                                    @bind="model.EventId">
+                                    @bind="model.EventId"
+                                    @bind:after="OnEventChanged">
                                 <option value="">-- Select Event --</option>
                                 @foreach (var ev in events)
                                 {
@@ -324,38 +329,29 @@
                                     <i class="bi bi-info-circle"></i>
                                 </span>
                             </label>
-
-                            @if (string.IsNullOrWhiteSpace(model.Image))
+                            @if (model.EventId != null)
                             {
-                                <!-- UPLOAD STATE -->
-                                <div class="border rounded p-4 text-center bg-light">
-                                    <InputFile OnChange="UploadImage" accept="image/*"  style="margin-left:100px"/>
+                                var ev = events.FirstOrDefault(e => e.Id == model.EventId);
 
-                                    <div class="small text-muted mt-2">
-                                        JPG, PNG, WEBP • Max 5MB
+                                if (ev != null && !string.IsNullOrWhiteSpace(ev.ImageUrl))
+                                {
+                                    <div class="banner-preview-wrapper">
+                                        <img src="@GetEventImage(ev.ImageUrl)" class="banner-preview-img" />
                                     </div>
-                                </div>
+                                }
                             }
-                            else
+                            else if (!string.IsNullOrWhiteSpace(model.Image))
                             {
-                                <!-- PREVIEW STATE -->
                                 <div class="banner-preview-wrapper position-relative">
 
-                                    <!-- REMOVE ICON -->
                                     <button type="button"
                                             class="remove-image-btn"
-                                            title="Remove image"
                                             @onclick="RemoveImage">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
 
-                                    <!-- IMAGE -->
-                                    <img src="@(string.IsNullOrEmpty(LocalPreviewImage)
-                                                     ? GetImage(model.Image)
-                                                     : LocalPreviewImage)"
-                                         class="banner-preview-img" />
+                                    <img src="@GetImage(model.Image)" class="banner-preview-img" />
                                 </div>
-
                             }
                         </div>
 
@@ -377,17 +373,25 @@
                     </div>
                 </div>
                
-                <div class="alert alert-light border small">
+                <div class="alert alert-light border small mb-0">
                     After saving, this banner will appear on the home page
                     if it is marked as <strong>Active</strong>.
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" style="padding:5px 20px" @onclick="CloseModal">
+                    <button class="btn btn-secondary" style="padding:5px 20px"disabled="@isProcessing" @onclick="CloseModal">
                         Cancel
                     </button>
-                    <button class="btn btn-danger" style=" padding:5px 25px" @onclick="SaveBanner">
-                        Save
+                    <button class="btn btn-danger" style=" padding:5px 25px" disabled=@isProcessing @onclick="SaveBanner">
+                        @if (isProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                            <span>Saving...</span>
+                        }
+                        else 
+                        {
+                            <span>Save</span>
+                        }
                     </button>
                 </div>
 
@@ -410,7 +414,10 @@
 
                 <div class="modal-body">
                     <p>
-                        <text>Are you sure you want to delete this permanently?</text>
+                    <p>
+                        Are you sure you want to delete
+                        <strong>@deleteBannerTitle</strong>?
+                    </p>
                     </p>
                 </div>
 
@@ -432,6 +439,7 @@
     bool isEdit;
     string LocalPreviewImage ="null";
     bool showDeleteModal = false;
+    bool isProcessing = false;
     int deleteBannerId;
     string deleteBannerTitle = "";
 
@@ -442,6 +450,7 @@
                                 .Select(b => b.Position)
                                 .ToList();
     List <int> AvailablePositions => AllPositions.Except(USedPositions).ToList();
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -465,25 +474,19 @@
         isEdit = false;
         showModal = true;
     }
-    void OnEventChanged(ChangeEventArgs e)
+    void OnEventChanged()
     {
-        if (int.TryParse(e.Value?.ToString(), out var eventId))
+        if (model.EventId != null)
         {
-            model.EventId = eventId;
-
-            var ev = events.FirstOrDefault(x => x.Id == eventId);
+            var ev = events.FirstOrDefault(e => e.Id == model.EventId);
             if (ev != null)
-            {
-                model.Title = ev.Title;   
-            }
+                model.Title = ev.Title;
         }
         else
         {
-            model.EventId = null;
             model.Title = string.Empty;
         }
     }
-
     async Task UploadImage(InputFileChangeEventArgs e)
     {
         var file = e.File;
@@ -537,6 +540,8 @@
 
     async Task SaveBanner()
     {
+        if (isProcessing)
+            return;
         if (model.Position < 1 || model.Position > 5)
         {
             return; 
@@ -546,17 +551,25 @@
         {
             return;
         }
-        if (isEdit)
+        isProcessing = true;
+        try
         {
-            await Http.PutAsJsonAsync("api/HomeBanner", model);
-        }
-        else
-        {
-            await Http.PostAsJsonAsync("api/HomeBanner", model);
-        }
+            if (isEdit)
+            {
+                await Http.PutAsJsonAsync("api/HomeBanner", model);
+            }
+            else
+            {
+                await Http.PostAsJsonAsync("api/HomeBanner", model);
+            }
 
-        showModal = false;
-        await LoadBanners();
+            showModal = false;
+            await LoadBanners();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
 
 
@@ -583,21 +596,19 @@
 
     string GetBannerPreviewImage(HomeBannerDto banner)
     {
-        // 1 If banner is linked to event → use event image
-        if (banner.EventId != null)
+        if (banner.EventId != null && events.Any())
         {
             var ev = events.FirstOrDefault(e => e.Id == banner.EventId);
-            if (ev != null)
+            if (ev != null && !string.IsNullOrWhiteSpace(ev.ImageUrl))
                 return GetEventImage(ev.ImageUrl);
         }
 
-        //  Else use uploaded banner image
         if (!string.IsNullOrWhiteSpace(banner.Image))
             return GetImage(banner.Image);
 
-        //  Fallback
         return "/images/default-banner.jpg";
     }
+
 
     void OpenDeleteModal(HomeBannerDto banner)
     {
