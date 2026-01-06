@@ -9,6 +9,9 @@
         public string? Status { get; set; }
         public int? CategoryId { get; set; } 
         public DateTime? DateFilter { get; set; }
+
+        public int? ManagerId { get; set; }
     }
+
 
 }

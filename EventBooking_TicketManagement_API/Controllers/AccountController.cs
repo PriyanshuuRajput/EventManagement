@@ -3,6 +3,7 @@ using Applications.Dto.OrganizerDto;
 using Applications.Interfaces;
 using Applications.Interfaces.IService;
 using Domains.Entities;
+using EventBooking_TicketManagement_API.Helpers;
 using Infrastructures.DbContexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -252,6 +253,87 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok(new { message = "Password changed successfully." });
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            Console.WriteLine("🔥 ForgotPassword endpoint HIT");
+            Console.WriteLine($"📧 Email received: {dto.Email}");
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _db.Users
+                .FirstOrDefaultAsync(x => x.Email == dto.Email && x.IsActive);
+
+            // Security: silent response
+            if (user == null)
+                return Ok(new { message = "If email exists, reset link has been sent." });
+
+            // Invalidate old tokens
+            var oldTokens = _db.ChangePasswordTokens
+                .Where(x => x.AdminUserId == user.Id && !x.IsUsed);
+
+            foreach (var t in oldTokens)
+                t.IsUsed = true;
+
+            var token = new ChangePasswordToken
+            {
+                AdminUserId = user.Id,
+                Token = Guid.NewGuid().ToString("N"),
+                Expiry = DateTime.UtcNow.AddMinutes(15),
+                IsUsed = false
+            };
+
+            _db.ChangePasswordTokens.Add(token);
+            await _db.SaveChangesAsync();
+
+            var resetLink =
+                $"https://localhost:7117/change-password?token={token.Token}";
+
+            var emailHtml = EmailTemplates.ResetPassword(resetLink);
+
+            await _emailService.SendEmailAsync(
+                user.Email,
+                "Reset your EventiGO password",
+                emailHtml);
+
+            return Ok(new { message = "If email exists, reset link has been sent." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var tokenEntity = await _db.ChangePasswordTokens
+                .Include(x => x.AdminUser)
+                .ThenInclude(x => x.Role)
+                .FirstOrDefaultAsync(x =>
+                    x.Token == dto.Token &&
+                    !x.IsUsed &&
+                    x.Expiry > DateTime.UtcNow);
+
+            if (tokenEntity == null)
+                return BadRequest("Invalid or expired token.");
+
+            tokenEntity.AdminUser.PasswordHash =
+                _passwordHasher.HashPassword(dto.NewPassword);
+
+            tokenEntity.AdminUser.ChangePassword = false;
+            tokenEntity.IsUsed = true;
+
+            await _db.SaveChangesAsync();
+
+            var jwt = _jwt.GenerateToken(tokenEntity.AdminUser);
+
+            return Ok(new
+            {
+                message = "Password reset successful.",
+                token = jwt,
+                role = tokenEntity.AdminUser.Role?.Name
+            });
+        }
 
         // Logout
         [HttpPost("logout")]

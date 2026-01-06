@@ -6,6 +6,7 @@ using Domains.Entities;
 using EventBooking_TicketManagement_API.Helper;
 using EventBooking_TicketManagement_API.Helpers;
 using Infrastructures.DbContexts;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace EventBooking_TicketManagement_API.Services
@@ -68,7 +69,7 @@ namespace EventBooking_TicketManagement_API.Services
                     TicketCount = request.TicketCount,
                     CreatedAt = DateTime.UtcNow,
                     TicketNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
-                    PaymentStatus = PaymentStatus.Pending,
+                    PaymentStatus = PaymentStatus.Paid,
                     QrCode = Guid.NewGuid().ToString(),
                     UsedEntries = 0
                 };
@@ -194,6 +195,10 @@ namespace EventBooking_TicketManagement_API.Services
                     CreatedAt = b.CreatedAt,
                     TicketNumber = b.TicketNumber,
                     PaymentStatus = b.PaymentStatus,
+                    ManagerId = b.Event?.ManagerId ,
+                    ManagerName = b.Event?.Managers != null? 
+                                    b.Event.Managers.ManagerName
+                                    : "Admin",
                     QrCode = b.QrCode,
                     Status = status,
                 };
@@ -260,8 +265,61 @@ namespace EventBooking_TicketManagement_API.Services
             return await _bookingRepository
                 .GetBookingsByManagerIdAsync(managerId, request);
         }
+        public async Task<PagedResult<BookingDto>> GetAllBookingsForAdminAsync(PagedRequest request)
+        {
+            var query = _db.Bookings
+    .Include(b => b.Event)
+        .ThenInclude(e => e.Managers)
+    .Include(b => b.Event)
+        .ThenInclude(e => e.Venue)
+    .Include(b => b.Event)
+        .ThenInclude(e => e.EventCategory)
+    .AsQueryable();
+            //  Search
+            if (!string.IsNullOrWhiteSpace(request.Search))
+                query = query.Where(b => b.Event.Title.Contains(request.Search));
 
+            //  Date filter
+            if (request.DateFilter.HasValue)
+                query = query.Where(b => b.CreatedAt.Date == request.DateFilter.Value.Date);
 
+            //  Total count 
+            var totalCount = await query.CountAsync();
+
+            //  Page data
+            var items = await query
+                .OrderByDescending(b => b.CreatedAt)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(b => new BookingDto
+                {
+                    Id = b.Id,
+                    EventId = b.EventId,
+                    EventName = b.Event.Title,
+                    TicketCount = b.TicketCount,
+                    TicketPrice = b.Event.TicketPrice,
+                    CreatedAt = b.CreatedAt,
+                    Status = b.PaymentStatus == PaymentStatus.Cancelled
+                        ? BookingStatus.Cancelled
+                        : DateTime.UtcNow > b.Event.EndDate
+                            ? BookingStatus.Completed
+                            : BookingStatus.Upcoming
+                })
+                .ToListAsync();
+
+            //  Return paged result
+            return new PagedResult<BookingDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
+        }
+        public async Task<PagedResult<BookingDto>> GetAdminBookingsAsync(PagedRequest request)
+        {
+            return await _bookingRepository.GetBookingsForAdminAsync(request);
+        }
 
     }
 }

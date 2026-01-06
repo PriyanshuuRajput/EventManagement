@@ -20,6 +20,8 @@ namespace Applications.Dto
         public decimal TotalAmount => TicketPrice * TicketCount;
         // Ticket info
         public int TicketCount { get; set; }
+        public int TotalTickets { get; set; } 
+
 
         // Booking info
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -39,6 +41,8 @@ namespace Applications.Dto
 
         public decimal PlatformFee =>
             ConvenienceFeePerTicket * TicketCount;
+        public int? ManagerId { get; set; }
+        public string? ManagerName { get; set; }
 
         public decimal ManagerEarning =>
             TicketPrice * TicketCount;

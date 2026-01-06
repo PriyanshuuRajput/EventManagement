@@ -4,6 +4,7 @@
     {
         public event Action? OnShowLogin;
         public event Action? OnShowManagerSignup;
+        public event Action? OnShowForgetPassword;
         public string? ReturnUrl { get; private set;  }
 
         public void ShowLogin(string? returnUrl = null) {
@@ -13,6 +14,10 @@
         public void ClearReturnUrl()
         {
             ReturnUrl = null;
+        }
+        public void ForgetPassowrd()
+        {
+            OnShowForgetPassword?.Invoke();
         }
         public void ShowManagerSignup() => OnShowManagerSignup?.Invoke();
     }

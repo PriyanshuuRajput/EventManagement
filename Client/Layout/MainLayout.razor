@@ -3,11 +3,12 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject LoginOverlayService LoginOverlayService
+@inject SpinnerService SpinnerService
+
 
 @using System.Text
 @using EventBooking.Client.Pages.AccountPages
-
-
+@using EventBooking.Client.SpinnerService
 
 <style>
     .navbar-blurred {
@@ -71,7 +72,7 @@
     <NavMenu/>
 
     <!-- Page content -->
-    <main class="flex-grow-1 container-fluid p-4">
+    <main class="flex-grow-1 container-fluid  d-flex flex-column @(isAppearance ? "p-0": "p-4")">
         @Body
         <Spinner/>
     </main>
@@ -104,37 +105,42 @@
     {
         <!-- Footer -->
         <footer class="bg-dark text-light text-center py-3 mt-auto">
-            <small>© 2025 EventiGO - All rights reserved.</small>
+            <small>© @DateTime.UtcNow.Year EventiGO - All rights reserved.</small>
         </footer>
     }
 </div>
 
-@if (IsLoginVisible || IsSignupVisible)
+@if (currentView != OverlayView.None)
 {
     <div class="blur-overlay" @onclick="CloseOverlay">
         <div class="login-popup" @onclick:stopPropagation>
-            @if (IsLoginVisible)
+
+            @if (currentView == OverlayView.Login)
             {
                 <h4 class="text-center text-danger mb-3">Welcome Back</h4>
                 <p class="text-center text-muted mb-4">Login to continue</p>
 
-                <!-- Reusable Login Component -->
                 <UserLogin email="@email"
                            OnSuccess="OnLoginSuccess"
                            OnCancel="CloseOverlay"
-                           OnSwitchToSignup="ShowUserSignup" />
+                           OnSwitchToSignup="ShowUserSignup"
+                           OnForgotPassword="ShowForgotPassword" />
             }
-            else if (IsSignupVisible)
+            else if (currentView == OverlayView.Signup)
             {
                 @if (SignupMode == "User")
                 {
                     <SignUp OnCancel="CloseOverlay"
                             OnSwitchToLogin="ShowLoginOverlay" />
                 }
-                else if (SignupMode == "Manager")
+                else
                 {
                     <ManagerSignUp OnCancel="CloseOverlay" />
                 }
+            }
+            else if (currentView == OverlayView.ForgotPassword)
+            {
+                <ForgotPassword OnBack="ShowLoginOverlay" />
             }
 
         </div>
@@ -142,23 +148,37 @@
 }
 
 @code {
-    private bool IsLoginVisible = false;
-    private bool IsSignupVisible = false;
+
+    enum OverlayView
+    {
+        None,
+        Login,
+        Signup,
+        ForgotPassword
+    }
+    private OverlayView currentView = OverlayView.None;
     private string SignupMode = "User";
 
-    // public static MainLayout Instance { get; private set; }
-    // MainLayout.Instance?.ShowLoginOverlay();
+    private bool isAppearance => Navigation.Uri.Contains("/appearance");
 
     private string? email;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            SpinnerService.Enable();
+        }
+    }
     protected override void OnInitialized()
     {
-        // Instance = this;
         LoginOverlayService.OnShowLogin += ShowLoginOverlay;
         LoginOverlayService.OnShowManagerSignup += ShowManagerSignup;
+        LoginOverlayService.OnShowForgetPassword += ShowForgotPassword;
+
         var uri = new Uri(Navigation.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
-        // Detect ?loginEmail=encodedString
         if (query["loginEmail"] != null)
         {
             var encodedEmail = query["loginEmail"];
@@ -173,19 +193,14 @@
                 email = encodedEmail;
             }
 
-            IsLoginVisible = true;
-            IsSignupVisible = false;
-            return;
+            currentView = OverlayView.Login;
         }
     }
-  
     private void OnLoginSuccess()
     {
-        IsLoginVisible = false;
-        IsSignupVisible = false;
+        currentView = OverlayView.None;
 
         var returnUrl = LoginOverlayService.ReturnUrl;
-
         LoginOverlayService.ClearReturnUrl();
 
         if (!string.IsNullOrWhiteSpace(returnUrl))
@@ -198,34 +213,35 @@
         }
     }
 
-
     public void ShowLoginOverlay()
     {
-        IsSignupVisible = false;
-        IsLoginVisible = true;
-        StateHasChanged();
-    }
-
-    private void CloseOverlay()
-    {
-        IsSignupVisible = false;
-        IsLoginVisible = false;
+        currentView = OverlayView.Login;
         StateHasChanged();
     }
 
     private void ShowUserSignup()
     {
         SignupMode = "User";
-        IsLoginVisible = false;
-        IsSignupVisible = true;
+        currentView = OverlayView.Signup;
         StateHasChanged();
     }
 
     public void ShowManagerSignup()
     {
         SignupMode = "Manager";
-        IsSignupVisible = true;
-        IsLoginVisible = false;
+        currentView = OverlayView.Signup;
+        StateHasChanged();
+    }
+
+    private void ShowForgotPassword()
+    {
+        currentView = OverlayView.ForgotPassword;
+        StateHasChanged();
+    }
+
+    private void CloseOverlay()
+    {
+        currentView = OverlayView.None;
         StateHasChanged();
     }
 
@@ -236,15 +252,9 @@
     public void Dispose()
     {
         LoginOverlayService.OnShowLogin -= ShowLoginOverlay;
-        LoginOverlayService.OnShowManagerSignup -= ShowManagerSignup; 
+        LoginOverlayService.OnShowManagerSignup -= ShowManagerSignup;
+        LoginOverlayService.OnShowForgetPassword -= ShowForgotPassword;
     }
-
-    //private void ShowSignupOverlay()
-    //{
-    //    IsLoginVisible = false;
-    //    IsSignupVisible = true;
-    //    StateHasChanged();
-    //}
 
 
 }

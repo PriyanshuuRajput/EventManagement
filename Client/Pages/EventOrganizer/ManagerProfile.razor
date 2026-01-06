@@ -7,7 +7,7 @@
 @using Applications.Dto.OrganizerDto
 @using System.Net.Http.Headers
 @using System.ComponentModel.DataAnnotations
-@attribute [Authorize(Roles="Manager")]
+@attribute [Authorize(Roles="Manager,Admin")]
 
 
 <style>
@@ -16,13 +16,14 @@
         overflow: hidden !important;
     }
 
-
+    body {
+        background: radial-gradient( circle at top, rgba(220, 53, 69, 0.08), rgba(255, 255, 255, 0.9) 40% ), linear-gradient( 180deg, #f9fafb 0%, #f1f3f5 100% );
+    }
     .modern-stepper {
         display: flex;
         justify-content: space-between;
         position: relative;
-        margin-bottom: 30px;
-        padding: 5px 0;
+        align-items:flex-start;
     }
 
     .stepper-line {
@@ -48,7 +49,11 @@
     }
 
     .stepper-item {
-        width: 33%;
+        flex: 1; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
         text-align: center;
         z-index: 3;
     }
@@ -76,53 +81,69 @@
         }
 
     .step-label {
-        /*        margin-top: 10px;*/
+        margin-top: 8px;
         font-size: 0.85rem;
         font-weight: 600;
-        color: #3b3a3f;
-    }
-
-    /*.step-section {*/
-    /*        height: calc(100vh - 100px);*/
-    /*display: flex;
-        justify-content: center;
-        align-items: center;*/
-    /*        overflow: hidden !important;*/
-    /*overflow-y:auto;
-        padding: 0;
-    }*/
-    .step-section {
-        height: calc(100vh - 160px);
-        overflow-y: auto;
-        padding: 0;
-    }
-
+        line-height: 1.2;
+        max-width: 120px;
     }
 
     .form-card {
-        width: 580px;
+        width: 100%;
+        max-width: 860px;
         background: #ffffff;
-        padding: 26px 30px;
-        box-shadow: 0px 8px 20px rgba(0,0,0,0.06);
+        padding: 28px 32px;
+        box-shadow: 0px 12px 32px rgba(0,0,0,0.08);
         margin: auto;
-        max-height: calc(100vh - 200px);
-        overflow-y: auto;
-        border-radius: 14px;
+        border-radius:6px
+    }
+    .float-input {
+        position: relative;
     }
 
-        .form-card .mb-3 {
-            margin-bottom: 12px !important;
+        .flaot-input input,
+        .float-input select {
+            width: 100%;
+            height: 48px;
+            padding: 14px 14px 4px 14px;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            transition: all .25s ease;
         }
 
-        .form-card .section-title {
-            margin: 12px 0 8px !important;
+            .dashboard-input input:focus,
+            .dashboard-input select:focus {
+                border-color: #dc3545;
+                box-shadow: 0 0 0 3px rgba(220,53,69,0.15), 0 8px 22px rgba(0,0,0,0.08);
+                outline: none;
+            }
+
+        /* FLOATING LABEL */
+        .float-input label {
+            position: absolute;
+            top: 50%;
+            left: 14px;
+            color: #6b7280;
+            font-size: 0.9rem;
+            pointer-events: none;
+            transform: translateY(-50%);
+            transition: all .2s ease;
+            background: white;
+            padding: 0 8px;
         }
 
+        .float-input input:focus + label,
+        .float-input input:not(:placeholder-shown) + label,
+        .float-input select:focus + label,
+        .float-input select:not([value=""]) + label {
+            top: 0;
+            transform: translateY(-12px);
+            color: #dc3545;
+        }
 
-    .form-label {
-        font-size: 0.9rem;
-        margin-bottom: 4px;
-    }
 
     .pretty-input {
         width: 100%;
@@ -152,16 +173,13 @@
 
     .dropdown-arrow {
         position: absolute;
-        right: 12px;
-        top: 50%;
+        right: 15px;
+        top: 70%;
         transform: translateY(-50%);
         pointer-events: none;
         font-size: 1rem;
         color: #555;
     }
-
-
-
 
     .bms-input {
         height: 38px;
@@ -253,25 +271,25 @@
     <EditForm Model="@model">
         <DataAnnotationsValidator />
 
-        <div class="step-section d-flex justify-content-center mt-4">
+        <div class="step-section d-flex justify-content-center mt-2">
             <div class="form-card">
 
                 <div class="row">
-                    <div class="col-6 mb-3">
-                        <label class="form-label">First Name <span class="text-danger">*</span></label>
-                        <InputText class="pretty-input" @bind-Value="model.FirstName" />
+                    <div class="col-md-6 mb-3 float-input">
+                        <InputText class="pretty-input" placeholder="" @bind-Value="model.FirstName" />
+                        <label>First Name <span class="text-danger">*</span></label>
                         <ValidationMessage For="@(()=>model.FirstName)" class="text-danger small" />
                     </div>
 
-                    <div class="col-6 mb-3">
-                        <label class="form-label">Last Name</label>
-                        <InputText class="pretty-input" @bind-Value="model.LastName" />
+                    <div class="col-6 mb-3 float-input">
+                        <InputText class="pretty-input" placeholder=""@bind-Value="model.LastName" />
+                        <label>Last Name</label>
                         @*<ValidationMessage For="@(()=>model.LastName)" />*@
                     </div>
 
-                    <div class="col-12 mb-3">
-                        <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
-                        <InputText class="pretty-input" maxlength="10" @bind-Value="model.Mobile" />
+                    <div class="col-12 mb-3 float-input">
+                        <InputText class="pretty-input" placeholder="" maxlength="10" @bind-Value="model.Mobile" />
+                        <label>Mobile Number <span class="text-danger">*</span></label>
                         <ValidationMessage For="@(()=>model.Mobile)" class="text-danger small" />
                     </div>
                 </div>
@@ -279,22 +297,22 @@
                 <div class="section-title mt-2 text-secondary">Update Password</div>
 
                 <div class="row">
-                    <div class="col-12 mb-3">
-                        <label class="form-label">Old Password <span class="text-danger">*</span></label>
-                        <InputText type="password" class="pretty-input" @bind-Value="model.OldPassword" />
+                    <div class="col-12 mb-3 float-input">
+                        <InputText type="password" class="pretty-input" placeholder="" @bind-Value="model.OldPassword" />
+                        <label>Old Password <span class="text-danger">*</span></label>
                         <ValidationMessage For="@(()=>model.OldPassword)" class="text-danger samll" />
 
                     </div>
 
-                    <div class="col-6 mb-3">
-                        <label class="form-label">New Password <span class="text-danger">*</span></label>
-                        <InputText type="password" class="pretty-input" @bind-Value="model.NewPassword" />
+                    <div class="col-md-6 mb-3 float-input">
+                        <InputText type="password" class="pretty-input" placeholder="" @bind-Value="model.NewPassword" />
+                        <label >New Password <span class="text-danger">*</span></label>
                         <ValidationMessage For="@(()=>model.NewPassword)" class="text-danger small" />
                     </div>
 
-                    <div class="col-6 mb-3">
-                        <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                        <InputText type="password" class="pretty-input" @bind-Value="model.ConfirmPassword" />
+                    <div class="col-md-6 mb-3 float-input">
+                        <InputText type="password" class="pretty-input" placeholder="" @bind-Value="model.ConfirmPassword" />
+                        <label>Confirm Password <span class="text-danger">*</span></label>
                         <ValidationMessage For="@(()=>model.ConfirmPassword)" class="text-danger small" />
                     </div>
                 </div>
@@ -317,30 +335,31 @@
     <EditForm Model="@model">
         <DataAnnotationsValidator />
 
-        <div class="step-section d-flex justify-content-center">
+        <div class="step-section d-flex justify-content-center mt-2">
             <div class="form-card">
                 <div class="row">
 
                     <!-- LEFT COLUMN -->
-                    <div class="col-md-6">
+                    <div class="col-md-6 ">
 
                         <!-- Organization Name -->
-                        <div class="mb-3">
-                            <label class="form-label">Organization Name</label>
-                            <InputText class="pretty-input" @bind-Value="model.OrganizationName" />
+                        <div class="mb-3 float-input">
+                            <InputText class="pretty-input" placeholder="" @bind-Value="model.OrganizationName" />
+                            <label>Organization Name</label>
                         </div>
 
                         <!-- PAN -->
-                        <div class="mb-3">
-                            <label class="form-label">Pan number</label>
-                            <InputText class="pretty-input" @bind-Value="model.PAN" />
+                        <div class="mb-3 float-input">
+                            <InputText class="pretty-input" placeholder="" @bind-Value="model.PAN" />
+                            <label>Pan number</label>
                             <ValidationMessage For="@(()=>model.PAN)" class="text-danger small" />
+
                         </div>
 
                         <!-- Alternate Email -->
-                        <div class="mb-3">
-                            <label class="form-label">Alternate email</label>
-                            <InputText class="pretty-input" @bind-Value="model.AlternateEmail" />
+                        <div class="mb-3 float-input">
+                            <InputText class="pretty-input" placeholder=""@bind-Value="model.AlternateEmail" />
+                            <label>Alternate email</label>
                             @*<ValidationMessage For="@(() => model.AlternateEmail)" />*@
                         </div>
 
@@ -358,7 +377,7 @@
                             {
                                 <div class="mt-2">
                                     <img src="@model.Image" alt="Profile Image"
-                                         style="height:100px;width:100px;object-fit:cover;border-radius:0;border:2px solid #ddd;" />
+                                         style="height:80px;width:120px;object-fit:cover;border-radius:0;border:2px solid #ddd;" />
 
                                     <button class="btn btn-sm btn-danger mt-2" style=" margin-left: 30px"
                                             @onclick="RemoveImage">
@@ -366,6 +385,7 @@
                                     </button>
                                 </div>
                             }
+
                         </div>
 
                     </div>
@@ -374,9 +394,10 @@
                     <div class="col-md-6">
 
                         <!-- Country -->
-                        <div class="mb-3 position-relative">
-                            <label class="form-label">Country <span class="text-danger">*</span></label>
+                        <div class="mb-3">
+                           
                             <div class="dropdown-container">
+                                <label class="form-label">Country <span class="text-danger">*</span></label>
                                 <select class="form-control bms-input"
                                         @onclick="ToggleCountryDropdown"
                                         @onblur="CloseCountryDropdown"
@@ -388,6 +409,7 @@
                                         <option value="@c.Id">@c.Name</option>
                                     }
                                 </select>
+                                
 
                                 <span class="dropdown-arrow">
                                     <i class="bi @(isCountryOpen ? "bi-chevron-up" : "bi-chevron-down")"></i>
@@ -400,9 +422,10 @@
 
 
                         <!-- State -->
-                        <div class="mb-3 position-relative">
-                            <label class="form-label">State <span class="text-danger">*</span></label>
+                        <div class="mb-3">
+                            
                             <div class="dropdown-container">
+                                <label class="form-label">State <span class="text-danger">*</span></label>
                                 <select class="form-control bms-input"
                                         @onclick="ToggleStateDropdown"
                                         @onblur="CloseStateDropdown"
@@ -414,7 +437,6 @@
                                         <option value="@s.Id">@s.Name</option>
                                     }
                                 </select>
-
                                 <span class="dropdown-arrow">
                                     <i class="bi @(isStateOpen ? "bi-chevron-up" : "bi-chevron-down")"></i>
                                 </span>
@@ -427,9 +449,9 @@
 
 
                         <!-- Address -->
-                        <div class="mb-3">
+                        <div class="mb-3 float-input">
+                            <InputText class="pretty-input" placeholder="" @bind-Value="model.Address" />
                             <label class="form-label">Address <span class="text-danger">*</span></label>
-                            <InputText class="pretty-input" @bind-Value="model.Address" />
                             <ValidationMessage For="@(() => model.Address)" class="text-danger small" />
 
                         </div>
@@ -460,13 +482,13 @@
     <EditForm Model="@model">
         <DataAnnotationsValidator />
 
-        <div class="step-section d-flex justify-content-center">
+        <div class="step-section d-flex justify-content-center mt-2">
             <div class="form-card">
 
-                <div class="row align-items-start mb-4">
+                <div class="row align-items-start mb-4 mt-4">
 
                     <!-- LEFT: IMAGE -->
-                    <div class="col-4 text-start p-0">
+                    <div class="col-3 text-start p-0">
                         @if (!string.IsNullOrEmpty(model.Image))
                         {
                             <img src="@model.Image"

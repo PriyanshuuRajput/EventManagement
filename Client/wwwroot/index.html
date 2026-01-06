@@ -6,71 +6,109 @@
     <title>Event Dashboard</title>
     <base href="/" />
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui/dist/semantic.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui/dist/components/calendar.min.js"></script>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            background: #ffffff;
+        }
 
-    <!-- Flatpickr CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+        .spinner-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+        }
 
-    <!-- Optional: Bootstrap Dark Theme for Flatpickr -->
-    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css" rel="stylesheet">
+        .equalizer-loader {
+            display: flex;
+            gap: 6px;
+            height: 40px;
+        }
 
+            .equalizer-loader div {
+                width: 6px;
+                background: #dc3545;
+                border-radius: 4px;
+                animation: sound 0.7s linear infinite;
+            }
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fomantic-ui/dist/semantic.min.css" />
+                .equalizer-loader div:nth-child(1) {
+                    animation-delay: 0s;
+                }
 
+                .equalizer-loader div:nth-child(2) {
+                    animation-delay: 0.15s;
+                }
 
-   <script>
-            window.scrollByAmount = (element, amount) => {
-            element.scrollBy({
-            left: amount,
-            behavior: 'smooth'
-        });
-    };
+                .equalizer-loader div:nth-child(3) {
+                    animation-delay: 0.3s;
+                }
 
-        </script>
-    <!--<link href="_content/Blazored.Toast/blazored-toast.css" rel="stylesheet" />-->
+                .equalizer-loader div:nth-child(4) {
+                    animation-delay: 0.45s;
+                }
 
+        @keyframes sound {
+            0% {
+                height: 10px;
+            }
 
+            50% {
+                height: 40px;
+            }
 
+            100% {
+                height: 15px;
+            }
+        }
+    </style>
+
+    <!-- App styles (can load later) -->
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="logo2.png" />
 </head>
 
-<body class="bg-light">
+<body>
+
+    <!--  STARTUP SPINNER -->
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div class="spinner-overlay">
+            <div class="equalizer-loader">
+                <div></div><div></div><div></div><div></div>
+            </div>
+        </div>
     </div>
 
+    <!-- Error UI -->
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
 
-    <!--<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
+    <!-- 🔹 NON-BLOCKING CSS (AFTER SPINNER) -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
-    <!-- Bootstrap JS -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/fomantic-ui/dist/semantic.min.css">
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <!-- JS (spinner ke liye JS use nahi ho raha) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-    <!-- Your custom JS -->
     <script src="js/site.js"></script>
 
-    <!-- Blazor WebAssembly -->
+    <!--  BLazor WebAssembly -->
     <script src="_framework/blazor.webassembly.js"></script>
-
-    <!--<script src="_content/Blazored.Toast/blazored-toast.js"></script>-->
-
     <script>
         window.initSingleDatePicker = function (dotNetObj) {
             $('#singleDatePicker').calendar({
@@ -84,11 +122,19 @@
         };
 
         window.clearSemanticDate = function () {
-            $("#selectedDateInput").val("");            
-            $("#singleDatePicker").calendar("clear");   
+            $("#selectedDateInput").val("");
+            $("#singleDatePicker").calendar("clear");
         };
     </script>
+    <script>
+        window.scrollByAmount = (element, amount) => {
+            element.scrollBy({
+                left: amount,
+                behavior: 'smooth'
+            });
+        };
 
+    </script>
 
 </body>
 </html>

@@ -93,7 +93,7 @@
 
     <!--  HEADER -->
     <h3 class="fw-bold mb-2" style="font-size:30px">
-        Bookings & Earning
+        My Bookings & Earning
     </h3>
 
     <!--  SUMMARY CARDS -->
@@ -155,7 +155,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        @* <div class="col-md-3">
             <div class="card border-0 shadow-sm h-100 summary-card">
                 <div class="card-body">
                     <p class="text-muted" style="margin-bottom:30px">Recent Activity</p>
@@ -167,6 +167,7 @@
                         </h6>
                         <small class="text-muted">
                             @LastBookingDate.Value.ToString("dd MMM yyyy")
+                            • @((DateTime.UtcNow - LastBookingDate.Value).Days) days ago
                         </small>
                     }
                     else
@@ -180,14 +181,14 @@
                     }
                 </div>
             </div>
-        </div>
+        </div> *@
     </div>
 
     <div class="card border-0 shadow-none mb-0 ">
         <div class="card-body py-3">
             <div class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <div class="float dropdown-select"
+                    <div class="float /*dropdown-select*/"
                          @onclick:stopPropagation="true">
                         <input class="form-control form-control-sm"
                                placeholder=" "
@@ -302,10 +303,15 @@
                                             </td>
 
                                     <td>
-                                        @e.EventStartDate.ToString("dd MMM yyyy")
+                                        <div>@e.EventStartDate.ToString("dd MMM yyyy")</div>
+                                        <span class="text-muted">@e.EventStartDate.ToString("hh:mm tt")</span>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <span class="fw-semibold">@e.TicketCount</span>
+                                        <span class="text-muted"> / @e.TotalTickets</span>
                                     </td>
 
-                                    <td class="text-center">@e.TicketCount</td>
 
                                     <td class=text-center>₹ @e.TicketPrice.ToString("N2")</td>
                                     <td class="text-center">

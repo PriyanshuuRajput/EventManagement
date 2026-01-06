@@ -24,7 +24,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             _qrCodeService = qrCodeService;
         }
 
-        //  Create booking (User from JWT)
+        //  Create booking 
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequest request)
@@ -45,7 +45,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             });
         }
 
-        // ✅ Get all bookings 
+        //  Get all bookings 
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllBookings()
@@ -54,17 +54,14 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok(bookings);
         }
 
-        // ✅ Get bookings of logged-in user
-        [HttpGet("my")]
-        public async Task<IActionResult> GetMyBookings()
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin/earning")]
+        public async Task<IActionResult> GetAdminBookings([FromQuery] PagedRequest request)
         {
-            var userId = int.Parse(
-                User.FindFirst(ClaimTypes.NameIdentifier)!.Value
-            );
-
-            var bookings = await _bookingService.GetBookingByUserAsync(userId);
-            return Ok(bookings);
+            var result = await _bookingService.GetAdminBookingsAsync(request);
+            return Ok(result);
         }
+
         [Authorize(Roles = "Manager")]
         [HttpGet("manager/earning")]
         public async Task<IActionResult> GetManagerBookingsAndEarning([FromQuery] PagedRequest request)
@@ -81,7 +78,13 @@ namespace EventBooking_TicketManagement_API.Controllers
 
             return Ok(result);
         }
-
+        //[Authorize(Roles ="Admin")]
+        //[HttpGet("admin/earning")]
+        //public async Task<IActionResult> GetAdminBookings([FromQuery] PagedRequest request)
+        //{
+        //    var result = await _bookingService.GetAllBookingsForAdminAsync(request);
+        //    return Ok(result);
+        //}
 
         [AllowAnonymous]
         [HttpGet("{bookingId}/ticket")]

@@ -22,6 +22,8 @@ namespace Infrastructures.DbContexts
         public DbSet<Manager> Managers { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<EventCategory> EventCategories { get; set; }
+        public DbSet<HomeBanner> HomeBanners { get; set; }
+        public DbSet<ChangePasswordToken> ChangePasswordTokens { get; set; }
 
 
 
@@ -113,7 +115,19 @@ namespace Infrastructures.DbContexts
                 .WithOne(e => e.EventCategory)
                 .HasForeignKey(e => e.EventCategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
+            //Evnt -> HomeBanner
 
+            modelBuilder.Entity<HomeBanner>()
+                .HasOne(b => b.Event)
+                .WithMany()
+                .HasForeignKey(b => b.EventId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ChangePasswordToken>()
+                .HasOne(x=>x.AdminUser)
+                .WithMany(x=>x.PasswordTokens)
+                .HasForeignKey(x=> x.AdminUserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }

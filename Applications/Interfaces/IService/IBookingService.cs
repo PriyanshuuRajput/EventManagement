@@ -11,6 +11,10 @@ namespace Applications.Interfaces.IService
         Task<IEnumerable<BookingDto>> GetAllBookingAsync();
         Task<IEnumerable<BookingDto>> GetBookingByUserAsync(int userId);
         Task<PagedResult<BookingDto>> GetBookingsByManagerAsync(int managerId,PagedRequest request);
+        Task<PagedResult<BookingDto>> GetAllBookingsForAdminAsync(PagedRequest request);
+        Task<PagedResult<BookingDto>> GetAdminBookingsAsync(PagedRequest request);
+
         Task CancelBookingAsync(int bookingId);
+        
     }
 }

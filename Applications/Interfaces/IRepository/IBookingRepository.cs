@@ -15,6 +15,7 @@ public interface IBookingRepository
     Task<Booking?> GetBookingByQrAsync(string qrCode);
     Task<ManagerRevenueDto?> GetEventStatsAsync(int eventId);
     Task<PagedResult<BookingDto>> GetBookingsByManagerIdAsync(int managerId,PagedRequest request);
+    Task <PagedResult<BookingDto>> GetBookingsForAdminAsync (PagedRequest request);
 
 
 

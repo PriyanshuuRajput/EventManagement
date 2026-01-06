@@ -117,6 +117,34 @@ namespace Infrastructure.Migrations
                     b.ToTable("Bookings");
                 });
 
+            modelBuilder.Entity("Domains.Entities.ChangePasswordToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AdminUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Expiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminUserId");
+
+                    b.ToTable("ChangePasswordTokens");
+                });
+
             modelBuilder.Entity("Domains.Entities.City", b =>
                 {
                     b.Property<int>("Id")
@@ -292,6 +320,40 @@ namespace Infrastructure.Migrations
                     b.ToTable("EventCategories");
                 });
 
+            modelBuilder.Entity("Domains.Entities.HomeBanner", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Link")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("HomeBanners");
+                });
+
             modelBuilder.Entity("Domains.Entities.Manager", b =>
                 {
                     b.Property<int>("Id")
@@ -434,6 +496,17 @@ namespace Infrastructure.Migrations
                     b.Navigation("Event");
                 });
 
+            modelBuilder.Entity("Domains.Entities.ChangePasswordToken", b =>
+                {
+                    b.HasOne("Domains.Entities.AdminUser", "AdminUser")
+                        .WithMany("PasswordTokens")
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdminUser");
+                });
+
             modelBuilder.Entity("Domains.Entities.City", b =>
                 {
                     b.HasOne("Domains.Entities.State", "State")
@@ -474,6 +547,16 @@ namespace Infrastructure.Migrations
                     b.Navigation("Venue");
                 });
 
+            modelBuilder.Entity("Domains.Entities.HomeBanner", b =>
+                {
+                    b.HasOne("Domains.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Event");
+                });
+
             modelBuilder.Entity("Domains.Entities.Manager", b =>
                 {
                     b.HasOne("Domains.Entities.AdminUser", "User")
@@ -512,6 +595,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("Events");
 
                     b.Navigation("Manager");
+
+                    b.Navigation("PasswordTokens");
                 });
 
             modelBuilder.Entity("Domains.Entities.City", b =>

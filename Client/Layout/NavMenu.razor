@@ -6,15 +6,6 @@
 @inject LoginOverlayService LoginOverlayService
 
 <style>
-
-    /* Sticky category bar */
-    /*.sticky-nav 
-    {
-        position: sticky;
-        top: 60px; 
-        z-index: 999;
-        background: #f8f9fa;
-    }*/
     .nav-logo {
         transition: transform .3s ease, filter .3s ease;
     }
@@ -47,6 +38,7 @@
                 background-color: #dc3545;
                 transition: all .3s ease;
                 transform: translateX(-50%);
+
                 border-radius: 10px;
             }
 
@@ -278,9 +270,9 @@
                 <a class="nav-link" @onclick="GoToEvents">Events</a>
         </li>
 
-        <li class="nav-item">
+        @* <li class="nav-item">
             <NavLink class="nav-link" href="/sports">Sports</NavLink>
-        </li>
+        </li> *@
 
         <li class="nav-item">
             <NavLink class="nav-link" href="/gifts">Gifts</NavLink>
@@ -321,11 +313,11 @@
             </li>
             <li class="nav-item">
                 <NavLink class="nav-link" href="/admin-booking" Match="NavLinkMatch.Prefix">
-                     <i class="bi bi-currency-rupee text-danger  me-1"></i> Bookings & Payments
+                     <i class="bi bi-currency-rupee text-danger  me-1"></i> Booking - Earning 
                 </NavLink>
                 </li>
             <li class="nav-item">
-                <NavLink class="nav-link" href="/reports" Match="NavLinkMatch.Prefix">
+                <NavLink class="nav-link" href="/appearance/home" Match="NavLinkMatch.Prefix">
                     <i class="bi bi-palette text-danger me-1"></i> Appearance
                 </NavLink>
             </li>
