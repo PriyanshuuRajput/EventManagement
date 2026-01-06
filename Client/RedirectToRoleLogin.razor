@@ -1,0 +1,32 @@
+﻿@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        // Not authenticated
+        if (!user.Identity?.IsAuthenticated ?? true)
+        {
+            // Admin pages should go to admin login
+            if (Navigation.Uri.Contains("/admin"))
+                Navigation.NavigateTo("/admin", replace: true);
+            else
+                Navigation.NavigateTo("/", replace: true);
+
+            return;
+        }
+
+        // Authenticated but not authorized (wrong role)
+        var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+        if (role == "Admin")
+            Navigation.NavigateTo("/admin-dashboard", true);
+        else if (role == "Manager")
+            Navigation.NavigateTo("/manager-profile", true);
+        else
+            Navigation.NavigateTo("/", true);
+    }
+}

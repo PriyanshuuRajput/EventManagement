@@ -1,5 +1,4 @@
-﻿
-@using System.Text;
+﻿@using System.Text;
 @using Applications.Dto.AccountDto
 @inherits LoginBase
 
@@ -44,17 +43,23 @@
         }
         <i class="bi bi-box-arrow-in-right me-2"></i> Login
     </button>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button type="button"
+                class="btn btn-link p-0 small fw-semibold text-decoration-none"
+                 @onclick=" async()=>await OnForgotPassword.InvokeAsync()" >
+            Forgot password?
+        </button>
 
-    <div class="text-center">
-        <span class="text-muted small">Don't have an account?</span>
-        <a href="javascript:void(0)"
-           class="fw-semibold text-decoration-none text-primary ms-1"
-           @onclick="async () => await OnSwitchToSignup.InvokeAsync()">
+        <button type="button"
+                class="btn btn-link p-0 small fw-semibold text-decoration-none text-primary"
+                @onclick="async () => await OnSwitchToSignup.InvokeAsync()">
+            <span class="text-muted small">Don't have an account?</span>
             Sign Up
-        </a>
+        </button>
+
     </div>
 
-
+  
     @if (!string.IsNullOrEmpty(errorMessage))
     {
         <div class="alert alert-danger mt-3 small text-center">@errorMessage</div>
@@ -65,6 +70,7 @@
     [Parameter] public EventCallback OnSuccess { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback OnSwitchToSignup { get; set; }
+    [Parameter] public EventCallback OnForgotPassword { get; set; }
     [Parameter] public string? email { get; set; }
 
     private bool showPassword = false;

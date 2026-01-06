@@ -19,7 +19,7 @@ namespace EventBooking.Client.Services
             _jsRuntime = jsRuntime;
         }
 
-        // 🔐 Add bearer token from localStorage
+        // Add bearer token from localStorage
         private async Task AddAuthHeaderAsync()
         {
             var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");

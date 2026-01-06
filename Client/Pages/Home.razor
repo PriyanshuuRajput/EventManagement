@@ -1,8 +1,9 @@
 ﻿@page "/"
-
 @using Applications.Dto
-@inject HttpClient Http
+@using EventBooking.Client.SpinnerService
 
+@inject HttpClient Http
+@inject SpinnerService spinnerService
 @inject NavigationManager Navigation
 
 
@@ -528,33 +529,49 @@
     // private CancellationTokenSource? debounceCts;
     private ElementReference scrollContainer;
     private ElementReference scrollArtistContainer;
-    @inject IJSRuntime JS
 
 
-    
+
+
 
     protected override async Task OnInitializedAsync()
     {
-        categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
-            "api/EventCategory") ?? new();
+        try
+        {
+            spinnerService.Show();
 
-        allEvents = await Http.GetFromJsonAsync<List<EventDto>>(
-            "api/Events/approved") ?? new();
+            await Task.Delay(200);
 
-        events = allEvents
-            .Where(e => e.StartDate >= DateTime.Now)
-            .OrderBy(e => e.StartDate)
-            .Take(10)
-            .ToList();
+            categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
+                "api/EventCategory") ?? new();
 
-        homeBanners = await Http.GetFromJsonAsync<List<HomeBannerDto>>(
-            "api/HomeBanner/active") ?? new();
+            allEvents = await Http.GetFromJsonAsync<List<EventDto>>(
+                "api/Events/approved") ?? new();
 
-        homeBanners = homeBanners
-            .OrderBy(b => b.Position)
-            .Take(5) 
-            .ToList();
+            events = allEvents
+                .Where(e => e.StartDate >= DateTime.Now)
+                .OrderBy(e => e.StartDate)
+                .Take(10)
+                .ToList();
+
+            homeBanners = await Http.GetFromJsonAsync<List<HomeBannerDto>>(
+                "api/HomeBanner/active") ?? new();
+
+            homeBanners = homeBanners
+                .OrderBy(b => b.Position)
+                .Take(5)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            spinnerService.Hide();
+        }
     }
+
 
     string GetCategoryImage(string? imageUrl)
     {

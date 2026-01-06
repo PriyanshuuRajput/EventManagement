@@ -54,17 +54,14 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok(bookings);
         }
 
-        //  Get bookings of logged-in user
+        [Authorize(Roles = "Admin")]
         [HttpGet("admin/earning")]
-        public async Task<IActionResult> GetMyBookings()
+        public async Task<IActionResult> GetAdminBookings([FromQuery] PagedRequest request)
         {
-            var userId = int.Parse(
-                User.FindFirst(ClaimTypes.NameIdentifier)!.Value
-            );
-
-            var bookings = await _bookingService.GetBookingByUserAsync(userId);
-            return Ok(bookings);
+            var result = await _bookingService.GetAdminBookingsAsync(request);
+            return Ok(result);
         }
+
         [Authorize(Roles = "Manager")]
         [HttpGet("manager/earning")]
         public async Task<IActionResult> GetManagerBookingsAndEarning([FromQuery] PagedRequest request)

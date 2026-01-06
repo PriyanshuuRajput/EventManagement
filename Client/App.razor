@@ -4,7 +4,7 @@
             <NotAuthorized Context="auth">
                 @if (auth.User.Identity is not null && !auth.User.Identity.IsAuthenticated)
                 {
-                    <RedirectToLogin />
+                    <RedirectToRoleLogin />
                 }
                 else
                 {
@@ -12,7 +12,7 @@
                 }
             </NotAuthorized>
         </AuthorizeRouteView>
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        @* <FocusOnNavigate RouteData="@routeData" Selector="h1" /> *@
     </Found>
     <NotFound>
         <PageTitle>Not found</PageTitle>

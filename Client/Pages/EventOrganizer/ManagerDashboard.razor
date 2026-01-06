@@ -41,7 +41,7 @@
             font-size: 0.9rem;
         }
 
-            .float input:focus,{
+            .float input:focus{
                 border-color: #dc3545;
                 box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.2);
             }
@@ -203,8 +203,8 @@
     <!-- Filters & Search -->
 
 
-    <div class="position-relative w-50">
-        <div class=" shadow-sm float">
+    <div class="position-relative d-flex justify-content-space-between align-items-center gap-3">
+        <div class=" shadow-sm float " style="width:35%">
             <input class="form-control"
                    placeholder=""
                    @bind="searchText"
@@ -216,7 +216,7 @@
 
         @if (!string.IsNullOrWhiteSpace(searchText) || activeStatusFilter != null)
         {
-            <button class="btn btn-outline-danger btn-sm"
+            <button class="btn btn-danger btn-sm shadow-sm"
                     @onclick="ClearAllFilters">
                 Clear
             </button>

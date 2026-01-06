@@ -69,7 +69,7 @@ namespace EventBooking_TicketManagement_API.Services
                     TicketCount = request.TicketCount,
                     CreatedAt = DateTime.UtcNow,
                     TicketNumber = Guid.NewGuid().ToString("N")[..8].ToUpper(),
-                    PaymentStatus = PaymentStatus.Pending,
+                    PaymentStatus = PaymentStatus.Paid,
                     QrCode = Guid.NewGuid().ToString(),
                     UsedEntries = 0
                 };
@@ -316,5 +316,10 @@ namespace EventBooking_TicketManagement_API.Services
                 PageSize = request.PageSize
             };
         }
+        public async Task<PagedResult<BookingDto>> GetAdminBookingsAsync(PagedRequest request)
+        {
+            return await _bookingRepository.GetBookingsForAdminAsync(request);
+        }
+
     }
 }

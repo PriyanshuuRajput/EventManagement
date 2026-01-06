@@ -271,7 +271,7 @@
             .Where(c => !string.IsNullOrWhiteSpace(c))
             .Distinct()
             .OrderBy(c => c)
-            .ToList();
+            .ToList()!;
             // Read URL parameters (category)
             var uri = Nav.ToAbsoluteUri(Nav.Uri);
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);

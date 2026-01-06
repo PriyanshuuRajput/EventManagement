@@ -449,6 +449,7 @@ namespace EventBooking_TicketManagement_API.Services
             TicketPrice = e.TicketPrice,
             ImageUrl = e.ImageUrl,
             VenueName = e.Venue?.VenueName ?? string.Empty,
+            CityName = e.Venue?.City?.CityName ?? string.Empty,
             Capacity = e.Venue?.Capacity ?? 0,
             ManagerId = e.ManagerId,
             ManagerName = e.Managers?.ManagerName??"",

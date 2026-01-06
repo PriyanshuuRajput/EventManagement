@@ -20,6 +20,8 @@ namespace Applications.Dto
         public decimal TotalAmount => TicketPrice * TicketCount;
         // Ticket info
         public int TicketCount { get; set; }
+        public int TotalTickets { get; set; } 
+
 
         // Booking info
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
