@@ -114,7 +114,7 @@
             if (!string.IsNullOrEmpty(returnUrl))
                 Url = returnUrl!;
 
-            var response = await Http.PostAsJsonAsync("https://localhost:7239/api/Account/login", loginModel);
+            var response = await Http.PostAsJsonAsync("api/Account/Login", loginModel);
 
             if (response.IsSuccessStatusCode)
             {
@@ -167,7 +167,7 @@
     //    errorMessage = "";
     //    try
     //    {
-    //        var response = await Http.PostAsJsonAsync("https://localhost:7239/api/Account/login", loginModel);
+    //        var response = await Http.PostAsJsonAsync("api/Account/login", loginModel);
 
     //        if (response.IsSuccessStatusCode)
     //        {

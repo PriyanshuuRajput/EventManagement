@@ -88,8 +88,6 @@ namespace EventBooking.Client.Services
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("SERVER ERROR:");
-                Console.WriteLine(error);
                 throw new Exception(error);
             }
 

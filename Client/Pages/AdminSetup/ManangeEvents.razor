@@ -200,7 +200,7 @@
         width: 150px;
         height: 100px;
 /*        border: 1px solid #ddd;*/
-        border-radius: 5px;
+    /*     border-radius: 5px;
         overflow: hidden;
         display: inline-block;
         background: #f8f9fa;
@@ -210,7 +210,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
+        } */
 
 
 /* ---------- HEADER ---------- */
@@ -1358,10 +1358,10 @@
 
                 content.Add(fileContent, "ImageFile", selectedImageFile.Name);
             }
-            else
-            {
-                content.Add(new StringContent(evt.ImageUrl ?? ""), "ImageUrl");
-            }
+            // else
+            // {
+            //     content.Add(new StringContent(evt.ImageUrl ?? ""), "ImageUrl");
+            // }
 
             // MANAGER (Very Important)
             if (editingEvent.ManagerId.HasValue && editingEvent.ManagerId > 0)
@@ -1408,10 +1408,19 @@
 
             if (isAdmin)
             {
+                HttpResponseMessage response;
+
                 if (evt.Id > 0)
-                    await AdminService.UpdateEventAsync(evt.Id, evt, selectedImageFile);
+                    response = await Http.PutAsync($"api/events/update/{evt.Id}", content);
                 else
-                    await AdminService.AddEventAsync(evt, selectedImageFile);
+                    response = await Http.PostAsync("api/events/create", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    toastService.ShowError(body);
+                    return;
+                }
 
                 toastService.ShowSuccess("Event saved successfully!");
                 await LoadAdminEvents();
@@ -1419,6 +1428,7 @@
                 selectedImageFile = null;
                 return;
             }
+
         }
         catch (Exception ex)
         {
@@ -1963,8 +1973,8 @@
         using var ms = new MemoryStream();
         await stream.CopyToAsync(ms);
 
-        editingEvent.ImageUrl =
-            $"data:{selectedImageFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+        // editingEvent.ImageUrl =
+        //     $"data:{selectedImageFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
     }
 
     private async Task OnCityChanged(ChangeEventArgs e)

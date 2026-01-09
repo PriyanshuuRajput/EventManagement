@@ -104,8 +104,58 @@
     @if (!IsCheckout())
     {
         <!-- Footer -->
-        <footer class="bg-dark text-light text-center py-3 mt-auto">
-            <small>© @DateTime.UtcNow.Year EventiGO - All rights reserved.</small>
+        <footer class="bg-dark text-light pt-5 mt-auto">
+            <div class="container">
+                <div class="row">
+
+                    <!-- Brand -->
+                    <div class="col-md-3">
+                        <h5 class="fw-bold text-danger">EventiGo</h5>
+                        <p class="small text-light">
+                            Discover events, book tickets, and manage experiences effortlessly.
+                        </p>
+                    </div>
+
+                    <!-- Explore -->
+                    <div class="col-md-3">
+                        <h6 class="fw-semibold">Explore</h6>
+                        <ul class="list-unstyled small">
+                            <li>Events</li>
+                            <li>Categories</li>
+                            <li>Cities</li>
+                            <li>Venues</li>
+                        </ul>
+                    </div>
+
+                    <!-- Organizers -->
+                    <div class="col-md-3">
+                        <h6 class="fw-semibold">For Organizers</h6>
+                        <ul class="list-unstyled small">
+                            <li>Host an Event</li>
+                            <li>Manager Signup</li>
+                            <li>How It Works</li>
+                        </ul>
+                    </div>
+
+                    <!-- Support -->
+                    <div class="col-md-3">
+                        <h6 class="fw-semibold">Support</h6>
+                        <ul class="list-unstyled small">
+                            <li>Help Center</li>
+                            <li>FAQs</li>
+                            <li>Contact Us</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <hr class="border-secondary" />
+
+                <div class="d-flex justify-content-between small text-light">
+                    <span>© 2026 EventiGo. All rights reserved.</span>
+                    <span>Privacy · Terms · Cookies</span>
+                </div>
+            </div>
         </footer>
     }
 </div>

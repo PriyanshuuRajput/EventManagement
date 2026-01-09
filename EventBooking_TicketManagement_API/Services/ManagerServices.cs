@@ -12,12 +12,14 @@ namespace EventBooking_TicketManagement_API.Services
         private readonly IManagerRepository _managerRepo;
         private readonly IEmailService _emailService;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IConfiguration _configuration;
 
-        public ManagerServices(IManagerRepository managerRepo, IEmailService emailService, IPasswordHasher passwordHasher)
+        public ManagerServices(IManagerRepository managerRepo, IEmailService emailService, IPasswordHasher passwordHasher, IConfiguration configuration)
         {
             _managerRepo = managerRepo;
             _emailService = emailService;
             _passwordHasher = passwordHasher;
+            _configuration = configuration;
         }
 
         public async Task<string> SignUpManagerAsync(ManagerSignUpDto dto)
@@ -86,7 +88,8 @@ namespace EventBooking_TicketManagement_API.Services
 
             // Send Email
 
-            string loginUrl = $"https://localhost:7117/?loginEmail={encodedEmail}";
+            var clientBaseUrl = _configuration["ClientBaseUrl"];
+            string loginUrl = $"{clientBaseUrl}/?loginEmail={encodedEmail}";
 
 
             string emailBody = $@"

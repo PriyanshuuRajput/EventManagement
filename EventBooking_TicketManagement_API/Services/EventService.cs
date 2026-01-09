@@ -10,14 +10,16 @@ namespace EventBooking_TicketManagement_API.Services
     {
         private readonly IEventRepository _eventRepository;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
         private const decimal CONVENIENCE_FEE_PERCENT = 10;
 
 
 
-        public EventService(IEventRepository eventRepository, IEmailService emailService)
+        public EventService(IEventRepository eventRepository, IEmailService emailService, IConfiguration configuration)
         {
             _eventRepository = eventRepository;
             _emailService = emailService;
+            _configuration = configuration;
         }
 
         public async Task<IEnumerable<EventDto>> GetAllEventsAsync()
@@ -305,8 +307,9 @@ namespace EventBooking_TicketManagement_API.Services
             //Send Email to Admin
             string adminEmail = "rajputronak0058@gmail.com";
             string subject = $"New Event Submitted :{ev.Title}";
+            var clientBaseUrl = _configuration["ClientBaseUrl"];
+            string approvalUrl = $"{clientBaseUrl}/approval-manager-events/{ev.Id}";
 
-            string approvalUrl = $"https://localhost:7117/approval-manager-events/{ev.Id}";
             string body = $@"
                             <h2>New Event pending Approval </h2>
                             <p><b>Title:</b> {ev.Title}</p>
@@ -568,7 +571,7 @@ namespace EventBooking_TicketManagement_API.Services
             await _eventRepository.UpdateAsync(ev);
 
             // Notify Admin
-            string adminEmail = "rajputronak0058@gmail.com";
+            var adminEmail = _configuration["Admin:Email"];
             string subject = $"Event Payment Completed: {ev.Title}";
             string body = $@"<h3>Payment Completed</h3>
                      <p>Manager has paid the event amount.</p>

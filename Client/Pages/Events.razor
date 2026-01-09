@@ -252,12 +252,12 @@
         try
         {
             // Always fetch fresh data
-            events = await Http.GetFromJsonAsync<List<EventDto>>("https://localhost:7239/api/Events/approved")
+            events = await Http.GetFromJsonAsync<List<EventDto>>("api/Events/approved")
                         ?? new List<EventDto>();
 
             events = events.Where(e => e.StartDate.Date >= DateTime.Today).ToList();
 
-            var categoryObjects = await Http.GetFromJsonAsync<List<EventCategoryDto>>("https://localhost:7239/api/EventCategory");
+            var categoryObjects = await Http.GetFromJsonAsync<List<EventCategoryDto>>("api/EventCategory");
             categories = events
     .Where(e => !string.IsNullOrWhiteSpace(e.CategoryName))
     .Select(e => e.CategoryName!)

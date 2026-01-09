@@ -20,14 +20,16 @@ namespace EventBooking_TicketManagement_API.Controllers
         private readonly AppDbContext _db;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
 
-        public AccountController(IJwtTokenService jwt, AppDbContext db, IPasswordHasher passwordHasher, IEmailService emailService)
+        public AccountController(IJwtTokenService jwt, AppDbContext db, IPasswordHasher passwordHasher, IEmailService emailService, IConfiguration configuration)
         {
             _jwt = jwt;
             _db = db;
             _passwordHasher = passwordHasher;
             _emailService = emailService;
+            _configuration = configuration;
         }
 
         // LOGIN: username/email/phone
@@ -207,7 +209,6 @@ namespace EventBooking_TicketManagement_API.Controllers
             _db.Managers.Add(manager);
             _db.SaveChanges();
 
-            //string loginUrl = "https://localhost:7117/admin";
             string adminEmail = "rajputronak0058@gmail.com";
             _ = Task.Run(() =>
             {
@@ -256,8 +257,6 @@ namespace EventBooking_TicketManagement_API.Controllers
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
-            Console.WriteLine("🔥 ForgotPassword endpoint HIT");
-            Console.WriteLine($"📧 Email received: {dto.Email}");
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -287,8 +286,8 @@ namespace EventBooking_TicketManagement_API.Controllers
             _db.ChangePasswordTokens.Add(token);
             await _db.SaveChangesAsync();
 
-            var resetLink =
-                $"https://localhost:7117/change-password?token={token.Token}";
+            var clientBaseUrl = _configuration["ClientBaseUrl"];
+            var resetLink =$"{clientBaseUrl}/change-password?token={token.Token}";
 
             var emailHtml = EmailTemplates.ResetPassword(resetLink);
 

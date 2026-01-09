@@ -124,10 +124,9 @@ namespace EventBooking_TicketManagement_API
             {
                 options.AddPolicy("AllowBlazorClient", policy =>
                 {
-                    policy.WithOrigins("https://localhost:7117")
+                    policy.AllowAnyOrigin()
                           .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
+                          .AllowAnyMethod();
                 });
             });
 
@@ -188,21 +187,48 @@ namespace EventBooking_TicketManagement_API
             // ---------------------------------------------------------
             // Development tools: Swagger
             // ---------------------------------------------------------
-            if (app.Environment.IsDevelopment())
+            //if (app.Environment.IsDevelopment())
+            //{
+            //    app.UseSwagger();
+            //    app.UseSwaggerUI(c =>
+            //    {
+            //        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            //    });
+            //}
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Event Booking API v1");
+                c.RoutePrefix = "swagger"; // optional, default
+            });
+
 
             // ---------------------------------------------------------
             // Middleware Pipeline
             // ---------------------------------------------------------
+            //app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
+
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/error");
+                app.UseHsts();
+            }
+
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
             app.UseCors("AllowBlazorClient");
+
             app.UseAuthentication();
             app.UseAuthorization();
+
             app.MapControllers();
+
+
+            //app.MapFallbackToFile("index.html");
 
             // ---------------------------------------------------------
             // Database Seeding
@@ -212,7 +238,6 @@ namespace EventBooking_TicketManagement_API
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
-                db.Database.Migrate();
 
                 // Seed roles
                 if (!db.Roles.Any())
@@ -254,10 +279,19 @@ namespace EventBooking_TicketManagement_API
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                await db.Database.MigrateAsync();
+                try
+                {
+                    await db.Database.MigrateAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
                 await CountrySeeder.SeedAsync(db);
                 await StateSeeder.SeedAsync(db);
             }
+
 
             // ---------------------------------------------------------
             // Run App

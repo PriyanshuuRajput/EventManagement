@@ -98,8 +98,6 @@
             }
         }
     }
-
-
     private async Task HandleLoginForm()
     {
         if (isProcessing)
@@ -110,18 +108,20 @@
 
         try
         {
-            var http = new HttpClient();
-            var response = await http.PostAsJsonAsync("https://localhost:7239/api/Account/login", loginModel);
+            var response = await Http.PostAsJsonAsync(
+                "api/Account/login",
+                loginModel
+            );
 
             if (!response.IsSuccessStatusCode)
             {
                 errorMessage = await response.Content.ReadAsStringAsync();
                 loginModel = new LoginDto();
-                StateHasChanged();
                 return;
             }
 
-            var result = await response.Content.ReadFromJsonAsync<ManagerLoginResponseDto>();
+            var result = await response.Content
+                .ReadFromJsonAsync<ManagerLoginResponseDto>();
 
             if (result == null)
             {
@@ -131,12 +131,24 @@
 
             if (result.ChangePassword == true)
             {
-                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
-                Navigation.NavigateTo("/manager-profile-change-password", true);
+                await JS.InvokeVoidAsync(
+                    "localStorage.setItem",
+                    "authToken",
+                    result.Token
+                );
+
+                Navigation.NavigateTo(
+                    "/manager-profile-change-password",
+                    true
+                );
                 return;
             }
 
-            await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+            await JS.InvokeVoidAsync(
+                "localStorage.setItem",
+                "authToken",
+                result.Token
+            );
 
             if (AuthStateProvider is CustomAuthStateProvider customProvider)
             {
@@ -148,7 +160,6 @@
         finally
         {
             loginModel = new LoginDto();
-            
             isProcessing = false;
             StateHasChanged();
         }

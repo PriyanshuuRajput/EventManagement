@@ -107,16 +107,14 @@ namespace EventBooking_TicketManagement_API.Controllers
                 using var fileStream = new FileStream(filePath, FileMode.Create);
                 await dto.ImageFile.CopyToAsync(fileStream);
 
-
-                var baseUrl = $"{Request.Scheme}://{Request.Host}";
-                dto.ImageUrl = $"{baseUrl}/Uploads/{uniqueFile}";
+;
+                dto.ImageUrl = $"/Uploads/{uniqueFile}";
 
             }
             else
             {
 
-                var baseUrl = $"{Request.Scheme}://{Request.Host}";
-                dto.ImageUrl = $"{baseUrl}/Uploads/no-image.png";
+                dto.ImageUrl = $"/Uploads/no-image.png";
 
             }
 
@@ -166,9 +164,8 @@ namespace EventBooking_TicketManagement_API.Controllers
                 using var fileStream = new FileStream(filePath, FileMode.Create);
                 await dto.ImageFile.CopyToAsync(fileStream);
 
-
-                var baseUrl = $"{Request.Scheme}://{Request.Host}";
-                dto.ImageUrl = $"{baseUrl}/Uploads/{uniqueFile}";
+                
+                dto.ImageUrl = $"/Uploads/{uniqueFile}";
 
             }
             else

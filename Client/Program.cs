@@ -18,19 +18,26 @@ namespace Client
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            // Register auth handler
+            //  auth handler(adds Jwt)
             builder.Services.AddTransient<AuthMessageHandler>();
 
-            // Authorized HttpClient: attaches JWT token automatically
-            builder.Services.AddHttpClient("AuthorizedAPI", client =>
+            //  API HttpClient (Production)
+            builder.Services.AddHttpClient("Api", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7239/");
+                client.BaseAddress = new Uri("http://priyanshuu007-001-site1.ktempurl.com/");
+            });
+
+            //  AUTHORIZED API (JWT attached)
+            builder.Services.AddHttpClient("AuthorizedApi", client =>
+            {
+                client.BaseAddress = new Uri("http://priyanshuu007-001-site1.ktempurl.com/");
             })
             .AddHttpMessageHandler<AuthMessageHandler>();
 
-            // Set THIS as the default HttpClient everywhere
+            //  DEFAULT HttpClient = PUBLIC API
             builder.Services.AddScoped(sp =>
-                sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthorizedAPI"));
+                sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
+
 
             // Services
             builder.Services.AddScoped<AdminService>();
