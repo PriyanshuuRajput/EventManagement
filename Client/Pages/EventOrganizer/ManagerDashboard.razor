@@ -3,7 +3,9 @@
 
 @inject SpinnerService spinnerService
 @inject NavigationManager Nav
-@inject HttpClient Http
+@* @inject HttpClient Http *@
+@inject IHttpClientFactory HttpClientFactory
+
 @using Domains.Entities
 @using System.Globalization
 @attribute [Authorize(Roles = "Manager")]
@@ -531,7 +533,8 @@
 </div>
 
 @code {
-
+    private HttpClient AuthorizedHttp =>
+    HttpClientFactory.CreateClient("AuthorizedApi");
     private List<ManagerEventDto> managerEvents = new();
     private bool showSidePanel = false;
     private ManagerEventDto selectedEvent = null!;
@@ -577,10 +580,10 @@
         {
             spinnerService.Show();
             await Task.Delay(150);
-            managerEvents = await Http.GetFromJsonAsync<List<ManagerEventDto>>(
+            managerEvents = await AuthorizedHttp.GetFromJsonAsync<List<ManagerEventDto>>(
                 "api/ManagerEvent/my-events") ?? new() ;
 
-            var performance = await Http.GetFromJsonAsync<List<ManagerRevenueDto>>(
+            var performance = await AuthorizedHttp.GetFromJsonAsync<List<ManagerRevenueDto>>(
                 "api/ManagerEvent/performance"
             );
 

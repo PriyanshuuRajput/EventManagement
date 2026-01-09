@@ -7,6 +7,8 @@
 @inject AdminService AdminService
 @inject AuthenticationStateProvider AuthProvider
 @inject Blazored.Toast.Services.IToastService toastService
+@inject IHttpClientFactory HttpClientFactory
+
 
 @*@using Blazored.Typeahead*@
 @attribute [Authorize(Roles = "Admin,Manager")]
@@ -1007,7 +1009,8 @@
 
 
 @code {
-
+    private HttpClient AuthorizedHttp =>
+    HttpClientFactory.CreateClient("AuthorizedApi");
 
     private List<EventDto> Events = new();
     private List<ManagerProfileDto> managers = new();
@@ -1115,24 +1118,6 @@
 
     private string managerSearch = string.Empty;
 
-    // private void ValidateTypeGenre()
-    // {
-    //     var et = editingEvent.EventType?.Trim() ?? "";
-    //     var ge = editingEvent.Genre?.Trim() ?? "";
-
-    //     if (string.IsNullOrWhiteSpace(et) && string.IsNullOrWhiteSpace(ge))
-    //     {
-    //         eventTypeError = "EventType or Genre is required";
-    //         genreError = "EventType or Genre is required";
-    //     }
-    //     else
-    //     {
-    //         eventTypeError = null;
-    //         genreError = null;
-    //     }
-    // }
-
-
     protected override async Task OnInitializedAsync()
     {
         spinnerservice.Show();
@@ -1212,8 +1197,8 @@
 
     private async Task LoadManagerEvents()
     {
-        Events = await Http.GetFromJsonAsync<List<EventDto>>("api/ManagerEvent/my-events");
-        FilteredEvents = Events!;
+        Events = await AuthorizedHttp.GetFromJsonAsync<List<EventDto>>("api/ManagerEvent/my-events") ?? new();
+        FilteredEvents = Events ?? new();
         CalculateVenueEventCounts();
     }
 
