@@ -19,11 +19,10 @@
         position: fixed;
         top: 0;
         right: 0;
-        /*    width: 60%;                   */
+        width: 60%;                  
         max-width: 60%;
         height: 100vh;
         background: #fff;
-        /*    border-left: 2px solid #dc3545;*/
         display: flex;
         flex-direction: column;
         animation: slideIn .50s ease-out forwards;
@@ -164,7 +163,7 @@
                     <div class="card-body row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Event Name<span class="text-danger">*</span></label>
-                            <InputText @bind-Value="EditingEvent.Title" class="form-control" />
+                            <InputText @bind-Value="EditingEvent.Title" class="form-control "maxlength="50" />
                             <ValidationMessage For="@(() => EditingEvent.Title)" class="text-danger small" />
 
                         </div>
@@ -187,7 +186,7 @@
 
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Language</label>
-                            <InputText @bind-Value="EditingEvent.Language" class="form-control" />
+                            <InputText @bind-Value="EditingEvent.Language" class="form-control" maxlength="50"/>
                             @*<ValidationMessage For="@(()=>editingEvent.Language)" class="text-danger small" />*@
                         </div>
 
@@ -229,7 +228,7 @@
                                                     <input type="date"
                                                            class="form-control"
                                                            @bind="EditingEvent.StartDateOnly"
-                                                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                                           min="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")" />
 
                                                     <input type="time"
                                                            class="form-control"
@@ -250,7 +249,8 @@
                                                 <div class="input-group">
                                                     <input type="date"
                                                            class="form-control"
-                                                           @bind="EditingEvent.StartDateOnly" />
+                                                           @bind="EditingEvent.StartDateOnly" 
+                                                           min="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")" />
 
                                                     <input type="time"
                                                            class="form-control"
@@ -340,8 +340,8 @@
 
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Ticket Price (₹)</label>
-                            <InputNumber @bind-Value="EditingEvent.TicketPrice" class="form-control" />
-                            @*<ValidationMessage For="@(() => editingEvent.TicketPrice)" class="text-danger small" />*@
+                            <InputNumber @bind-Value="EditingEvent.TicketPrice" class="form-control" min="0" max="10000" step="1" />
+                            <ValidationMessage For="@(() => EditingEvent.TicketPrice)" class="text-danger small" />
                         </div>
 
 

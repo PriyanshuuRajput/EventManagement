@@ -692,7 +692,6 @@
                                         <th>Venue Name</th>
                                         <th>Address</th>
                                         <th>Capacity</th>
-                                        <th>Events</th>
                                         <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
@@ -725,7 +724,6 @@
                                                     <small class="text-muted">@v.Address</small>
                                                 </td>
                                                 <td class="fw-semibold">@v.Capacity.ToString("N0")</td>
-                                                <td>@v.EventCount</td>
                                                 <td class="text-center">
                                                     <div class="btn-group btn-group-sm">
                                                         <button class="btn btn-outline-warning" @onclick="() => EditVenue(v)">
@@ -818,7 +816,7 @@
             }
             else if (activeTab == "categories")
             {
-                <Category Categories="FilteredCategories" />
+                <Category Categories="FilteredCategories" OnCategoryChanged="OnCategoryChanged" />
 
             }
             <EventForm Show="showEventModal"
@@ -849,14 +847,14 @@
                                 <EditForm Model="editingVenue" OnValidSubmit="async ()=>await SaveVenue(editingVenue)">
                                     <DataAnnotationsValidator />
                                     <div class="mb-2">
-                                        <label>Name<span class="text-danger">*</span></label>
+                                        <label>Venue Name<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingVenue.VenueName" class="form-control" />
                                         <ValidationMessage For="@(()=>editingVenue.VenueName)"class="text-danger small" />
                                     </div>
                                     <div class="mb-2">
                                         <label>City<span class="text-danger">*</span></label>
                                         <select class="form-select" @bind="editingVenue.CityId">
-                                            <option value="">Select City</option>
+                                            <option value="0">--Select City--</option>
                                             @foreach (var city in citiesList)
                                             {
                                                 <option value="@city.Id">@city.CityName</option>
@@ -1988,6 +1986,16 @@
             filteredVenues = venues;
 
         }
+    }
+    private async Task OnCategoryChanged()
+    {
+        categoryList = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
+            "api/EventCategory"
+        ) ?? new();
+
+        FilteredCategories = categoryList.ToList();
+
+        StateHasChanged();
     }
 
 
