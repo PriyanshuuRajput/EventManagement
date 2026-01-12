@@ -31,30 +31,35 @@ namespace Applications.Dto
             set
             {
                 DurationError = null;
+
+                // REQUIRED case
                 if (string.IsNullOrWhiteSpace(value))
                 {
                     Duration = null;
-                    DurationError = "Event Duration is required";
                     return;
                 }
 
+                // INVALID FORMAT
                 if (!TimeSpan.TryParse(value, out var parsed))
-        {
-            DurationError = "Invalid duration format (use HH:mm)";
-            Duration = null;
-            return;
-        }
+                {
+                    Duration = null;
+                    DurationError = "Invalid duration format (use HH:mm)";
+                    return;
+                }
 
-        if (parsed.TotalMinutes < 20)
-        {
-            DurationError = "Minimum duration is 20 minutes.";
-            Duration = null;
-            return;
-        }
+                // MINIMUM DURATION
+                if (parsed.TotalMinutes < 20)
+                {
+                    Duration = null;
+                    DurationError = "Minimum duration is 20 minutes.";
+                    return;
+                }
 
-        Duration = parsed;
+                Duration = parsed;
+                DurationError = null; 
             }
         }
+
         public string? DurationError { get; set; }
 
         public DateTime StartDateOnly { get; set; } = DateTime.Today;

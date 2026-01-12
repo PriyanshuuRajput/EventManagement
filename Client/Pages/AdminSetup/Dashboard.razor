@@ -310,6 +310,7 @@
         color: #333;
     }*/
 
+
     .table-container {
         max-height: 420px;
         overflow-y: auto;
@@ -334,21 +335,7 @@
             box-shadow: 0 0 8px rgba(255, 0, 0, 0.3) !important;
         }
 
-        /*.event-scroll-box {
-            display: flex;
-            gap: 15px;
-            overflow-x: auto;*/ /* Horizontal scroll */
-            /*overflow-y: hidden;
-            white-space: nowrap;
-            scroll-snap-type: x mandatory;*/ /* Smooth auto snap */
-            /*-webkit-overflow-scrolling: touch;*/ /* Smooth drag */
-            /*scrollbar-width: none;
-        }*/
-
-/*            .event-scroll-box::-webkit-scrollbar
-            {
-                display: none !important; 
-            }*/
+   
 
         .event-card {
             scroll-snap-align: start;
@@ -423,31 +410,50 @@
     .pending-wrapper {
         position: relative;
         display: inline-block;
+        min-width: 80px;
+        height: 32px;
+        cursor:pointer;
     }
 
     .pending-label {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
         transition: opacity .2s ease;
     }
 
     .approve-btn {
         position: absolute;
-        top: 0;
-        left: 0;
+        inset: 0;
         display: none;
-        font-size: 13px;
-        font-weight: 700;
-        transition: all .2s ease;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: opacity .2s ease;
+        padding: 0;
     }
 
-    /* Hover behaviour */
+
     .pending-wrapper:hover .pending-label {
         opacity: 0;
     }
 
     .pending-wrapper:hover .approve-btn {
-        display: inline-block;
+        display: inline-flex;
     }
+
+    @@media (hover: hover) {
+        .pending-wrapper:hover .pending-label {
+            opacity: 0;
+        }
+
+        .pending-wrapper:hover .approve-btn {
+            display: inline-flex;
+        }
+    }
+
 
     /* Top toolbar style above table */
     .table-toolbar {
@@ -715,15 +721,15 @@
         <!--</div>-->
         <div class="card-body p-0">
             <div class="table-container">
-                <table class="table-secondary event-table table-hover mb-0">
-                    <thead class="sticky-top shadow-sm" style="top:0; z-index:10;">
+                <table class="table table-fixed event-table table-hover mb-0">
+                   <thead class="sticky-top table-secondary">
                         <tr>
                             <th>Event </th>
                             <th>Location</th>
                             <th>Event Creation Date</th>
                             @* <th>Created</th>
                             <th>Location</th> *@
-                            <th>Gross Revenue</th>
+                        <th class="text-nowrap text-center">Gross Revenue</th>
                             <th>Commission</th>
                             <th>Manager Payout</th>
                             <th>Manager Name</th>
@@ -762,8 +768,8 @@
                                 <td class="text-center">@evt.CreatedAt.ToString("dd MMM yyyy")</td>
 
                                 <!-- REVENUE -->
-                                <td class="text-center">
-                                    <div class="fw-bold text-dark">₹ @evt.GrossRevenue</div>
+                                <td class="text-center text-nowrap">
+                                    <div class="fw-bold">₹ @evt.GrossRevenue</div>
                                     <div class="event-sub">Gross</div>
                                 </td>
 

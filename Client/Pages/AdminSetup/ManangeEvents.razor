@@ -7,6 +7,8 @@
 @inject AdminService AdminService
 @inject AuthenticationStateProvider AuthProvider
 @inject Blazored.Toast.Services.IToastService toastService
+@inject IHttpClientFactory HttpClientFactory
+
 
 @*@using Blazored.Typeahead*@
 @attribute [Authorize(Roles = "Admin,Manager")]
@@ -690,7 +692,6 @@
                                         <th>Venue Name</th>
                                         <th>Address</th>
                                         <th>Capacity</th>
-                                        <th>Events</th>
                                         <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
@@ -723,7 +724,6 @@
                                                     <small class="text-muted">@v.Address</small>
                                                 </td>
                                                 <td class="fw-semibold">@v.Capacity.ToString("N0")</td>
-                                                <td>@v.EventCount</td>
                                                 <td class="text-center">
                                                     <div class="btn-group btn-group-sm">
                                                         <button class="btn btn-outline-warning" @onclick="() => EditVenue(v)">
@@ -816,7 +816,7 @@
             }
             else if (activeTab == "categories")
             {
-                <Category Categories="FilteredCategories" />
+                <Category Categories="FilteredCategories" OnCategoryChanged="OnCategoryChanged" />
 
             }
             <EventForm Show="showEventModal"
@@ -847,14 +847,14 @@
                                 <EditForm Model="editingVenue" OnValidSubmit="async ()=>await SaveVenue(editingVenue)">
                                     <DataAnnotationsValidator />
                                     <div class="mb-2">
-                                        <label>Name<span class="text-danger">*</span></label>
+                                        <label>Venue Name<span class="text-danger">*</span></label>
                                         <InputText @bind-Value="editingVenue.VenueName" class="form-control" />
                                         <ValidationMessage For="@(()=>editingVenue.VenueName)"class="text-danger small" />
                                     </div>
                                     <div class="mb-2">
                                         <label>City<span class="text-danger">*</span></label>
                                         <select class="form-select" @bind="editingVenue.CityId">
-                                            <option value="">Select City</option>
+                                            <option value="0">--Select City--</option>
                                             @foreach (var city in citiesList)
                                             {
                                                 <option value="@city.Id">@city.CityName</option>
@@ -1007,7 +1007,8 @@
 
 
 @code {
-
+    private HttpClient AuthorizedHttp =>
+    HttpClientFactory.CreateClient("AuthorizedApi");
 
     private List<EventDto> Events = new();
     private List<ManagerProfileDto> managers = new();
@@ -1115,24 +1116,6 @@
 
     private string managerSearch = string.Empty;
 
-    // private void ValidateTypeGenre()
-    // {
-    //     var et = editingEvent.EventType?.Trim() ?? "";
-    //     var ge = editingEvent.Genre?.Trim() ?? "";
-
-    //     if (string.IsNullOrWhiteSpace(et) && string.IsNullOrWhiteSpace(ge))
-    //     {
-    //         eventTypeError = "EventType or Genre is required";
-    //         genreError = "EventType or Genre is required";
-    //     }
-    //     else
-    //     {
-    //         eventTypeError = null;
-    //         genreError = null;
-    //     }
-    // }
-
-
     protected override async Task OnInitializedAsync()
     {
         spinnerservice.Show();
@@ -1212,8 +1195,8 @@
 
     private async Task LoadManagerEvents()
     {
-        Events = await Http.GetFromJsonAsync<List<EventDto>>("api/ManagerEvent/my-events");
-        FilteredEvents = Events!;
+        Events = await AuthorizedHttp.GetFromJsonAsync<List<EventDto>>("api/ManagerEvent/my-events") ?? new();
+        FilteredEvents = Events ?? new();
         CalculateVenueEventCounts();
     }
 
@@ -2003,6 +1986,16 @@
             filteredVenues = venues;
 
         }
+    }
+    private async Task OnCategoryChanged()
+    {
+        categoryList = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
+            "api/EventCategory"
+        ) ?? new();
+
+        FilteredCategories = categoryList.ToList();
+
+        StateHasChanged();
     }
 
 

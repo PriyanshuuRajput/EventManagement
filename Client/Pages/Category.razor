@@ -174,20 +174,22 @@
                 </div>
 
                 <div class="modal-body">
-                    <EditForm Model="editingCategory" OnValidSubmit="SaveCategory">
+                    <EditForm Model="editingCategory"
+                              OnValidSubmit="SaveCategory"
+                              OnInvalidSubmit="HandleInvalidSubmit">
                         <DataAnnotationsValidator />
                     <div class="mb-3">
                         <label class="form-label fw-semibold">
                             Category Name <span class="text-danger">*</span>
                         </label>
-                            <InputText class="form-control"
+                            <InputText class="form-control" maxlength="50"
                                        @bind-Value="editingCategory.Name" />
                             <ValidationMessage For="@(() => editingCategory.Name)" class="text-danger small" />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Description</label>
-                        <InputTextArea class="form-control"
+                        <InputTextArea class="form-contro" maxlength="500"
                        rows="3"
                        @bind-Value="editingCategory.Description" />
                     </div>
@@ -288,6 +290,8 @@
 
 @code {
     [Parameter] public List<EventCategoryDto> Categories { get; set; } = new();
+    [Parameter] public EventCallback OnCategoryChanged { get; set; }
+
 
     // private List<EventCategoryDto> categories = new();
 
@@ -304,12 +308,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // spinnerService.Show();
-        // await Task.Delay(200);
+        spinnerService.Show();
+        await Task.Delay(200);
         Categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
             "api/EventCategory"
         ) ?? new();
-        // spinnerService.Hide();
+        spinnerService.Hide();
     }
 
     // ================= UI ACTIONS =================
@@ -346,45 +350,55 @@
 
         if (!string.IsNullOrEmpty(imageError))
             return;
+
         isProcessing = true;
+        spinnerService.Show(); 
         StateHasChanged();
 
-        var content = new MultipartFormDataContent();
-
-        content.Add(new StringContent(editingCategory.Name), "Name");
-        content.Add(new StringContent(editingCategory.Description ?? ""), "Description");
-
-        if (selectedImageFile != null)
+        try
         {
-            var stream = selectedImageFile.OpenReadStream(2_000_000);
-            var fileContent = new StreamContent(stream);
-            fileContent.Headers.ContentType =
-                new MediaTypeHeaderValue(selectedImageFile.ContentType);
+            var content = new MultipartFormDataContent();
 
-            content.Add(fileContent, "ImageFile", selectedImageFile.Name);
+            content.Add(new StringContent(editingCategory.Name), "Name");
+            content.Add(new StringContent(editingCategory.Description ?? ""), "Description");
+
+            if (selectedImageFile != null)
+            {
+                var stream = selectedImageFile.OpenReadStream(2_000_000);
+                var fileContent = new StreamContent(stream);
+                fileContent.Headers.ContentType =
+                    new MediaTypeHeaderValue(selectedImageFile.ContentType);
+
+                content.Add(fileContent, "ImageFile", selectedImageFile.Name);
+            }
+
+            HttpResponseMessage response = editingCategory.Id == 0
+                ? await Http.PostAsync("api/EventCategory", content)
+                : await Http.PutAsync($"api/EventCategory/{editingCategory.Id}", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(error);
+                return;
+            }
+
+            Categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
+                "api/EventCategory"
+            ) ?? new();
+            await OnCategoryChanged.InvokeAsync();
+
+
+            CloseCategoryModal();
         }
-
-        HttpResponseMessage response = editingCategory.Id == 0
-            ? await Http.PostAsync("api/EventCategory", content)
-            : await Http.PutAsync($"api/EventCategory/{editingCategory.Id}", content);
-
-        if (!response.IsSuccessStatusCode)
+        finally
         {
-            var error = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(error);
             isProcessing = false;
+            spinnerService.Hide(); 
             StateHasChanged();
-            return;
         }
-
-        Categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
-            "api/EventCategory"
-        ) ?? new();
-
-        CloseCategoryModal();
-        isProcessing = false;
-        StateHasChanged();
     }
+
 
     void CloseCategoryModal()
     {
@@ -410,6 +424,7 @@
         try
         {
             await DeleteCategory(deleteCategoryId);
+            await OnCategoryChanged.InvokeAsync();
             showDeleteModal = false;
         }
         finally
@@ -470,6 +485,15 @@
         Categories = await Http.GetFromJsonAsync<List<EventCategoryDto>>(
             "api/EventCategory"
         ) ?? new();
+    }
+    void HandleInvalidSubmit()
+    {
+        if (editingCategory.Id == 0 && selectedImageFile == null)
+        {
+            imageError = "Image is required";
+        }
+
+        StateHasChanged();
     }
 
 }

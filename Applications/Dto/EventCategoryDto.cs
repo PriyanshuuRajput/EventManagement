@@ -13,7 +13,7 @@ namespace Applications.Dto
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Name is required")]
-        [MinLength(3, ErrorMessage = "Minimum 3 characters required")]
+        [StringLength(50, MinimumLength = 3, ErrorMessage="Category must be between 3 and 50 characters")]
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
         public string? Description { get; set; }
