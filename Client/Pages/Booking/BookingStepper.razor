@@ -1,6 +1,7 @@
 ﻿@page "/book-event/{eventId:int}/checkout"
 @layout MainLayout;
 @using Applications.Dto
+@using Applications.Dto.PaymentDto
 
 @inject LoginOverlayService LoginOverlayService
 @inject HttpClient Http
@@ -52,7 +53,7 @@
 else
 {
 
-    <div class="container mt-4" style="max-width: 700px;">
+    <div class="container mt-4" style="max-width: 900px;">
 
         <!-- STEPPER HEADER -->
         <div class="d-flex align-items-center gap-4 mb-4  shadow-sm "style="justify-content:space-around">
@@ -165,7 +166,7 @@ else
             <!-- STEP 2 : REVIEW & PAY -->
             <div class="row g-3 mt-2">
 
-                <!-- LEFT: PAYMENT OPTIONS -->
+                @* <!-- LEFT: PAYMENT OPTIONS -->
                 <div class="col-md-8">
                     <div class="card shadow-sm" style="height:100%">
                         <div class="card-body" style="padding: 10px 10px">
@@ -225,7 +226,7 @@ else
 
                         </div>
                     </div>
-                </div>
+                </div> *@
 
                 <!-- RIGHT: ORDER SUMMARY -->
                 <div class="col-md-4">
@@ -283,7 +284,7 @@ else
 
                             <button class="btn btn-danger w-100 mt-3"
                                     disabled="@isProcessing"
-                                    @onclick="ConfirmBooking">
+                                    @onclick="StartPayment">
 
                                 @if (isProcessing)
                                 {
@@ -472,5 +473,70 @@ else
 
         isProcessing = false;
     }
+
+    private async Task StartPayment()
+    {
+        isProcessing = true;
+
+        var response = await Http.PostAsJsonAsync("api/payment/create-order", Total);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(error);
+            isProcessing = false;
+            return;
+        }
+
+        var data = await response.Content.ReadFromJsonAsync<PaymentOrderDto>();
+
+        await JS.InvokeVoidAsync(
+            "startRazorpay",
+            new
+            {
+                key = data!.key,
+                amount = (int)(Total * 100),
+                currency = "INR",
+                name = "EventiGo",
+                description = evt!.Title,
+                order_id = data.orderId,
+
+            },
+            DotNetObjectReference.Create(this)
+        );
+        isProcessing = false;
+    }
+    [JSInvokable]
+    public async Task OnPaymentSuccess(
+    string paymentId,
+    string orderId,
+    string signature)
+    {
+        //  Payment successful → Create booking
+        var booking = new BookingRequest
+        {
+            EventId = eventId,
+            TicketCount = ticketCount
+        };
+
+        var res = await Http.PostAsJsonAsync("api/Booking", booking);
+
+        if (res.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                " Payment Successful! Booking Confirmed"
+            );
+            Nav.NavigateTo("/events", true);
+        }
+        else
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                "Payment done but booking failed"
+            );
+        }
+    }
+
 
 }

@@ -24,13 +24,13 @@ namespace Client
             //  API HttpClient (Production)
             builder.Services.AddHttpClient("Api", client =>
             {
-                client.BaseAddress = new Uri("http://priyanshuu007-001-site1.ktempurl.com/");
+                client.BaseAddress = new Uri("https://localhost:7239/");
             });
 
             //  AUTHORIZED API (JWT attached)
             builder.Services.AddHttpClient("AuthorizedApi", client =>
             {
-                client.BaseAddress = new Uri("http://priyanshuu007-001-site1.ktempurl.com/");
+                client.BaseAddress = new Uri("https://localhost:7239/");
             })
             .AddHttpMessageHandler<AuthMessageHandler>();
 

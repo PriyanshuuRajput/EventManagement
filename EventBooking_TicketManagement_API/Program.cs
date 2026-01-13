@@ -228,6 +228,19 @@ namespace EventBooking_TicketManagement_API
             app.MapControllers();
 
 
+            using(var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                try
+                {
+                    await db.Database.MigrateAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+
             //app.MapFallbackToFile("index.html");
 
             // ---------------------------------------------------------
@@ -279,15 +292,6 @@ namespace EventBooking_TicketManagement_API
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                try
-                {
-                    await db.Database.MigrateAsync();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
                 await CountrySeeder.SeedAsync(db);
                 await StateSeeder.SeedAsync(db);
             }
