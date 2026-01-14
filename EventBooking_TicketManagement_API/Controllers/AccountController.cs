@@ -287,7 +287,7 @@ namespace EventBooking_TicketManagement_API.Controllers
             await _db.SaveChangesAsync();
 
             var clientBaseUrl = _configuration["ClientBaseUrl"];
-            var resetLink =$"{clientBaseUrl}/change-password?token={token.Token}";
+            var resetLink =$"{clientBaseUrl}change-password?token={token.Token}";
 
             var emailHtml = EmailTemplates.ResetPassword(resetLink);
 

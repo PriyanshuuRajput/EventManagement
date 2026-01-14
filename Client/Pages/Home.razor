@@ -41,9 +41,24 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient( to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 35%, transparent 65% );
+        background: linear-gradient( to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.15) 100%, transparent 100% );
         pointer-events: none;
     }
+
+    .hero-placeholder {
+        width: 100%;
+        height: 100%;
+        box-shadow:inset 0px 0px 20px 20px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+        .hero-placeholder i {
+            font-size: 4rem;
+            opacity: 0.9;
+        }
 
 
 .carousel-caption {
@@ -108,6 +123,52 @@
     .carousel-control-next.icon-only-control {
         right: 20px;
     }
+    .brand-placeholder {
+        height: 180px; 
+        width: 100%;
+        border-radius: 5px 5px 0 0;
+        background: linear-gradient( to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.15) 100%, transparent 100% );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .brand-placeholder img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            opacity: 0.95;
+        }
+    /* GLASS CONTAINER */
+    .logo-hover {
+        position: relative;
+        overflow: hidden;
+    }
+
+        .logo-hover::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+        }
+
+        .logo-hover img {
+            transition: transform 0.9s ease, filter 0.4s ease;
+            will-change: transform;
+        }
+        .logo-hover:hover::after {
+            opacity: 1;
+        }
+
+        .logo-hover:hover img {
+            transform: rotate(360deg) scale(1.05);
+            filter: brightness(1.05);
+        }
+
 
     .category-img {
         height: 180px;
@@ -206,35 +267,34 @@
                          role="button"
                          style="cursor:pointer"
                          @onclick="() => OnBannerClick(banner)">
-                        <img src="@GetBannerImage(banner)"
-                             class="hero-img d-block w-100"
-                             alt="@banner.Title" />
 
-                        @* @if (!string.IsNullOrWhiteSpace(banner.Title))
+                        @if (!string.IsNullOrWhiteSpace(GetBannerImage(banner)))
                         {
-                            <div class="carousel-caption d-none d-md-block text-start">
-                                <h1 class="display-4 fw-bolder text-uppercase">
-                                    @banner.Title
-                                </h1>
+                            <img src="@GetBannerImage(banner)"
+                                 class="hero-img d-block w-100"
+                                 alt="@banner.Title"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                        }
 
-                                <button class="btn btn-danger btn-lg"
-                                        @onclick="() => OnBannerClick(banner)">
-                                    Explore
-                                </button>
-                            </div>
-                        } *@
+                        <div class="hero-placeholder" style="display:none;">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+
                     </div>
                 }
             }
             else
             {
-                <div class="carousel-item active hero-carousel-item">
-                    <img src="/images/default-banner.jpg"
-                         class="hero-img d-block w-100" />
+                <div class="carousel-item active hero-carousel-item logo-hover">
+                    <div class="hero-placeholder">
+                        <img src="logo.png"
+                             style="width:100px; height:100px; opacity:1; border-radius:6px" />
+                    </div>
                 </div>
             }
 
         </div>
+
 
         <!-- INDICATORS -->
         <div class="carousel-indicators">
@@ -275,10 +335,19 @@
                 <div class="col-6 col-md-3 mb-4">
                     <div class="card h-100 shadow category-card"
                          @onclick='() => GoToCategory(category.Slug)'>
-
-                        <img src="@GetCategoryImage(category.ImageUrl)"
-                             class="card-img-top category-img"
-                             alt="@category.Name">
+                        @if (!string.IsNullOrWhiteSpace(category.ImageUrl))
+                        {
+                            <img src="@GetCategoryImage(category.ImageUrl)"
+                                 class="card-img-top category-img"
+                                 alt="@category.Name"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                        }
+                        else
+                        {
+                            <div class="brand-placeholder logo-hover ">
+                                <img src="logo.png" alt="EventiGo" />
+                            </div>
+                        }
 
                         <div class="card-body d-flex align-items-center justify-content-center">
                             <h5 class="card-title mb-0">

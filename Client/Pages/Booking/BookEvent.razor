@@ -40,58 +40,67 @@
         white-space: nowrap;
         max-width: 100%;
     }
-    /*  Seat Grid
-    .seat-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
-        gap: 10px;
-        margin-bottom: 1rem;
+
+    /* Wrapper controls arrow visibility */
+    .scroll-wrapper {
+        position: relative;
     }
 
-    /*  Seat Buttons
-    .seat-btn {
-        border: 2px solid #6c757d;
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 8px 0;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        color: #333;
-    }
-
-        .seat-btn:hover {
-            background: #dc3545;
-            color: #fff;
-            border-color: #dc3545;
-        }
-
-        .seat-btn.selected {
-            background: #dc3545;
-            color: #fff;
-            border-color: #dc3545;
-        }
-
-        .seat-btn:disabled {
-            background: #e9ecef;
-            color: #aaa;
-            border-color: #ddd;
-            cursor: not-allowed;
-        }
-    .hover-shadow-sm:hover {
-        transform: translateY(-3px);
-        transition: all 0.2s ease-in-out;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
-    }
-    .hide-scrollbar {
+    /* Scroll container */
+    .scroll-container {
         overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -ms-overflow-style: none;
-        scrollbar-width: none; 
+        scroll-behavior: smooth;
+        scrollbar-width: none;
     }
 
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none; 
+        .scroll-container::-webkit-scrollbar {
+            display: none;
         }
+
+    /* Arrow buttons */
+    .scroll-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.3; 
+        transition: all 0.25s ease;
+        box-shadow: 0 8px 20px rgba(0,0,0,.25);
+    }
+
+        .scroll-btn:hover {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+    /* Show arrows on hover */
+    .scroll-wrapper:hover .scroll-btn {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Left & right positioning */
+    .scroll-btn.start-0 {
+        left: -30px;
+        top:120px;
+    }
+
+    .scroll-btn.end-0 {
+        right: -30px;
+        top:120px;
+    }
+
+    /* Icon */
+    .scroll-btn i {
+        font-size: 1.25rem;
+    }
 
 
 </style>
@@ -201,15 +210,22 @@ else
                 </div>*@
 
                 <!--You may like this -->
-                <div class="mt-5">
+                <div class="mt-5 scroll-wrapper position-relative">
                     <h4 class="fw-bold mb-3">You May Also Like</h4>
 
-                    <!-- Horizontal Scroll Wrapper -->
-                    <div class="d-flex overflow-auto pb-3 hide-scrollbar">
+                    <!-- Horizontal Scroll-->
+                        <button class="btn btn-outline-danger border-0 scroll-btn start-0" @onclick="ScrollLeft" araia-label="Scroll left">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-outline-danger border-0 scroll-btn end-0" @onclick="ScrollRight" aria-label="Scroll right">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    
+                    <div class="d-flex flex-nowrap scroll-container pb-3" @ref="scrollContainer">
                         @foreach (var item in suggestedEvents)
                         {
                             <div class="card border-0 shadow-sm rounded-3 me-3 flex-shrink-0"
-                                 style="width: 220px; scroll-snap-align: start;">
+                                 style="width: 220px">
                                 <img src="@item.ImageUrl" alt="@item.Title"
                                      class="card-img-top rounded-top"
                                      style="height:160px; object-fit:cover;" />
@@ -220,7 +236,7 @@ else
 
                                     <button class="btn btn-outline-danger btn-sm w-100 mt-2 fw-semibold"
                                             @onclick="() => ViewEvent(item.Id)">
-                                        View Details
+                                        View 
                                     </button>
                                 </div>
                             </div>
@@ -244,8 +260,7 @@ else
                         <li class="d-flex align-items-center mb-2">
                             <i class="bi bi-hourglass-split me-2 text-danger"></i>
                             <span>
-                                @(evtDetails.Duration.HasValue
-                                                                ? $"{evtDetails.Duration.Value.Hours}h {evtDetails.Duration.Value.Minutes:D2}m"
+                                @(evtDetails.Duration.HasValue? $"{evtDetails.Duration.Value.Hours}h {evtDetails.Duration.Value.Minutes:D2}m"
                                                                 : "Duration not available")
                                 </span>
                             </li>
@@ -311,6 +326,7 @@ else
 
     private EventDto? evtDetails;
     private List<EventDto> suggestedEvents = new();
+    private ElementReference scrollContainer;
     // private List<SeatCategory> seatCategories = new();
     private List<string> selectedSeats = new();
 
@@ -381,11 +397,21 @@ else
 
         suggestedEvents = allEvents?
             .Where(e => e.Id != eventId &&
+                        e.StartDate>=DateTime.Today &&
                         (e.EventCategoryId == evtDetails?.EventCategoryId || e.CityName == evtDetails?.CityName))
+                        .OrderBy(e=>e.StartDate)
             .Take(8) // show more events for horizontal scroll
             .ToList() ?? new List<EventDto>();
     }
+    private async Task ScrollLeft()
+    {
+        await JS.InvokeVoidAsync("scrollByAmount", scrollContainer, -300);
+    }
 
+    private async Task ScrollRight()
+    {
+        await JS.InvokeVoidAsync("scrollByAmount", scrollContainer, 300);
+    }
     private void ViewEvent(int id)
     {
         Nav.NavigateTo($"/book-event/{id}");
@@ -414,13 +440,13 @@ else
 
         if (response.IsSuccessStatusCode)
         {
-            await JS.InvokeVoidAsync("alert", "✅ Booking initiated!");
+            await JS.InvokeVoidAsync("alert", " Booking initiated!");
             Nav.NavigateTo("/events");
         }
         else
         {
             var msg = await response.Content.ReadAsStringAsync();
-            await JS.InvokeVoidAsync("alert", $"❌ Booking failed: {msg}");
+            await JS.InvokeVoidAsync("alert", $" Booking failed: {msg}");
         }
     }
     private void GoToCheckout()

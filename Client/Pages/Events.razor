@@ -179,22 +179,7 @@
                                 <div class="card-body">
                                     <h5 class="card-title">@ev.Title</h5>
                                     <p class="card-text mb-1"><i class="bi bi-calendar-event me-2"></i>@ev.StartDate.ToString("dd MMM yyyy")</p>
-                                    <p class="card-text mb-1"><i class="bi bi-clock me-2"></i>@ev.StartTime.ToString(@"hh\:mm")</p>
-
-                                    <!--<p class="card-text mb-1">
-                                        <i class="bi bi-calendar-event me-2"></i>
-                                        @ToIST(ev.ShowDate).ToString("dd MMM yyyy")
-                                    </p>
-
-                                    <p class="card-text mb-1">
-                                        <i class="bi bi-clock me-2"></i>
-                                        @ToIST(ev.ShowDate).ToString("hh:mm tt")-->  <!-- IST Correct Time -->
-                                    <!--</p>
-
-                                    <p class="card-text mb-1">
-                                        <i class="bi bi-hourglass-split me-2"></i>
-                                        Duration: @ev.Duration.ToString(@"hh\:mm") hrs-->  <!-- Correct Duration -->
-                                    <!--</p>-->
+                                    <p class="card-text mb-1"><i class="bi bi-clock me-2"></i>@(DateTime.Today.Add(ev.StartTime).ToString("hh:mm tt"))</p>
 
                                     <p class="card-text mb-1"><i class="bi bi-geo-alt me-2"></i>@ev.VenueName, @ev.CityName</p>
                                 </div>

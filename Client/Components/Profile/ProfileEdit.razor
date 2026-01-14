@@ -1,0 +1,87 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+
+<EditForm Model="@Model" OnSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="row">
+        <!-- IMAGE -->
+        <div class="col-md-4 text-center">
+            <img src="@GetImage()"
+                 class="rounded shadow mb-3"
+                 style="height:180px;width:100%;object-fit:cover" />
+
+            <InputFile OnChange="OnImageUpload" class="form-control" />
+        </div>
+
+        <!-- FORM -->
+        <div class="col-md-8">
+            <div class="card p-4 shadow-sm">
+
+                <h5 class="fw-bold mb-3">Profile Information</h5>
+
+                <InputText class="form-control mb-3"
+                           placeholder="Name"
+                           @bind-Value="Model.Name" />
+
+                <InputText class="form-control mb-3"
+                           placeholder="Mobile"
+                           @bind-Value="Model.Mobile" />
+
+                <InputTextArea class="form-control mb-3"
+                               rows="3"
+                               placeholder="Address"
+                               @bind-Value="Model.Address" />
+
+                <hr />
+
+                <h6 class="fw-semibold">Change Password (optional)</h6>
+
+                <InputText type="password"
+                           class="form-control mb-2"
+                           placeholder="Old Password"
+                           @bind-Value="Model.OldPassword" />
+
+                <InputText type="password"
+                           class="form-control mb-2"
+                           placeholder="New Password"
+                           @bind-Value="Model.NewPassword" />
+
+                <InputText type="password"
+                           class="form-control mb-3"
+                           placeholder="Confirm Password"
+                           @bind-Value="Model.ConfirmPassword" />
+
+                <button class="btn btn-danger w-100">
+                    Save Changes
+                </button>
+
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public ManagerAccountDto Model { get; set; } = new();
+    [Parameter] public EventCallback<ManagerAccountDto> OnSubmit { get; set; }
+
+    private async Task HandleSubmit()
+        => await OnSubmit.InvokeAsync(Model);
+
+    private string GetImage()
+        => string.IsNullOrWhiteSpace(Model.Image)
+           ? "/images/user-placeholder.png"
+           : Model.Image;
+
+    private async Task OnImageUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (!file.ContentType.StartsWith("image/")) return;
+
+        using var stream = file.OpenReadStream(2 * 1024 * 1024);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        Model.Image =
+            $"data:{file.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+    }
+}

@@ -67,6 +67,35 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok(new { message = "Profile Completed successfully!" });
         }
 
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var manager = await _db.Managers
+                .Include(m => m.User)
+                .FirstOrDefaultAsync(m => m.UserId == userId);
+
+            if (manager == null)
+                return NotFound("Manager not found");
+
+            return Ok(new ManagerProfileDto
+            {
+                ManagerId = manager.Id,
+                ManagerName = manager.ManagerName,
+                FirstName = manager.ManagerName?.Split(' ').FirstOrDefault(),
+                LastName = manager.ManagerName?.Split(' ').Skip(1).FirstOrDefault(),
+                Email = manager.User?.Email ?? "",
+                Mobile = manager.User?.PhoneNumber ?? "",
+                Address = manager.Address,
+                Image = manager.Image,
+                IsApproved = manager.IsApproved,
+                AcceptTerms = manager.IsProfileCompleted
+            });
+        }
+
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateEvent([FromForm] ManagerEventDto dto)

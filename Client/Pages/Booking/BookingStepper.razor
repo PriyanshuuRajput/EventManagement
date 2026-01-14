@@ -229,32 +229,32 @@ else
                 </div> *@
 
                 <!-- RIGHT: ORDER SUMMARY -->
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <div class="card shadow-sm" >
                         <div class="card-body">
 
-                            <h6 class="fw-bold">@evt.Title</h6>
+                            <h3 class="fw-bold">@evt.Title</h3>
 
-                            <div class="small text-muted mb-2">
-                                <div class=" card d-flex small text-muted" style="padding:5px 5px">
-                                    <span>
+                            <div class="mb-2">
+                                <div class=" card d-flex small" style="padding:10px 10px">
+                                    <span class="mb-2">
                                         <i class="bi bi-calendar-event me-1"></i>
                                         @evt.StartDate.ToString("ddd, dd MMM yyyy")
                                     </span>
-                                    <span>
+                                    <span class="mb-2">
                                         <i class="bi bi-clock me-1"></i>
                                         @{
                                             var time = DateTime.Today.Add(evt.StartTime);
                                         }
                                         @time.ToString("hh:mm tt")
                                     </span>
-                                    <span>
-                                        <i class="bi bi-geo-alt me-1"></i>
+                                    <span class="mb-2">
+                                        <i class="bi bi-geo-alt me-0"></i>
                                         @evt.VenueName
                                     </span>
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-between small">
+                            <div class="d-flex justify-content-between fw-bold">
                                 <span>Ticket Count</span>
                                 <span>@ticketCount</span>
                             </div>
@@ -320,6 +320,8 @@ else
     private string? successMessage;
     private bool isProcessing = false;
     private bool allowNavigation = false;
+    private bool confirmShown = false;
+
     private string? error;
 
 
@@ -363,7 +365,7 @@ else
         }
     }
 
-    private async Task Back()
+    private void Back()
     {
         if (step == 2)
         {
@@ -371,30 +373,37 @@ else
             return;
         }
 
-        var confirm = await JS.InvokeAsync<bool>(
-            "confirm", "Are you sure you want to leave checkout?");
-        if (confirm)
-            Nav.NavigateTo("/events");
-
+        Nav.NavigateTo("/events");
     }
+
     private async Task ConfirmLeave(LocationChangingContext context)
     {
-        if (allowNavigation)
+        if (confirmShown)
             return;
+
         if (step == 2)
         {
+            confirmShown = true;
             step = 1;
             context.PreventNavigation();
+            confirmShown = false;
             return;
         }
+
+        confirmShown = true;
+
         var confirmed = await JS.InvokeAsync<bool>(
-            "confirm","Are you sure you want to leave this checkout?");
+            "confirm",
+            "Are you sure you want to leave checkout?"
+        );
 
         if (!confirmed)
         {
+            confirmShown = false;
             context.PreventNavigation();
         }
     }
+
 
     private bool ValidateMembers()
     {
@@ -507,12 +516,8 @@ else
         isProcessing = false;
     }
     [JSInvokable]
-    public async Task OnPaymentSuccess(
-    string paymentId,
-    string orderId,
-    string signature)
+    public async Task OnPaymentSuccess(string paymentId,string orderId,string signature)
     {
-        //  Payment successful → Create booking
         var booking = new BookingRequest
         {
             EventId = eventId,
