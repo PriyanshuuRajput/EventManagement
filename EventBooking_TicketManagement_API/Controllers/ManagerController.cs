@@ -52,20 +52,74 @@ namespace EventBooking_TicketManagement_API.Controllers
                 .FirstOrDefaultAsync(m => m.UserId == userId);
         }
 
-
-        [HttpPost("manager-changepassword-profilesetup")]
-
-        public async Task<IActionResult> MangerProfileUpdate([FromBody] ManagerProfileDto dto)
+        [HttpPost("manager-changepassword/accountSettings")]
+        public async Task<IActionResult> ManagerProfileUpdate([FromBody] ManagerProfileDto dto)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
 
-            var result = await _managerService.ManagerProfileChangePassword(userId, dto);
+            var manager = await _db.Managers
+                .FirstOrDefaultAsync(m => m.UserId == userId);
+
+            if (manager == null)
+                return Unauthorized("Manager not found");
+
+            bool isFirstTimeSetup = manager.IsProfileCompleted == false;
+            bool wantsPasswordChange = !string.IsNullOrWhiteSpace(dto.OldPassword);
+
+            // PASSWORD VALIDATION RULES
+            if (!isFirstTimeSetup && !wantsPasswordChange)
+            {
+                // Account settings → remove password validation
+                ModelState.Remove(nameof(dto.OldPassword));
+                ModelState.Remove(nameof(dto.NewPassword));
+                ModelState.Remove(nameof(dto.ConfirmPassword));
+            }
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _managerService
+                .ManagerProfileChangePassword(userId, dto);
 
             if (result != "Success")
                 return BadRequest(new { message = result });
 
-            return Ok(new { message = "Profile Completed successfully!" });
+            return Ok(new { message = "Profile updated successfully" });
         }
+
+        [HttpPost("accountSettings/upload-profile-image")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadProfileImage([FromForm] ProfileImageUploadDto dto)
+        {
+            if (dto.Image == null || dto.Image.Length == 0)
+                return BadRequest("No image uploaded");
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var manager = await _db.Managers
+                .FirstOrDefaultAsync(m => m.UserId == userId);
+
+            if (manager == null)
+                return Unauthorized("Manager not found");
+
+            var imageUrl = await _managerService.UploadProfileImageAsync(userId, dto.Image);
+
+            manager.Image = imageUrl;
+            manager.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new ProfileImageDto
+            {
+                Image = imageUrl
+            });
+
+        }
+
 
         [HttpGet("profile")]
         public async Task<IActionResult> GetMyProfile()

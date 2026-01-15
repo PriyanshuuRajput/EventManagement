@@ -1,4 +1,5 @@
 ﻿@using EventBooking.Client.Services
+@inject HttpClient Http
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -128,8 +129,8 @@
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <img src="@ProfileImageUrl" class="profile-img" />
                         <div>
-                            <div class="fw-semibold">Hi, @Name</div>
-                            <div class="text-muted small">@userEmail</div>
+                            <div class="fw-semibold">Hi, @DisplayName</div>
+                            <div class="text-muted small">@DisplayEmail</div>
 
                             <button class="btn btn-outline-secondary btn-sm mt-2" 
                                     @onclick="@(() => NavigateTo("/account-settings"))">
@@ -155,8 +156,8 @@
                         </button>
                     }
 
-                    <button class="drawer-item" disabled>
-                        Account Settings
+                    <button class="drawer-item" @onclick="@(() => NavigateTo("/account-settings"))">
+                        My Profile
                     </button>
                 </div>
 
@@ -178,15 +179,33 @@
     private bool isAuthenticated;
     private bool openAnimation;
     private bool showDrawer;
-    private string? userName;
-    private string? userEmail;
+
+    private ManagerAccountDto? profile;   
     private string? role;
-    private string? fullName;
-    private string? profileImage;
 
-    private string Name => !string.IsNullOrWhiteSpace(fullName) ? fullName : !string.IsNullOrWhiteSpace(userName) ? userName : "there";
+    private string DisplayName =>
+    !string.IsNullOrWhiteSpace(profile?.Name)
+        ? profile!.Name
+        : "User";
 
-    private string ProfileImageUrl =>!string.IsNullOrWhiteSpace(profileImage)? profileImage: "avtar.png";
+    private string DisplayEmail =>
+        !string.IsNullOrWhiteSpace(profile?.Email)
+            ? profile!.Email
+            : "";
+
+
+    private string ProfileImageUrl
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(profile?.Image))
+                return "/avtar.png";
+
+            return $"https://localhost:7239{profile.Image}";
+        }
+    }
+
+
     protected override async Task OnInitializedAsync()
     {
         AuthStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
@@ -199,17 +218,25 @@
         var principal = authState.User;
 
         isAuthenticated = principal.Identity?.IsAuthenticated == true;
+        if (!isAuthenticated)
+            return;
 
-        if (isAuthenticated)
+        role = principal.FindFirst(ClaimTypes.Role)?.Value ?? "User";
+
+        try
         {
-            userName = principal.Identity?.Name ?? "User";
-            userEmail = principal.FindFirst("email")?.Value ?? "";
-            fullName = principal.FindFirst("fullName")?.Value;
-            profileImage = principal.FindFirst("profileImage")?.Value;
-            role = principal.FindFirst(ClaimTypes.Role)?.Value ?? "User";
-
+            profile = await Http.GetFromJsonAsync<ManagerAccountDto>("api/ManagerEvent/profile");
         }
+        catch
+        {
+            profile = null;
+        }
+
+        StateHasChanged();
     }
+
+
+
 
     private async void OnAuthStateChanged(Task<AuthenticationState> task)
     {

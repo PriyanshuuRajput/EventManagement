@@ -21,6 +21,7 @@ namespace Applications.Dto
 
         public string? Image { get; set; }
 
+        public string Email { get; set; } = string.Empty;
         // PASSWORD (OPTIONAL)
         public string? OldPassword { get; set; }
         public string? NewPassword { get; set; }

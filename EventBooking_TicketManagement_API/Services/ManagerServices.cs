@@ -56,7 +56,7 @@ namespace EventBooking_TicketManagement_API.Services
             var manager = new Manager
             {
                 UserId = user.Id,
-                ManagerName = "",         
+                ManagerName = "",
                 //Mobile = "",
                 Address = "",
                 IsApproved = false,
@@ -158,6 +158,28 @@ namespace EventBooking_TicketManagement_API.Services
             return Guid.NewGuid().ToString("N")[..8];
         }
 
+
+        public async Task<string> UploadProfileImageAsync(int userId, IFormFile image)
+        {
+            if (image == null || image.Length == 0)
+                throw new Exception("No image uploaded");
+
+            var manager = await _managerRepo.GetManagerWithUserByUserIdAsync(userId);
+            if (manager == null)
+                throw new Exception("Manager not found");
+
+            // ✅ Reuse your existing upload logic
+            var imageUrl = await UploadImageAsync(image);
+
+            manager.Image = imageUrl;
+            manager.UpdatedAt = DateTime.UtcNow;
+
+            await _managerRepo.SaveChangesAsync();
+
+            return imageUrl;
+        }
+
+
         public async Task<string> ManagerProfileChangePassword(int userIdFromToken, ManagerProfileDto dto)
         {
 
@@ -169,43 +191,46 @@ namespace EventBooking_TicketManagement_API.Services
             var user = manager.User;
             if (user == null) return "User account not found";
 
-            bool isOldPasswordCorrect = _passwordHasher.VerifyPassword(dto.OldPassword, user.PasswordHash);
-            if (!isOldPasswordCorrect)
-                return "Temporary password is incorrect!";
+            bool isFirstTime = manager.IsProfileCompleted == false;
+            bool wantsPasswordChange = !string.IsNullOrWhiteSpace(dto.OldPassword);
 
-            if (dto.OldPassword == dto.NewPassword)
-                return "New password cannot be the same as temporary password.";
+            if (isFirstTime || wantsPasswordChange)
+            {
+                if (string.IsNullOrWhiteSpace(dto.OldPassword))
+                    return "Old password is required";
 
-            if (dto.NewPassword != dto.ConfirmPassword)
-                return "New password and confirm password do not match.";
+                bool isOldPasswordCorrect =
+                    _passwordHasher.VerifyPassword(dto.OldPassword, user.PasswordHash);
 
-            if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
-                return "New password must be at least 6 characters.";
+                if (!isOldPasswordCorrect)
+                    return "Old password is incorrect";
 
-            if (dto.NewPassword != dto.ConfirmPassword)
-                return "New password and confirm password do not match.";
+                if (dto.NewPassword == dto.OldPassword)
+                    return "New password cannot be the same as old password";
 
+                if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
+                    return "New password must be at least 6 characters";
 
-            user.PasswordHash = _passwordHasher.HashPassword(dto.NewPassword);
-            user.ChangePassword = false;
+                if (dto.NewPassword != dto.ConfirmPassword)
+                    return "New password and confirm password do not match";
 
+                user.PasswordHash = _passwordHasher.HashPassword(dto.NewPassword);
+                user.ChangePassword = false;
+            }
 
-            manager.User.Username = dto.ManagerName;
-            //manager.Email = dto.Email;
-            //manager.Mobile = dto.Mobile;
+            manager.ManagerName = dto.ManagerName;
             manager.Address = dto.Address;
             manager.Image = dto.Image;
             manager.IsProfileCompleted = true;
 
+            user.PhoneNumber = dto.Mobile;
+
             manager.UpdatedAt = DateTime.UtcNow;
             user.UpdatedAt = DateTime.UtcNow;
-            user.PhoneNumber = dto.Mobile;
 
             await _managerRepo.SaveChangesAsync();
 
             return "Success";
-
-
         }
 
         public async Task<List<ManagerProfileDto>> GetAllManagersAsync()
@@ -218,7 +243,7 @@ namespace EventBooking_TicketManagement_API.Services
                 ManagerId = m.Id,
                 ManagerName = m.ManagerName ?? "",
                 Email = m.User?.Email ?? "",
-                Mobile = m.User?.PhoneNumber??"",
+                Mobile = m.User?.PhoneNumber ?? "",
                 Address = m.Address,
                 Image = m.Image,
                 CreatedAt = m.CreatedAt,
@@ -237,7 +262,7 @@ namespace EventBooking_TicketManagement_API.Services
             return pending.Select(m => new ManagerProfileDto
             {
                 Id = m.Id,
-                ManagerName = m.User?.Username??"",
+                ManagerName = m.User?.Username ?? "",
                 Email = m.User.Email,
                 Mobile = m.User.PhoneNumber,
                 Address = m.Address,
@@ -285,7 +310,28 @@ namespace EventBooking_TicketManagement_API.Services
 
             return true;
         }
+
+        private async Task<string> UploadImageAsync(IFormFile file)
+        {
+            var allowed = new[] { ".jpeg", ".jpg", ".png", ".webp" };
+            var ext = Path.GetExtension(file.FileName).ToLower();
+
+            if (!allowed.Contains(ext))
+                throw new Exception("Invalid image type");
+
+            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "profile-images");
+
+            Directory.CreateDirectory(folder);
+
+            var fileName = $"{Guid.NewGuid()}{ext}";
+            var path = Path.Combine(folder, fileName);
+
+            using var stream = new FileStream(path, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/profile-images/{fileName}";
+        }
+
+
     }
-
-
 }

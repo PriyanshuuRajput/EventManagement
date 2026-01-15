@@ -1,87 +1,370 @@
 ﻿@using Microsoft.AspNetCore.Components.Forms
+@inject HttpClient Http
+
+<style>
+    .profile-banner {
+        width: 100%;
+        height: 170px;
+        border-radius: 30px;
+        background-size: cover;
+        background-position: center;
+        filter: blur(4px);
+        transform: scale(1.02); 
+        opacity: 0.85;
+        margin-top:30px;
+    }
+    .camera-btn {
+        background: rgba(0,0,0,0.6);
+        color: #fff;
+        transition: all 0.2s ease;
+    }
+        .camera-btn i {
+            font-size: 18px;
+        }
+
+        .camera-btn:hover {
+            transform: scale(1.05);
+            background: rgba(0,0,0,0.8);
+        }
+
+    /* CARD */
+    .settings-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+        .settings-card h3 {
+            margin-bottom: 0;
+        }
+
+        .settings-card.muted {
+            opacity: 0.6;
+        }
+
+        /* INPUT */
+        .settings-card .form-control {
+            border-radius: 10px;
+            padding: 10px 14px;
+        }
+
+    /* BUTTONS */
+    .btn-primary {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background: #e53935;
+        color: #fff;
+        font-weight: 500;
+    }
+
+    .btn-danger {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background: #d32f2f;
+        color: #fff;
+        font-weight: 500;
+    }
+
+    .btn-outline {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px dashed #ccc;
+        background: transparent;
+    }
+
+    /* FLOATING LABEL */
+    .floating-group {
+        position: relative;
+        margin-bottom: 18px;
+    }
+
+        .floating-group .form-control {
+            padding: 14px;
+            height: 48px;
+        }
+
+        .floating-group textarea.form-control {
+            height: auto;
+            padding-top: 18px;
+        }
+
+        .floating-group label {
+            position: absolute;
+            top: 50%;
+            left: 14px;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #777;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            background: #fff;
+            padding: 0 10px;
+        }
+
+        .floating-group .form-control:focus + label,
+        .floating-group .form-control:not(:placeholder-shown) + label {
+            top: 0;
+            font-size: 12px;
+            color: #dc3545;
+        }
+
+        .floating-group .form-control::placeholder {
+            color: transparent;
+        }
+</style>
+
+<PageTitle>EventiGo - Account Settings</PageTitle>
 
 <EditForm Model="@Model" OnSubmit="HandleSubmit">
     <DataAnnotationsValidator />
 
-    <div class="row">
-        <!-- IMAGE -->
-        <div class="col-md-4 text-center">
-            <img src="@GetImage()"
-                 class="rounded shadow mb-3"
-                 style="height:180px;width:100%;object-fit:cover" />
+    <!-- HEADER -->
+    <div class="profile-banner"style="background-image:url('@GetImage()')"></div>
 
-            <InputFile OnChange="OnImageUpload" class="form-control" />
-        </div>
+    <!-- PROFILE HEADER -->
+    <div style="position:relative; margin-top:-90px; padding:0 80px">
+        <div style="display:flex; gap:30px; align-items:center">
 
-        <!-- FORM -->
-        <div class="col-md-8">
-            <div class="card p-4 shadow-sm">
+            <div style="position:relative;">
+                <img src="@GetImage()" style="width:150px;height:150px;border-radius:50%;object-fit:cover;" />
+                <label for="profileImageInput" class="camera-btn"
+                       style="position:absolute; bottom:8px; right:8px; width:40px; height:40px;
+              border-radius:50%; display:flex; align-items:center;
+              justify-content:center; cursor:pointer;">
+                    <i class="bi bi-camera-fill"></i>
+                </label>
+                <InputFile id="profileImageInput"
+                           OnChange="OnImageUpload"
+                           accept="image/*"
+                           style="display:none" />
 
-                <h5 class="fw-bold mb-3">Profile Information</h5>
-
-                <InputText class="form-control mb-3"
-                           placeholder="Name"
-                           @bind-Value="Model.Name" />
-
-                <InputText class="form-control mb-3"
-                           placeholder="Mobile"
-                           @bind-Value="Model.Mobile" />
-
-                <InputTextArea class="form-control mb-3"
-                               rows="3"
-                               placeholder="Address"
-                               @bind-Value="Model.Address" />
-
-                <hr />
-
-                <h6 class="fw-semibold">Change Password (optional)</h6>
-
-                <InputText type="password"
-                           class="form-control mb-2"
-                           placeholder="Old Password"
-                           @bind-Value="Model.OldPassword" />
-
-                <InputText type="password"
-                           class="form-control mb-2"
-                           placeholder="New Password"
-                           @bind-Value="Model.NewPassword" />
-
-                <InputText type="password"
-                           class="form-control mb-3"
-                           placeholder="Confirm Password"
-                           @bind-Value="Model.ConfirmPassword" />
-
-                <button class="btn btn-danger w-100">
-                    Save Changes
-                </button>
-
+            </div>
+         
+            <div>
+                <h1 style="margin-top:20px">@Model.Name</h1>
+                <div style="display:flex; gap:20px;margin-top:20px; font-size:18px;">
+                    <span><i class="bi bi-geo-alt text-danger"></i> @Model.Address</span>
+                    <span><i class="bi bi-envelope text-secondary"></i> @Model.Email</span>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- SETTINGS -->
+    <div class="container-fluid mt-2" style="padding:10px 10px 10px 200px">
+        <div class="row g-4 align-items-stretch">
+
+            <!-- BASIC INFO -->
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 d-flex">
+                <div class="settings-card shadow-lg w-100">
+                    <h3>Profile</h3>
+                    <hr />
+
+                    <div class="floating-group">
+                        <InputText class="form-control" placeholder=" " @bind-Value="Model.Name" />
+                        <label>Full Name</label>
+                    </div>
+
+                    <div class="floating-group">
+                        <InputTextArea class="form-control" rows="2" placeholder=" " @bind-Value="Model.Address" />
+                        <label>Address</label>
+                    </div>
+
+                    <div class="floating-group">
+                        <InputText class="form-control" placeholder=" " @bind-Value="Model.Mobile" />
+                        <label>Mobile Number</label>
+                    </div>
+
+                    <div class="floating-group">
+                        <InputText class="form-control" placeholder=" " @bind-Value="Model.Email"/>
+                        <label>Email</label>
+                    </div>
+
+                    <button class="btn-primary">Save</button>
+                </div>
+            </div>
+
+            <!-- SECURITY -->
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 d-flex">
+                <div class="settings-card shadow-lg w-100">
+                    <h3>Security</h3>
+                    <hr/>
+
+                    <div class="floating-group">
+                        <InputText type="password" class="form-control" placeholder=" " @bind-Value="Model.OldPassword" />
+                        <label>Current Password</label>
+                    </div>
+
+                    <div class="floating-group">
+                        <InputText type="password" class="form-control" placeholder=" " @bind-Value="Model.NewPassword" />
+                        <label>New Password</label>
+                    </div>
+
+                    <div class="floating-group">
+                        <InputText type="password" class="form-control" placeholder=" " @bind-Value="Model.ConfirmPassword" />
+                        <label>Confirm Password</label>
+                    </div>
+
+                    <button class="btn-danger">Update Password</button>
+                </div>
+            </div>
+
+            <!-- MANAGER -->
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 d-flex">
+                <div class="settings-card muted shadow-lg w-100">
+                    <h3>Businees Details</h3>
+                    <hr />
+                    <p>Business, payout, and verification details will appear here.</p>
+                    <button class="btn-outline" disabled>Coming Soon</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </EditForm>
+
+
+<!--Confirm Modal-->
+@if (showConfirmPopup)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;">
+        <div style="
+                background:#fff;
+                border-radius:14px;
+                padding:24px;
+                width:320px;
+                text-align:center;
+            ">
+            <h4>Update Profile Image</h4>
+            <p style="font-size:14px;color:#666;">
+                Do you want to save this image as your profile image?
+            </p>
+
+            <div style="display:flex; gap:12px; margin-top:20px;">
+                <button class="btn-outline w-100"
+                        @onclick="CancelImageChange">
+                    Cancel
+                </button>
+
+                    <button class="btn-primary w-100" disabled="@isUpdate"
+                        @onclick="ConfirmImageChange">
+                    @if (isUpdate)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    Update
+                </button>
+                
+            </div>
+        </div>
+    </div>
+}
+
 
 @code {
     [Parameter] public ManagerAccountDto Model { get; set; } = new();
     [Parameter] public EventCallback<ManagerAccountDto> OnSubmit { get; set; }
 
+    private IBrowserFile? pendingImageFile;
+    private string? previewImage;
+    private bool showConfirmPopup = false;
+    private bool isUpdate = false;
+
+
     private async Task HandleSubmit()
-        => await OnSubmit.InvokeAsync(Model);
+    => await OnSubmit.InvokeAsync(Model);
 
     private string GetImage()
-        => string.IsNullOrWhiteSpace(Model.Image)
-           ? "/images/user-placeholder.png"
-           : Model.Image;
+    {
+        if (!string.IsNullOrWhiteSpace(previewImage))
+            return previewImage;
+
+        if (string.IsNullOrWhiteSpace(Model.Image))
+            return "/avtar.png";
+
+        var apiBase = Http.BaseAddress!.ToString().TrimEnd('/');
+        return $"{apiBase}{Model.Image}";
+    }
+
 
     private async Task OnImageUpload(InputFileChangeEventArgs e)
     {
         var file = e.File;
-        if (!file.ContentType.StartsWith("image/")) return;
+        if (!file.ContentType.StartsWith("image/"))
+            return;
 
-        using var stream = file.OpenReadStream(2 * 1024 * 1024);
+        pendingImageFile = file;
+
+        using var stream = file.OpenReadStream(5 * 1024 * 1024);
         using var ms = new MemoryStream();
         await stream.CopyToAsync(ms);
 
-        Model.Image =
+        previewImage =
             $"data:{file.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+
+        showConfirmPopup = true;
+
+        await InvokeAsync(StateHasChanged);
     }
+
+
+    private void CancelImageChange()
+    {
+        pendingImageFile = null;
+        previewImage = null;
+        showConfirmPopup = false;
+    }
+
+    private async Task ConfirmImageChange()
+    {
+        isUpdate = true;
+        if (pendingImageFile == null)
+            return;
+
+        using var content = new MultipartFormDataContent();
+
+        var stream = pendingImageFile.OpenReadStream(5 * 1024 * 1024);
+        var streamContent = new StreamContent(stream);
+
+        streamContent.Headers.ContentType =
+            new System.Net.Http.Headers.MediaTypeHeaderValue(
+                pendingImageFile.ContentType
+            );
+
+        content.Add(streamContent, "Image", pendingImageFile.Name);
+
+        var response = await Http.PostAsync(
+            "api/ManagerEvent/accountSettings/upload-profile-image",
+            content
+        );
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(error);
+            return;
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<ProfileImageDto>();
+
+        Model.Image = result!.Image;
+
+        pendingImageFile = null;
+        previewImage = null;
+        showConfirmPopup = false;
+        isUpdate = false;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+
 }

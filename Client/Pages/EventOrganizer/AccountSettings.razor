@@ -53,7 +53,7 @@ else
     private async Task SaveProfile(ManagerAccountDto data)
     {
         await Http.PostAsJsonAsync(
-            "api/ManagerEvent/manager-changepassword-profilesetup",
+            "api/ManagerEvent/manager-changepassword/accountSettings",
             new ManagerProfileDto
             {
                 ManagerName = data.Name,
