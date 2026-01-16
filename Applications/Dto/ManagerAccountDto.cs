@@ -1,30 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Applications.Dto
+public class ManagerAccountDto
 {
-    public class ManagerAccountDto
-    {
-        public int Id { get; set; }
+    [Required(ErrorMessage = "Name is required")]
+    [MinLength(2, ErrorMessage = "Name must be at least 2 characters")]
+    public string Name { get; set; } = "";
 
-        [Required]
-        public string Name { get; set; } = "";
+    [Required(ErrorMessage = "Mobile number is required")]
+    [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Mobile must be exactly 10 digits")]
+    public string Mobile { get; set; } = "";
 
-        [Required]
-        public string Mobile { get; set; } = "";
+    [Required(ErrorMessage = "Address is required")]
+    public string Address { get; set; } = "";
 
-        public string Address { get; set; } = "";
+    public string Email { get; set; } = "";
 
-        public string? Image { get; set; }
+    public string? Image { get; set; }
 
-        public string Email { get; set; } = string.Empty;
-        // PASSWORD (OPTIONAL)
-        public string? OldPassword { get; set; }
-        public string? NewPassword { get; set; }
-        public string? ConfirmPassword { get; set; }
-    }
+   
+    public string? OldPassword { get; set; }
+
+    [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
+    public string? NewPassword { get; set; }
+
+    [Compare(nameof(NewPassword), ErrorMessage = "Passwords do not match")]
+    public string? ConfirmPassword { get; set; }
 }

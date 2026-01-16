@@ -1,4 +1,5 @@
-﻿using Applications.Dto.OrganizerDto;
+﻿using Applications.Dto;
+using Applications.Dto.OrganizerDto;
 using Microsoft.AspNetCore.Http;
 
 namespace Applications.Interfaces.IService
@@ -16,5 +17,6 @@ namespace Applications.Interfaces.IService
         Task<string> ManagerProfileChangePassword(int userId, ManagerProfileDto dto);
         Task<bool> DeleteManagerAsync(int managerId);
         Task<string> UploadProfileImageAsync(int userId, IFormFile image);
+        Task <string> UpdateManagerProfileAsync(int userId , ManagerAccountDto dto);
     }
 }

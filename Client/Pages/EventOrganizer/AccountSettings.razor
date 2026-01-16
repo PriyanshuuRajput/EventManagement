@@ -1,6 +1,5 @@
 ﻿@page "/account-settings"
 @attribute [Authorize(Roles="Manager")]
-
 @using System.Net.Http.Headers
 @using EventBooking.Client.Components.Profile
 @inject NavigationManager Nav
@@ -15,7 +14,7 @@
 }
 else
 {
-    <ProfileEdit Model="@model" OnSubmit="SaveProfile"/>
+    <ProfileEdit Model="model" OnSubmit="SaveProfile" />
 }
 
 @code {
@@ -25,12 +24,6 @@ else
     protected override async Task OnInitializedAsync()
     {
         var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
-
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            Nav.NavigateTo("/login");
-            return;
-        }
 
         Http.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
@@ -45,6 +38,7 @@ else
                 Name = profile.ManagerName,
                 Mobile = profile.Mobile,
                 Address = profile.Address,
+                Email = profile.Email,
                 Image = profile.Image
             };
         }
@@ -52,17 +46,9 @@ else
 
     private async Task SaveProfile(ManagerAccountDto data)
     {
-        await Http.PostAsJsonAsync(
-            "api/ManagerEvent/manager-changepassword/accountSettings",
-            new ManagerProfileDto
-            {
-                ManagerName = data.Name,
-                Mobile = data.Mobile,
-                Address = data.Address,
-                Image = data.Image,
-                OldPassword = data.OldPassword,
-                NewPassword = data.NewPassword,
-                ConfirmPassword = data.ConfirmPassword
-            });
+        await Http.PutAsJsonAsync(
+            "api/ManagerEvent/profile-update",
+            data
+        );
     }
 }

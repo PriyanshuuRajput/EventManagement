@@ -1,4 +1,5 @@
-﻿@using EventBooking.Client.Services
+﻿@using Applications.Dto.OrganizerDto;
+@using EventBooking.Client.Services
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
@@ -31,6 +32,13 @@
         border-radius: 6px;
         object-fit: cover;
         border: 2px solid rgba(220, 53, 69, 0.4);
+    }
+
+    .drawer-overlay {
+        position: fixed;
+        inset: 0; 
+        background: rgba(0,0,0,0.4);
+        z-index: 2000; 
     }
 
     .drawer-panel0 {
@@ -105,12 +113,22 @@
     }
     else
     {
-        <!-- PROFILE DROPDOWN -->
-        <button class="profile-icon d-flex align-items-center justify-content-center @(openAnimation ?" open":"")"
+        <button class="profile-icon d-flex align-items-center justify-content-center @(openAnimation ? "open" : "")"
                 aria-label="Profile"
                 @onclick="OpenProfile">
-            <i class="bi bi-person"></i>
+
+            @if (!string.IsNullOrEmpty(FirstLetter))
+            {
+                <span class="fw-bold text-danger">
+                    @FirstLetter
+                </span>
+            }
+            else
+            {
+                <i class="bi bi-person"></i>
+            }
         </button>
+
     @if (showDrawer)
     {
             <div class="drawer-overlay" @onclick="CloseDrawer"></div>
@@ -119,7 +137,7 @@
 
                 <!-- HEADER -->
                 <div class="drawer-header d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">My Account</h3>
+                    <h3 class="mb-0 text-dark">My Account</h3>
                     <button class="btn-close" @onclick="CloseDrawer"></button>
                 </div>
 
@@ -129,7 +147,7 @@
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <img src="@ProfileImageUrl" class="profile-img" />
                         <div>
-                            <div class="fw-semibold">Hi, @DisplayName</div>
+                            <div class="fw-semibold text-dark">Hi, @DisplayName</div>
                             <div class="text-muted small">@DisplayEmail</div>
 
                             <button class="btn btn-outline-secondary btn-sm mt-2" 
@@ -180,13 +198,28 @@
     private bool openAnimation;
     private bool showDrawer;
 
-    private ManagerAccountDto? profile;   
+    private ManagerProfileDto? profile;
     private string? role;
 
+    private string FirstLetter
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(profile?.FirstName))
+                return profile.FirstName.Substring(0, 1).ToUpper();
+
+            if (!string.IsNullOrWhiteSpace(profile?.ManagerName))
+                return profile.ManagerName.Substring(0, 1).ToUpper();
+
+            return string.Empty;
+        }
+    }
+
+
     private string DisplayName =>
-    !string.IsNullOrWhiteSpace(profile?.Name)
-        ? profile!.Name
-        : "User";
+    !string.IsNullOrWhiteSpace(profile?.ManagerName)
+        ? profile!.ManagerName
+        : "Manager";
 
     private string DisplayEmail =>
         !string.IsNullOrWhiteSpace(profile?.Email)
@@ -201,9 +234,14 @@
             if (string.IsNullOrWhiteSpace(profile?.Image))
                 return "/avtar.png";
 
-            return $"https://localhost:7239{profile.Image}";
+            if (profile.Image.StartsWith("http"))
+                return profile.Image;
+
+            return $"{Http.BaseAddress}{profile.Image.TrimStart('/')}";
         }
     }
+
+
 
 
     protected override async Task OnInitializedAsync()
@@ -225,15 +263,29 @@
 
         try
         {
-            profile = await Http.GetFromJsonAsync<ManagerAccountDto>("api/ManagerEvent/profile");
+            var token = await JS.InvokeAsync<string>(
+                "localStorage.getItem", "authToken"
+            );
+
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                Http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            profile = await Http.GetFromJsonAsync<ManagerProfileDto>(
+                "api/ManagerEvent/profile"
+            );
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine(ex.Message);
             profile = null;
         }
 
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
+
 
 
 
@@ -250,6 +302,8 @@
         StateHasChanged();
 
         await Task.Delay(400);
+
+        await LoadUser();
 
         showDrawer = true;
         openAnimation = false;

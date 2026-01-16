@@ -123,7 +123,7 @@
 
 <PageTitle>EventiGo - Account Settings</PageTitle>
 
-<EditForm Model="@Model" OnSubmit="HandleSubmit">
+<EditForm Model="@Model">
     <DataAnnotationsValidator />
 
     <!-- HEADER -->
@@ -165,65 +165,164 @@
             <!-- BASIC INFO -->
             <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 d-flex">
                 <div class="settings-card shadow-lg w-100">
-                    <h3>Profile</h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Profile</h3>
+
+                        @if (activeEdit != Edit.Profile)
+                        {
+                            <button class="btn btn-link text-danger fw-semibold p-0" style="font-size:16px"
+                                    @onclick="()=>EnableEdit(Edit.Profile)">
+                                Edit
+                            </button>
+                        }
+                    </div>
+
                     <hr />
+                    @if (activeEdit != Edit.Profile)
+                    {
+                        <div class="mb-3">
+                            <strong style="font-size:16px">Full name:</strong> @Model.Name
+                        </div>
+                        <div class="mb-3">
+                            <strong style ="font-size:16px">Address:</strong> @Model.Address
+                        </div>
 
-                    <div class="floating-group">
-                        <InputText class="form-control" placeholder=" " @bind-Value="Model.Name" />
-                        <label>Full Name</label>
-                    </div>
+                        <div class="mb-3">
+                            <strong style="font-size:16px">Mobile number:</strong> @Model.Mobile
+                        </div>
+                        <div class="mb-3">
+                            <strong style="font-size:16px">Email:</strong> @Model.Email
+                        </div>
+                    }
 
-                    <div class="floating-group">
-                        <InputTextArea class="form-control" rows="2" placeholder=" " @bind-Value="Model.Address" />
-                        <label>Address</label>
-                    </div>
+                    @if (activeEdit == Edit.Profile)
+                    {
+                        <div class="floating-group">
+                            <InputText class="form-control" placeholder=" " @bind-Value="Model.Name" />
+                            <label>Full Name</label>
+                            <ValidationMessage For="@(() => Model.Name)" />
+                        </div>
 
-                    <div class="floating-group">
-                        <InputText class="form-control" placeholder=" " @bind-Value="Model.Mobile" />
-                        <label>Mobile Number</label>
-                    </div>
+                        <div class="floating-group">
+                            <InputTextArea class="form-control" rows="2" placeholder=" " @bind-Value="Model.Address" />
+                            <label>Address</label>
+                            <ValidationMessage For="@(() => Model.Address)" />
+                        </div>
 
-                    <div class="floating-group">
-                        <InputText class="form-control" placeholder=" " @bind-Value="Model.Email"/>
-                        <label>Email</label>
-                    </div>
+                        <div class="floating-group">
+                            <InputText class="form-control"
+                                       placeholder=" "
+                                       @bind-Value="Model.Mobile"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       maxlength="10"
+                                       oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+                            <label>Mobile Number</label>
+                            <ValidationMessage For="@(() => Model.Mobile)" />
+                        </div>
 
-                    <button class="btn-primary">Save</button>
+                        @* <div class="floating-group">
+                            <InputText class="form-control" placeholder=" " @bind-Value="Model.Email"/>
+                            <label>Email</label>
+                        </div> *@
+
+                        <div class="d-flex justify-content-end" style="gap:10px">
+                            <button type="button" class="btn-outline" @onclick="CancelEdit">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn-primary" style="padding:10px 14px"  disabled = "@isSave" @onclick="Save">
+                                @if (isSave)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                    Save
+                                </button>
+                            
+                        </div>
+                    }
                 </div>
             </div>
 
             <!-- SECURITY -->
             <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 d-flex">
                 <div class="settings-card shadow-lg w-100">
-                    <h3>Security</h3>
-                    <hr/>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Password</h3>
 
-                    <div class="floating-group">
-                        <InputText type="password" class="form-control" placeholder=" " @bind-Value="Model.OldPassword" />
-                        <label>Current Password</label>
+                        @if (activeEdit != Edit.Password)
+                        {
+                            <button class="btn btn-link text-danger fw-semibold p-0" style="font-size:16px"
+                                    @onclick="()=>EnableEdit(Edit.Password)">
+                                Edit
+                            </button>
+                        }
                     </div>
 
-                    <div class="floating-group">
-                        <InputText type="password" class="form-control" placeholder=" " @bind-Value="Model.NewPassword" />
-                        <label>New Password</label>
-                    </div>
+                    <hr />
+                    @if (activeEdit != Edit.Password)
+                    {
+                        <div class="mb-3">
+                            <strong style ="font-size:16px">Current password: ********</strong>
+                        </div>
+                    }
 
-                    <div class="floating-group">
-                        <InputText type="password" class="form-control" placeholder=" " @bind-Value="Model.ConfirmPassword" />
-                        <label>Confirm Password</label>
-                    </div>
+                    @if (activeEdit == Edit.Password)
+                    {
+                        <div class="floating-group">
+                            <InputText type="password" class="form-control" placeholder=" " @bind-Value="Model.OldPassword" />
+                            <label>Current Password</label>
+                            <ValidationMessage For="@(() => Model.OldPassword)" />
+                        </div>
 
-                    <button class="btn-danger">Update Password</button>
+                        <div class="floating-group">
+                            <InputText type="password" class="form-control" placeholder=" " @bind-Value="Model.NewPassword" />
+                            <label>New Password</label>
+                            <ValidationMessage For="@(() => Model.NewPassword)" />
+                        </div>
+
+                        <div class="floating-group">
+                            <InputText type="password" class="form-control" placeholder=" " @bind-Value="Model.ConfirmPassword" />
+                            <label>Confirm Password</label>
+                            <ValidationMessage For="@(() => Model.ConfirmPassword)" />
+                        </div>
+
+                        <div class="d-flex justify-content-end" style="gap:10px">
+                            <button type="button" class="btn-outline" @onclick="CancelEdit">
+                                Cancel
+                            </button>
+                            <button class="btn-primary" style="padding:10px 14px" @onclick="Save">Save</button>
+                        </div>
+                    }
                 </div>
             </div>
 
-            <!-- MANAGER -->
+            <!-- Businee details -->
             <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 d-flex">
                 <div class="settings-card muted shadow-lg w-100">
-                    <h3>Businees Details</h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Business Details</h3>
+
+                        @if (activeEdit != Edit.Business)
+                        {
+                            <button class="btn btn-link text-danger fw-semibold p-0" style="font-size:16px"
+                                    @onclick="()=>EnableEdit(Edit.Business)">
+                                Edit
+                            </button>
+                        }
+                    </div>
+
                     <hr />
-                    <p>Business, payout, and verification details will appear here.</p>
-                    <button class="btn-outline" disabled>Coming Soon</button>
+                    @if (activeEdit != Edit.Business)
+                    {
+                        <div class="mb-3">
+                            <strong class="text-muted">Business, payout, and verification details will appear here.</strong>
+                        </div>
+                    }
+                    @if (activeEdit == Edit.Business)
+                    {
+                        <p>Business, payout, and verification details will appear here.</p>
+                        <button class="btn-outline" disabled>Coming Soon</button>
+                    }
                 </div>
             </div>
 
@@ -277,10 +376,17 @@
     private string? previewImage;
     private bool showConfirmPopup = false;
     private bool isUpdate = false;
+    private bool isSave = false;
 
+    private enum Edit
+    {
+        None, 
+        Profile,
+        Password,
+        Business, 
+    }
+    private Edit activeEdit = Edit.None;
 
-    private async Task HandleSubmit()
-    => await OnSubmit.InvokeAsync(Model);
 
     private string GetImage()
     {
@@ -366,5 +472,31 @@
     }
 
 
+    private void EnableEdit( Edit edit)
+    {
+        activeEdit = edit;
+    }
+    private void CancelEdit()
+    {
+        activeEdit =Edit.None;
+    }
+
+    private async Task Save()
+    {
+        if (isSave) return;
+
+        try
+        {
+            isSave = true;
+
+            await OnSubmit.InvokeAsync(Model);
+
+            activeEdit = Edit.None;
+        }
+        finally
+        {
+            isSave = false;
+        }
+    }
 
 }

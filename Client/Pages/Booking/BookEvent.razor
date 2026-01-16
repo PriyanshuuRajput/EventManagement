@@ -8,12 +8,42 @@
 
 
 <style>
-    .event-banner {
-        border-radius: 5px;
-        height: 350px; 
-        object-fit: cover;
-        max-width:100%
+
+    .event-hero {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.4);
+        
     }
+
+        .event-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.45) );
+        }
+
+    .event-banner {
+        height: 380px;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    .event-hero:hover .event-banner {
+        transform: scale(1.04);
+    }
+
+    .readmore-text {
+        transition: max-height 0.4s ease, opacity 0.3s ease;
+    }
+
+    .card {
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(8px);
+    }
+
 
     .ticket-card {
         transition: all 0.2s ease-in-out;
@@ -100,8 +130,31 @@
     /* Icon */
     .scroll-btn i {
         font-size: 1.25rem;
+    
     }
 
+    .suggested-card {
+        width: 220px;
+        border-radius: 16px;
+        transition: transform 0.35s ease, box-shadow 0.35s ease;
+    }
+
+        .suggested-card:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+    .booking-card {
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        border: none;
+    }
+
+        .booking-card .btn-danger {
+            font-size: 1.05rem;
+            padding: 14px;
+            border-radius: 10px;
+        }
 
 </style>
 
@@ -121,17 +174,17 @@ else
             <div class="col-lg-8">
                 <h2 class="fw-bold mb-3">@evtDetails.Title</h2>
 
-                <div class="card border-0 shadow-sm rounded-2 overflow-hidden ">
-                    <img src="@evtDetails.ImageUrl" alt="@evtDetails.Title" class="w-100 event-banner" />
+                <div class="card border-0 shadow-sm event-hero ">
+                    <img src="@evtDetails.ImageUrl" alt="@evtDetails.Title" class="event-banner" />
                 </div>
 
                 <!-- Tags -->
                 <div class="mb-3 d-flex justify-content-end align-items-center">
-                    <span class="badge bg-secondary mt-2 ms-2">@evtDetails.CategoryName</span>
+                    @* <span class="badge bg-secondary mt-2 ms-2">@evtDetails.CategoryName</span> *@
                   
 
                     
-                    <i class="bi bi-hand-thumbs-up-fill text-success ms-2 mt-2 fs-5"></i>
+                @*     <i class="bi bi-hand-thumbs-up-fill text-success ms-2 mt-2 fs-5"></i>
                     <span class="fw-semibold me-2 ms-2 mt-2">@interestedCount are interested</span>
 
                     @if (isInterested)
@@ -145,7 +198,7 @@ else
                 <button class="btn btn-outline-danger btn-sm fw-semibold ms-2 mt-2" @onclick="MarkInterested">  
                     I'm Interested
                 </button>
-                    }
+                    } *@
                 </div>
 
                 <!-- Interested Info -->
@@ -156,11 +209,23 @@ else
                 </div>-->
                 <!-- About the Event -->
                 <div class="mb-4">
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         <h4 class="fw-bold mb-3">About The Event</h4>
-                        <p class="text-muted">@evtDetails.Description</p>
+
+                        <p class="text-muted readmore-text">
+                            @(isExpand ? evtDetails.Description: evtDetails.Description?.Length > 400? evtDetails.Description.Substring(0, 400) + "...": evtDetails.Description)
+                        </p>
+
+                        @if (evtDetails.Description?.Length > 400)
+                        {
+                            <button class="btn btn-link p-0 fw-semibold text-danger"
+                                    @onclick="ToggleReadMore">
+                                @(isExpand ? "Read Less" : "Read More")
+                            </button>
+                        }
                     </div>
                 </div>
+
                 <!-- 🎟️ Seat Selection -->
                 @*<div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body">
@@ -224,7 +289,7 @@ else
                     <div class="d-flex flex-nowrap scroll-container pb-3" @ref="scrollContainer">
                         @foreach (var item in suggestedEvents)
                         {
-                            <div class="card border-0 shadow-sm rounded-3 me-3 flex-shrink-0"
+                            <div class="card border-0 shadow-sm rounded-3 me-3 flex-shrink-0 suggested-card" 
                                  style="width: 220px">
                                 <img src="@item.ImageUrl" alt="@item.Title"
                                      class="card-img-top rounded-top"
@@ -234,7 +299,7 @@ else
                                     <h6 class="fw-semibold text-truncate mb-1">@item.Title</h6>
                                     <small class="text-muted d-block">@item.CityName</small>
 
-                                    <button class="btn btn-outline-danger btn-sm w-100 mt-2 fw-semibold"
+                                    <button class="btn btn-outline-danger btn-sm w-100 mt-2 fw-semibold" style="border-radius:10px"
                                             @onclick="() => ViewEvent(item.Id)">
                                         View 
                                     </button>
@@ -246,7 +311,7 @@ else
             </div>
             <!-- 💳 Right Section: Booking Summary -->
             <div class="col-lg-4">
-                <div class="card shadow-sm border-0 sticky-top " style="top: 90px; margin-top: 43px">
+                <div class="card shadow-sm border-0 sticky-top booking-card " style="top: 90px; margin-top: 43px">
                     <div class="card-body">
                         <ul class="list-unstyled mb-0">
                             <li class="d-flex align-items-center mb-2">
@@ -293,8 +358,8 @@ else
         </div>
     </div>
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="me-4 ms-4 mt-4 lh-1" style="--bs-breadcrumb-divider: '→'; font-size:0.75rem; opacity:0.8;">
-        <ol class="breadcrumb small text-muted mb-0">
+    <nav aria-label="breadcrumb" class="me-4 ms-5 mt-4 lh-1" style="--bs-breadcrumb-divider: '→'; font-size:0.75rem; opacity:0.8;">
+        <ol class="breadcrumb  text-muted mb-0" style="font-size:14px">
             <li class="breadcrumb-item">
                 <a href="/" class="text-decoration-none text-muted">Home</a>
             </li>
@@ -314,10 +379,6 @@ else
             </li>
         </ol>
     </nav>
-
-
-
-    @*</div>*@
 }
 
 
@@ -339,13 +400,14 @@ else
     private decimal ServiceFee => Math.Round(Subtotal * 0.1m, 2);
     private decimal Total => Subtotal + ServiceFee;
     private bool IsLoggedIn = false;
+    private bool isExpand = false;
 
 
 
 
-    private int interestedCount = 0;
-    private bool isInterested = false;
-    private string interestKey => $"event_{eventId}_interested";
+    // private int interestedCount = 0;
+    // private bool isInterested = false;
+    // private string interestKey => $"event_{eventId}_interested";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -371,6 +433,11 @@ else
         await LoadSuggestedEvents();
 
         spinnerService.Hide();
+    }
+
+    private void ToggleReadMore()
+    {
+        isExpand = !isExpand;
     }
     private async Task CheckLoginStatusAsync()
     {
@@ -481,36 +548,36 @@ else
     //     };
     // }
 
-    private async Task LoadInterestAsync()
-    {
-        try
-        {
-            isInterested = await SessionStorage.GetItemAsync<bool>(interestKey);
+    // private async Task LoadInterestAsync()
+    // {
+    //     try
+    //     {
+    //         isInterested = await SessionStorage.GetItemAsync<bool>(interestKey);
 
-            interestedCount = new Random().Next(500, 900);
-            if (isInterested)
-            {
-                interestedCount += 1;
-            }
-        }
-        catch
-        {
-            interestedCount = 0;
-        }
-    }
+    //         interestedCount = new Random().Next(500, 900);
+    //         if (isInterested)
+    //         {
+    //             interestedCount += 1;
+    //         }
+    //     }
+    //     catch
+    //     {
+    //         interestedCount = 0;
+    //     }
+    // }
 
-    private async Task MarkInterested()
-    {
-        if (isInterested)
-            return;
+    // private async Task MarkInterested()
+    // {
+    //     if (isInterested)
+    //         return;
 
-        isInterested = true;
-        interestedCount++;
+    //     isInterested = true;
+    //     interestedCount++;
 
-        await SessionStorage.SetItemAsync(interestKey, true);
+    //     await SessionStorage.SetItemAsync(interestKey, true);
 
-        // await JS.InvokeVoidAsync("alert", "👍 You’ve marked this event as interested!");
-    }
+    //     await JS.InvokeVoidAsync("alert", "👍 You’ve marked this event as interested!");
+    // }
 
     // public class SeatCategory
     // {

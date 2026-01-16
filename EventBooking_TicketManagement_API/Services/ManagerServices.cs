@@ -1,4 +1,5 @@
-﻿using Applications.Dto.OrganizerDto;
+﻿using Applications.Dto;
+using Applications.Dto.OrganizerDto;
 using Applications.Interfaces;
 using Applications.Interfaces.IRepository;
 using Applications.Interfaces.IService;
@@ -168,7 +169,7 @@ namespace EventBooking_TicketManagement_API.Services
             if (manager == null)
                 throw new Exception("Manager not found");
 
-            // ✅ Reuse your existing upload logic
+            //  Reuse your existing upload logic
             var imageUrl = await UploadImageAsync(image);
 
             manager.Image = imageUrl;
@@ -177,6 +178,39 @@ namespace EventBooking_TicketManagement_API.Services
             await _managerRepo.SaveChangesAsync();
 
             return imageUrl;
+        }
+        public async Task<string> UpdateManagerProfileAsync(int userId, ManagerAccountDto dto)
+        {
+            var manager = await _managerRepo.GetManagerWithUserByUserIdAsync(userId);
+            if (manager == null) return "Manager not found";
+
+            var user = manager.User;
+            if (user == null) return "User not found";
+
+            // MANAGER 
+            manager.ManagerName = dto.Name;
+            manager.Address = dto.Address;
+            manager.UpdatedAt = DateTime.UtcNow;
+
+            //  USER table
+            user.PhoneNumber = dto.Mobile;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            //  password change
+            if (!string.IsNullOrWhiteSpace(dto.OldPassword))
+            {
+                if (!_passwordHasher.VerifyPassword(dto.OldPassword, user.PasswordHash))
+                    return "Old password is incorrect";
+
+                if (dto.NewPassword != dto.ConfirmPassword)
+                    return "Passwords do not match";
+
+                user.PasswordHash = _passwordHasher.HashPassword(dto.NewPassword!);
+                user.ChangePassword = false;
+            }
+
+            await _managerRepo.SaveChangesAsync();
+            return "Success";
         }
 
 

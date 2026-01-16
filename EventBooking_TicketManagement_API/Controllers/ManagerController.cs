@@ -133,22 +133,36 @@ namespace EventBooking_TicketManagement_API.Controllers
                 .FirstOrDefaultAsync(m => m.UserId == userId);
 
             if (manager == null)
-                return NotFound("Manager not found");
+                return NotFound();
 
             return Ok(new ManagerProfileDto
             {
-                ManagerId = manager.Id,
+                Id = manager.Id,
                 ManagerName = manager.ManagerName,
-                FirstName = manager.ManagerName?.Split(' ').FirstOrDefault(),
-                LastName = manager.ManagerName?.Split(' ').Skip(1).FirstOrDefault(),
-                Email = manager.User?.Email ?? "",
-                Mobile = manager.User?.PhoneNumber ?? "",
                 Address = manager.Address,
-                Image = manager.Image,
-                IsApproved = manager.IsApproved,
-                AcceptTerms = manager.IsProfileCompleted
+                Mobile = manager.User?.PhoneNumber ?? "",
+                Email = manager.User?.Email ?? "",
+                Image = manager.Image
             });
         }
+
+        [HttpPut("profile-update")]
+        public async Task<IActionResult> UpdateProfile([FromBody] ManagerAccountDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var result = await _managerService.UpdateManagerProfileAsync(userId, dto);
+
+            if (result != "Success")
+                return BadRequest(result);
+
+            return Ok(new { message = "Profile updated successfully" });
+        }
+
+
 
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
