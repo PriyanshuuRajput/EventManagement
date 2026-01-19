@@ -28,6 +28,7 @@ namespace Domains.Entities
 
         public bool ChangePassword { get; set; } = false;
         public Manager? Manager { get; set; }
+        public RealUser? RealUser { get; set; }
         public DateTime UpdatedAt { get; set; }
         public ICollection<Event>? Events { get; set; }
         public ICollection<ChangePasswordToken>? PasswordTokens { get; set; }

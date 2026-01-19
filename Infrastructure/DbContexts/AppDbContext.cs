@@ -24,6 +24,7 @@ namespace Infrastructures.DbContexts
         public DbSet<EventCategory> EventCategories { get; set; }
         public DbSet<HomeBanner> HomeBanners { get; set; }
         public DbSet<ChangePasswordToken> ChangePasswordTokens { get; set; }
+        public DbSet<RealUser> RealUsers {  get; set; }
 
 
 
@@ -46,6 +47,12 @@ namespace Infrastructures.DbContexts
                 .WithOne(m => m.User)
                 .HasForeignKey<Manager>(m => m.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdminUser>()
+              .HasOne(u => u.RealUser)
+              .WithOne(m => m.User)
+              .HasForeignKey<RealUser>(m => m.UserId)
+              .OnDelete(DeleteBehavior.Cascade);
 
             // Event ⇄ Manager (One-to-Many)
             modelBuilder.Entity<Event>()

@@ -4,6 +4,7 @@ using Applications.Interfaces.IService;
 using Applications.Services;
 using Domains.Entities;
 using EventBooking_TicketManagement_API.Services;
+using Infrastructure.Repositories;
 using Infrastructure.Repository;
 using Infrastructure.Security;
 using Infrastructures.DbContexts;
@@ -43,6 +44,7 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
             builder.Services.AddScoped<IEventCategoryRepository, EventCategoryRepository>();
             builder.Services.AddScoped<IHomeBannerRepository, HomeBannerRepository>();
+            builder.Services.AddScoped<IRealUserRepository, RealUserRepository>();
 
 
             // ---------------------------------------------------------
@@ -59,7 +61,9 @@ namespace EventBooking_TicketManagement_API
             builder.Services.AddScoped<IEventCategoryService,EventCategoryService>();
             builder.Services.AddScoped<IQrCodeService, QrCodeService>();
             builder.Services.AddScoped<IHomeBannerService, HomeBannerService>();
-          
+            builder.Services.AddScoped<IRealUserService, RealUserService>();
+
+
 
             // ---------------------------------------------------------
             // Security Services
