@@ -167,8 +167,27 @@
         inset: 0;
         z-index: 5000 !important;
     }
+    /* ===== ACTIVE TAB GLOW ===== */
+    .nav-pills .nav-link.active {
+        position: relative;
+        animation: tabGlow 1.8s infinite;
+    }
 
-  ---------- OVERLAY ---------- */
+    @@keyframes tabGlow {
+        0% {
+            box-shadow: 0 0 0 rgba(220,53,69,0);
+        }
+
+        50% {
+            box-shadow: 0 0 12px rgba(220,53,69,.4);
+        }
+
+        100% {
+            box-shadow: 0 0 0 rgba(220,53,69,0);
+        }
+    }
+
+
 .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -176,44 +195,6 @@
     backdrop-filter: blur(2px);
     z-index: 2000;
 }
-
-/* ---------- DRAWER PANEL ---------- */
-.drawer-panel {
-/*     position: fixed;
-    top: 0;
-    right: 0;
-/*    width: 60%;                   */
-    /* max-width: 60%;             
-    height: 100vh;
-    background: #fff; */ */
-/*    border-left: 2px solid #dc3545;
-    display: flex;
-    flex-direction: column;
-    animation: slideIn .50s ease-out forwards;
-    z-index: 2000;
-}
-
-@@keyframes slideIn {
-    from { transform: translateX(100%); }
-    to   { transform: translateX(0); }
-}
-
-    .image-preview {
-        width: 150px;
-        height: 100px;
-/*        border: 1px solid #ddd;*/
-    /*     border-radius: 5px;
-        overflow: hidden;
-        display: inline-block;
-        background: #f8f9fa;
-    }
-
-        .image-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        } */
-
 
 /* ---------- HEADER ---------- */
 .drawer-header {
@@ -348,6 +329,22 @@
         backdrop-filter: blur(6px);
         border: 1px solid rgba(220, 53, 69, 0.2);
         box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    /* ===== NEW EVENT HIGHLIGHT ===== */
+    .event-card {
+        animation: cardPop .4s ease-out;
+    }
+
+    @@keyframes cardPop {
+        0% {
+            transform: scale(.96);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
     }
 
 
@@ -1249,27 +1246,27 @@
     }
 
     private bool ConvertDurationInput()
-    {
+            {
         editingEvent.DurationError = null;
 
         if (string.IsNullOrWhiteSpace(editingEvent.DurationInput))
-        {
+            {
             editingEvent.Duration = null;
             //editingEvent.DurationError = "Duration is required.";
             return true;
-        }
+            }
 
         if (!TimeSpan.TryParse(editingEvent.DurationInput, out var ts))
-        {
+            {
             editingEvent.DurationError = "Invalid format. Use HH:mm (e.g., 02:30).";
-            return false;
-        }
+                return false;
+            }
 
         if (ts.TotalMinutes < 20)
-        {
+            {
             editingEvent.DurationError = "Minimum Duration is 20 minutes.";
-            return false;
-        }
+                return false;
+            }
 
         editingEvent.Duration = ts;
         return true;

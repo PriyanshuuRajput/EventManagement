@@ -436,6 +436,7 @@
                         data-bs-target="#heroCarousel"
                         data-bs-slide-to="@i"
                         class="@(i == 0 ? "active" : "")"
+                        style="background-color:#dc3545"
                         aria-current="@(i == 0)">
                 </button>
             }
@@ -751,7 +752,8 @@
 
             events = allEvents
                 .Where(e => e.StartDate >= DateTime.Now)
-                .OrderBy(e => e.StartDate)
+                .OrderByDescending(e=>e.IsPromoted)
+                .ThenBy(e=>e.StartDate)
                 .Take(10)
                 .ToList();
 

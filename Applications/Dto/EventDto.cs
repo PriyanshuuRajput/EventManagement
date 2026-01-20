@@ -56,7 +56,7 @@ namespace Applications.Dto
                 }
 
                 Duration = parsed;
-                DurationError = null; 
+                DurationError = null;
             }
         }
 

@@ -70,6 +70,7 @@ namespace EventBooking_TicketManagement_API.Services
                     SoldTickets = ev.SoldTickets,
                     TicketPrice = ev.TicketPrice,
 
+
                     GrossRevenue = grossRevenue,
                     CommissionAmount = adminRevenue,
                     ManagerPayout = managerPayout,
@@ -633,7 +634,9 @@ namespace EventBooking_TicketManagement_API.Services
                     GrossRevenue = grossRevenue,
                     CommissionAmount = adminRevenue,
                     ManagerPayout = managerPayout,
-                    IsAmountAccepted = e.IsAmountAccepted
+                    IsAmountAccepted = e.IsAmountAccepted,
+                    IsPromoted = e.IsPromoted
+
                 };
             }).ToList();
 
@@ -646,11 +649,20 @@ namespace EventBooking_TicketManagement_API.Services
                 TotalCount = pagedEvents.TotalCount
             };
         }
+        public async Task<bool> EventExistsAsync(int eventId)
+        {
+            return await _eventRepository.EventExistsAsync(eventId);
+        }
 
         public async Task<IEnumerable<EventDto>> GetPromotedEventsAsync()
         {
             var events = await _eventRepository.GetPromotedEventsAsync();
             return events.Select(MapToDto);
+        }
+
+        public async Task TogglePromotionAsync(int eventId)
+        {
+            await _eventRepository.TogglePromotionAsync(eventId);
         }
 
     }

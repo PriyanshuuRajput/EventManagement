@@ -31,7 +31,9 @@ namespace Applications.Interfaces.IRepository
 
         Task<Manager?> GetManagerByIdAsync(int id);
 
+        // Promotion
         Task<IEnumerable<Event>> GetPromotedEventsAsync();
+        Task TogglePromotionAsync(int eventId);
 
 
 

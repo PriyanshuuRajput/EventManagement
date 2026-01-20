@@ -29,8 +29,11 @@ namespace Applications.Interfaces.IService
 
         //PAgination
         Task<PagedResult<EventDto>> GetPagedEventAsync(PagedRequest req);
+        Task<bool> EventExistsAsync(int eventId);
 
         Task<IEnumerable<EventDto>> GetPromotedEventsAsync();
+        Task TogglePromotionAsync(int eventId);
+
 
 
     }

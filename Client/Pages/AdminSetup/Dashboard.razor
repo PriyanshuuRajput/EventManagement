@@ -491,6 +491,7 @@
 
 </style>
 
+<PageTitle>EventiGo-Dashboard</PageTitle>
 
 <div class="container-fluid py-1">
 
@@ -733,6 +734,7 @@
                             <th>Commission</th>
                             <th>Manager Payout</th>
                             <th>Manager Name</th>
+                        <th class="text-center">Promote</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -791,7 +793,14 @@
                                         @(string.IsNullOrWhiteSpace(evt.ManagerName) ? "Admin" : evt.ManagerName)
                                     </div>
                                 </td>
-
+                                <!--Promote Event-->
+                                <td class="text-center">
+                                    <i class="bi @(evt.IsPromoted ? "bi-star-fill text-warning" : "bi-star text-muted")"
+                                       style="cursor:pointer;font-size:18px"
+                                       title="Promote event"
+                                       @onclick="() => TogglePromotion(evt)">
+                                    </i>
+                                </td>
                                 <!-- STATUS -->
                                 <td class="text-center">
                                     @if (evt.Status == EventStatus.Pending)
@@ -1207,6 +1216,12 @@
 
         isLoading = false;
         spinnerService.Hide();
+    }
+    private async Task TogglePromotion(EventDto evt)
+    {
+        evt.IsPromoted = !evt.IsPromoted;
+
+        await adminService.ToggleEventPromotionAsync(evt.Id);
     }
 
 

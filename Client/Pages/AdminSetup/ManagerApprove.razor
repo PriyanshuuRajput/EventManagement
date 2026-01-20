@@ -8,6 +8,7 @@
 @inject SpinnerService spinnerService
 @inject HttpClient Http
 @inject Blazored.Toast.Services.IToastService toast
+
 @*@using Blazored.Toast
     @using Blazored.Toast.Configuration*@
 @attribute [Authorize(Roles="Admin")]
@@ -133,36 +134,70 @@
         overflow-y: auto;
     }
 
-    /* Full-width banner background */
+    /* HEADER CONTAINER */
     .profile-header {
-        width: 100%;
-        background: url('https://images.unsplash.com/photo-1763205367855-093764253663?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+        position: relative;
+        height: 120px;
+        border-radius: 10px;
+        background-size: cover;
+        background-position: center;
+        overflow: hidden;
         margin-bottom: 20px;
-        color: white;
-        backdrop-filter: blur(4px);
     }
 
-    /* Flexible inside content */
+        /* BLUR + DARK OVERLAY */
+        .profile-header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: inherit;
+            background-size: cover;
+            background-position: center;
+            filter: blur(2px);
+            opacity: 0.9;
+        }
+
+  /*   .profile-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient( to bottom, rgba(0,0,0,0.45), rgba(0,0,0,0.75) );
+    } */
+
+    /* CONTENT ON TOP */
     .profile-content {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
         display: flex;
         align-items: center;
+        z-index: 2;
+        color: white;
     }
 
-    /* Rounded image (left side) */
-    .manager-photo-round {
-        width: 85px;
-        height: 85px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    /* PROFILE IMAGE */
+    .profile-avatar {
+        position: relative;
     }
 
+        .profile-avatar img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            background: #fff;
+        }
 
-/*    .event-item {
-        cursor: pointer;
-        transition: 0.2s;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }*/
+    /* INFO */
+    .profile-info {
+        margin-left: 18px;
+    }
+
+        .profile-info h4 {
+            margin: 10px 0px;
+            font-weight: 700;
+            font-size:18px;
+        }
 
  .event-list {
     margin-top: 8px;
@@ -237,7 +272,7 @@
     }
 </style>
 
-
+<PageTitle>EventiGo-ManageManagers</PageTitle>
 
 <div class="container-fluid py-0">
 
@@ -322,7 +357,7 @@
     <div class="table-responsive rounded-0">
         <table class="table table-hover align-middle">
             <thead class="table-secondary" style="text-align:center">
-                <tr class="fw-semibold">
+                <tr class="fw-semibold" style="font-size:16px">
                     @*<th></th>*@
                     <th>Image</th>
                     <th>Name</th>
@@ -363,12 +398,14 @@
                             <td class="no-blur">
                                 @if (!string.IsNullOrEmpty(m.Image))
                                 {
-                                    <img src="@m.Image" class="rounded-square rounded-3" style=" width: 70px; height: 60px; object-fit: cover" />
+                                    <img src="@GetImage(m.Image)"
+                                         onerror="this.onerror=null;this.src='@GetImage(null)';"
+                                         style="width:100px;height:80px;object-fit:cover ;border-radius:10px;" />
                                 }
                                 else
                                 {
                                     <img src="/avtar.png"
-                                         class="rounded-square rounded-3" style=" width: 70px; height: 60px; object-fit: cover;" />
+                                         class="rounded-square rounded-3" style=" width: 70px; height: 70px; object-fit: cover;" />
                                 }
                             </td>
 
@@ -582,39 +619,41 @@
 
         <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:20px">
-            <h4 class="fw-bold m-0" style="font-size:20px">@SelectedManagers.ManagerName Profile</h4>
+            <h4 class="fw-bold m-0" style="font-size:20px">Profile</h4>
             <button class="btn-close" @onclick="CloseViewModal"></button>
         </div>
 
         <!-- PROFILE -->
-        <div class="profile-header">
-            <div class="profile-content d-flex align-items-center">
+        <div class="profile-header"
+             style="background-image:url('@GetManagerImage(SelectedManagers.Image)');">
 
-                <!-- LEFT ROUND IMAGE -->
-                <img src="@GetManagerImage(SelectedManagers.Image)"
-                     class="manager-photo-round" />
+            <div class="profile-overlay"></div>
 
-                <!-- RIGHT INFO -->
-                <div class="ms-4">
-                    <h5 class="fw-bold m-0">@SelectedManagers.ManagerName</h5>
+            <div class="profile-content">
+                <!-- PROFILE IMAGE -->
+                <div class="profile-avatar">
+                    <img src="@GetManagerImage(SelectedManagers.Image)"
+                         onerror="this.onerror=null;this.src='@GetManagerImage(null)';" />
+                </div>
 
-                    <p class="text-light mb-1">@SelectedManagers.Email</p>
-
-                    <span class="badge @(SelectedManagers.Status == "Approved" ? "bg-success" : "bg-warning text-dark") px-3 py-2">
-                        @SelectedManagers.Status
+                <!-- PROFILE INFO -->
+                <div class="profile-info">
+                    <h4>@SelectedManagers.ManagerName</h4>
+                    <span>
+                        <i class="bi bi-envelope"></i>
+                        @SelectedManagers.Email
                     </span>
                 </div>
             </div>
-
         </div>
 
        @*<hr />*@
         <!-- INFO AREA -->
         <div>
-            <p><strong>Contact Number:</strong> @SelectedManagers.Mobile</p>
-            <p><strong>Address Details:</strong> @SelectedManagers.Address</p>
-            <p><strong>Account Created On:</strong> @SelectedManagers.CreatedAt.ToString("dd MMM yyyy")</p>
-            <p><strong>Total Assigned Events:</strong> @SelectedManagers.EventsCount</p>
+            <p><strong style:" font-size:16px">Contact Number:</strong> @SelectedManagers.Mobile</p>
+            <p><strong style:" font-size:16px">Address Details:</strong> @SelectedManagers.Address</p>
+            <p><strong style:" font-size:16px"> Account Created On:</strong> @SelectedManagers.CreatedAt.ToString("dd MMM yyyy")</p>
+            <p><strong style:" font-size:16px">Total Assigned Events:</strong> @SelectedManagers.EventsCount</p>
         </div>
         <hr />
 
@@ -677,7 +716,6 @@
 
     </div>
 }
-
 
 
 
@@ -925,8 +963,26 @@
 
     }
 
-    string GetManagerImage(string? img) =>
-        string.IsNullOrWhiteSpace(img) ? "/avtar.png" : img;
+    string GetManagerImage(string? img)
+    {
+        var baseUrl = Http.BaseAddress!.ToString().TrimEnd('/');
+
+        if (string.IsNullOrWhiteSpace(img))
+            return $"{baseUrl}/avtar.png";
+
+        return $"{baseUrl}{img}";
+    }
+
+
+    string GetImage(string? img)
+    {
+        if (string.IsNullOrWhiteSpace(img))
+            return $"{Http.BaseAddress}avtar.png";
+
+        return $"{Http.BaseAddress}{img.TrimStart('/')}";
+    }
+
+
 
     private void EditManager(int id)
     {

@@ -1,6 +1,7 @@
 ﻿using Applications.Dto;
 using Applications.Dto.Pagination;
 using Applications.Interfaces.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -207,12 +208,26 @@ namespace EventBooking_TicketManagement_API.Controllers
             return Ok(result);
         }
 
+
         [HttpGet("promoted")]
         public async Task<IActionResult> GetPromotedEvents()
         {
             var events = await _eventService.GetPromotedEventsAsync();
             return Ok(events);
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{id:int}/toggle-promotion")]
+        public async Task<IActionResult> TogglePromotion(int id)
+        {
+            if (!await _eventService.EventExistsAsync(id))
+                return NotFound();
+
+            await _eventService.TogglePromotionAsync(id);
+
+            return Ok();
+        }
+
 
     }
 }

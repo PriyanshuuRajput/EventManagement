@@ -19,7 +19,7 @@ namespace Infrastructures.Repository
         public async Task<IEnumerable<Event>> GetAllAsync()
         {
             return await _context.Events
-                .Include(e=> e.EventCategory)
+                .Include(e => e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                 //.Include(e => e.Seats)
@@ -33,10 +33,10 @@ namespace Infrastructures.Repository
         public async Task<Event?> GetByIdAsync(int id)
         {
             return await _context.Events
-                .Include(e=>e.EventCategory)
+                .Include(e => e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
-                //.Include(e => e.Seats)
+                  //.Include(e => e.Seats)
                   .Include(e => e.Managers)
         .ThenInclude(m => m.User)
                 .FirstOrDefaultAsync(e => e.Id == id);
@@ -105,7 +105,7 @@ namespace Infrastructures.Repository
         {
             return await _context.Events
                 .Where(e => e.ManagerId == managerId)
-                .Include(e=>e.EventCategory)
+                .Include(e => e.EventCategory)
                 .Include(e => e.Venue)
                     .ThenInclude(v => v.City)
                       .Include(e => e.Managers)
@@ -235,5 +235,13 @@ namespace Infrastructures.Repository
 
         }
 
+        public async Task TogglePromotionAsync(int eventId)
+        {
+            var evt = await _context.Events.FindAsync(eventId);
+            if (evt == null) return;
+
+            evt.IsPromoted = !evt.IsPromoted;
+            await _context.SaveChangesAsync();
+        }
     }
 }

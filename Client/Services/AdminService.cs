@@ -291,6 +291,18 @@ namespace EventBooking.Client.Services
 
             return result ?? new PagedResult<EventDto>();
         }
+        public async Task ToggleEventPromotionAsync(int eventId)
+        {
+            await AddAuthHeaderAsync();
+
+            var response = await _httpClient.PostAsync(
+                $"api/events/{eventId}/toggle-promotion",
+                null
+            );
+
+            response.EnsureSuccessStatusCode();
+        }
+
 
     }
 }
